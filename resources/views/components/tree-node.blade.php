@@ -39,11 +39,11 @@
 <li class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }}">
     {{-- Spouse(s) — smaller, only edit/delete --}}
     @foreach($spouses as $spouse)
-        <a class="partner" wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })">
+        <a class="partner gender-{{ $spouse->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })">
             <div class="pt-thumb">
                 <img src="{{ $getAvatar($spouse) }}" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
             </div>
-            <strong>{{ $spouse->first_name }}</strong>
+            <strong>{{ trim($spouse->first_name . ' ' . $spouse->last_name) }}</strong>
             <span class="pt-options">
                 <b class="tree-edit" wire:click.stop="$dispatch('edit-member', { id: {{ $spouse->id }} })" title="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
@@ -56,14 +56,14 @@
     @endforeach
 
     {{-- Main Member --}}
-    <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }}" wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })">
+    <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} gender-{{ $member->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })">
         @if(!$member->is_living)
             <span class="pt-dead">Wafat</span>
         @endif
         <div class="pt-thumb">
             <img src="{{ $avatarUrl }}" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
         </div>
-        <strong>{{ $member->first_name }}</strong>
+        <strong>{{ trim($member->first_name . ' ' . $member->last_name) }}</strong>
 
         <span class="pt-options">
             <b class="tree-edit" wire:click.stop="$dispatch('edit-member', { id: {{ $member->id }} })" title="Edit">

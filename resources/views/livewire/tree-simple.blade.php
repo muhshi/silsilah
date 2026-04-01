@@ -8,7 +8,7 @@ new class extends Component
 {
     public $tree;
 
-    public function mount($id)
+    public function mount($id): void
     {
         $this->tree = FamilyTree::with([
             'members',
@@ -16,23 +16,21 @@ new class extends Component
             'members.marriagesAsWife.husband',
         ])->findOrFail($id);
 
-        if ($this->tree->users()->where('user_id', auth()->id())->doesntExist() && !$this->tree->is_public) {
+        if ($this->tree->users()->where('user_id', auth()->id())->doesntExist() && ! $this->tree->is_public) {
             abort(403, 'Unauthorized access to this family tree.');
         }
     }
 
     #[On('refresh-tree')]
-    public function refreshTree()
+    public function refreshTree(): void
     {
         $this->mount($this->tree->id);
     }
 
-    public function with()
+    public function with(): array
     {
         $allMembers = $this->tree->members;
 
-        // Collect ALL member IDs who appear as a wife/spouse somewhere
-        // These will be rendered inline as ".partner" by tree-node
         $wifeIdsInMarriages = collect();
         foreach ($allMembers as $m) {
             if ($m->gender === 'male') {
@@ -42,7 +40,6 @@ new class extends Component
             }
         }
 
-        // Root = parentless members, excluding wives who are shown as partners
         $parentless = $allMembers->whereNull('father_id')->whereNull('mother_id');
         $rootMembers = $parentless->whereNotIn('id', $wifeIdsInMarriages->unique());
 
@@ -58,15 +55,14 @@ new class extends Component
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between px-4 lg:px-8 py-4 gap-3">
         <div class="min-w-0">
-            <h2 class="text-2xl font-bold dark:text-white truncate">{{ $tree->name }}</h2>
+            <h2 class="text-2xl font-bold dark:text-white truncate">{{ $tree->name }} — Simple View</h2>
             @if($tree->description)
                 <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ $tree->description }}</p>
             @endif
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <flux:button size="sm" icon="arrow-left" href="{{ route('dashboard') }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Kembali</flux:button>
+            <flux:button size="sm" icon="arrow-left" href="{{ route('tree.show', $tree->id) }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
             <flux:button size="sm" icon="list-bullet" href="{{ route('tree.vertical', $tree->id) }}" wire:navigate class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
-            <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
             @if($tree->slug)
                 <flux:button size="sm" icon="share" x-data="{ shared: false }"
                     x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); shared = true; setTimeout(() => shared = false, 2000)"
@@ -75,11 +71,10 @@ new class extends Component
                     <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
                 </flux:button>
             @endif
-            <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
         </div>
     </div>
 
-    {{-- Tree Canvas --}}
+    {{-- Simple Tree Canvas --}}
     <div class="px-4 lg:px-8 pb-8">
         <div class="pt-sm" x-data="canvasTree()" x-ref="container"
              @mousedown="startDrag($event)"
@@ -92,10 +87,10 @@ new class extends Component
              @touchend="stopTouch()">
 
             <div class="tree-inner" x-ref="inner" :style="transformStyle">
-                <div class="tree" id="myTree">
+                <div class="tree simple-tree" id="simpleTree">
                     <ul>
                         @foreach($rootMembers as $member)
-                            <x-tree-node :member="$member" :all-members="$allMembers" />
+                            <x-simple-tree-node :member="$member" :all-members="$allMembers" />
                         @endforeach
                     </ul>
                 </div>
@@ -116,7 +111,6 @@ new class extends Component
         </div>
     </div>
 
-    {{-- Member Manager --}}
     <livewire:member-manager :tree-id="$tree->id" />
 </div>
 

@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use App\Models\FamilyTree;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
@@ -21,7 +22,7 @@ new class extends Component
             'name' => $this->name,
             'description' => $this->description,
             'is_public' => $this->is_public,
-            'view_password' => $this->view_password,
+            'view_password' => $this->view_password ? Hash::make($this->view_password) : null,
         ]);
 
         $tree->users()->attach(auth()->id(), ['role' => 'owner']);

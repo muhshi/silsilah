@@ -145,6 +145,8 @@
     position: relative;
     margin-top: 36px;
     cursor: pointer;
+    max-width: 120px;
+    white-space: normal;
 }
 .dark .tree ul li a {
     background: #27272a;
@@ -196,12 +198,20 @@
 }
 
 .tree a strong {
-    display: block;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
     border-top: 1px solid #f3f4f6;
     margin-top: 8px;
     padding-top: 4px;
     font-weight: 600;
     font-size: 12px;
+    line-height: 1.3;
+    max-height: 2.8em;
+    word-break: break-word;
 }
 .dark .tree a strong {
     border-top-color: #3f3f46;
@@ -413,6 +423,100 @@
 .form-avatar input.choice.image:checked + label b {
     border-color: #6366f1;
     box-shadow: 0 0 0 2px #c7d2fe;
+}
+
+/* ========== SIMPLE TREE (dedicated page) ========== */
+
+.simple-tree ul {
+    padding: 15px 0 0;
+}
+
+.simple-tree li {
+    padding: 15px 2px 0 2px;
+}
+
+/* Root element */
+.simple-tree ul:first-child > li:first-child {
+    padding-bottom: 10px;
+}
+
+/* Connectors - tighter */
+.simple-tree ul li::before,
+.simple-tree ul li::after {
+    height: 15px;
+}
+.simple-tree ul ul::before {
+    height: 15px;
+}
+
+/* Card - super compact */
+.simple-tree ul li a {
+    padding: 3px 6px;
+    margin-top: 12px;
+    max-width: 100px;
+    min-width: 60px;
+    border-radius: 3px;
+    font-size: 9px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.simple-tree ul li a strong {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.2;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    max-height: 2.4em;
+}
+
+/* Gender colors — Male = Blue */
+.simple-tree a.st-male {
+    background: #dbeafe;
+    border: 1.5px solid #60a5fa;
+    color: #1e40af;
+}
+.dark .simple-tree a.st-male {
+    background: #1e3a5f;
+    border-color: #3b82f6;
+    color: #93c5fd;
+}
+
+/* Gender colors — Female = Pink */
+.simple-tree a.st-female {
+    background: #fce7f3;
+    border: 1.5px solid #f472b6;
+    color: #9d174d;
+}
+.dark .simple-tree a.st-female {
+    background: #4a1942;
+    border-color: #ec4899;
+    color: #f9a8d4;
+}
+
+/* Partner — slightly smaller */
+.simple-tree a.partner {
+    margin: 0 1px;
+    margin-right: 0;
+}
+
+/* Hidden partner placeholder */
+.simple-tree a.partner.hid {
+    visibility: hidden;
+    min-width: 50px;
+}
+
+/* No hover effects in simple tree (it's for export) */
+.simple-tree a:hover {
+    transform: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Only-child — less padding */
+.simple-tree ul li:only-child {
+    padding-top: 0;
 }
 
 /* ========== WIFE GROUP (multiple wives children) ========== */

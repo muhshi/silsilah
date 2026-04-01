@@ -122,19 +122,25 @@ new class extends Component
 
 <div class="w-full max-w-3xl mx-auto">
     {{-- Header --}}
-    <div class="flex items-center justify-between px-4 lg:px-8 py-4">
-        <div>
-            <h2 class="text-2xl font-bold dark:text-white">{{ $tree->name }}</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between px-4 lg:px-8 py-4 gap-3">
+        <div class="min-w-0">
+            <h2 class="text-2xl font-bold dark:text-white truncate">{{ $tree->name }}</h2>
             @if($tree->description)
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $tree->description }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ $tree->description }}</p>
             @endif
         </div>
-        <div class="flex items-center gap-2">
-            <flux:button variant="ghost" icon="arrow-left" href="{{ route('tree.show', $tree->id) }}" wire:navigate>Horizontal</flux:button>
+        <div class="flex items-center gap-2 flex-wrap">
+            <flux:button size="sm" icon="arrow-left" href="{{ route('tree.show', $tree->id) }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
+            <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
             @if($tree->slug)
-                <flux:button variant="ghost" icon="share" x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); $flux.toast('Link disalin!')">Share</flux:button>
+                <flux:button size="sm" icon="share" x-data="{ shared: false }"
+                    x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); shared = true; setTimeout(() => shared = false, 2000)"
+                    class="!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!bg-emerald-900/30 dark:!text-emerald-400 dark:hover:!bg-emerald-900/50">
+                    <span x-show="!shared">Share</span>
+                    <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
+                </flux:button>
             @endif
-            <flux:button variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
+            <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
         </div>
     </div>
 
