@@ -1,0 +1,461 @@
+/* ============================================
+   Silsilah - Horizontal Tree CSS
+   Adapted from Pohon Keluarga / Sketsaweb
+   ============================================ */
+
+/* Tree wrapper (panzoom container) */
+.pt-tree {
+    position: relative;
+}
+
+.pt-sm {
+    overflow: hidden;
+    position: relative;
+    min-height: 600px;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+.pt-sm:active {
+    cursor: grabbing;
+}
+.dark .pt-sm {
+    background: #18181b;
+    border-color: #3f3f46;
+}
+
+/* The inner element that gets transformed */
+.tree-inner {
+    display: inline-block;
+    transform-origin: 0 0;
+    transition: none;
+    padding: 60px 40px;
+    min-width: 100%;
+}
+
+/* ========== TREE STRUCTURE ========== */
+
+.tree {
+    display: flex;
+    justify-content: center;
+}
+
+.tree ul {
+    padding: 40px 0 0;
+    position: relative;
+    transition: all 0.4s;
+    display: flex;
+    justify-content: center;
+}
+
+.tree li {
+    text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 40px 5px 0 5px;
+    white-space: nowrap;
+    transition: all 0.4s;
+}
+
+/* Root element (first li of the first ul) */
+.tree ul:first-child > li:first-child {
+    padding-bottom: 50px;
+}
+
+/* ========== CONNECTORS ========== */
+
+.tree ul li::before,
+.tree ul li::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 50%;
+    border-top: 2px solid #cbd5e1;
+    width: 50%;
+    height: 40px;
+}
+.tree ul li::after {
+    right: auto;
+    left: 50%;
+    border-left: 2px solid #cbd5e1;
+}
+.dark .tree ul li::before,
+.dark .tree ul li::after {
+    border-color: #52525b;
+}
+
+/* No connectors for only-child */
+.tree ul li:only-child::after,
+.tree ul li:only-child::before {
+    display: none;
+}
+.tree ul li:only-child {
+    padding-top: 0;
+    margin: auto;
+}
+
+/* First/last child connector cleanup */
+.tree ul li:first-child::before,
+.tree ul li:last-child::after {
+    border: 0 none;
+}
+.tree ul li:last-child::before {
+    border-right: 2px solid #cbd5e1;
+    border-radius: 0 5px 0 0;
+}
+.tree ul li:first-child::after {
+    border-radius: 5px 0 0 0;
+}
+.dark .tree ul li:last-child::before {
+    border-right-color: #52525b;
+}
+
+/* Downward connector from parent to children */
+.tree ul ul::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    border-left: 2px solid #cbd5e1;
+    width: 0;
+    height: 40px;
+}
+.dark .tree ul ul::before {
+    border-left-color: #52525b;
+}
+
+/* ========== MEMBER NODE CARD ========== */
+
+.tree ul li a {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    padding: 5px 10px;
+    text-decoration: none;
+    color: #374151;
+    font-family: inherit;
+    font-size: 12px;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    border-radius: 5px;
+    transition: all 0.4s;
+    z-index: 2;
+    position: relative;
+    margin-top: 36px;
+    cursor: pointer;
+}
+.dark .tree ul li a {
+    background: #27272a;
+    border-color: #3f3f46;
+    color: #e4e4e7;
+}
+
+.tree ul li a:not([href]):hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px #f0fdf4, 0 0 0 4px #6366f1;
+    z-index: 10;
+}
+.dark .tree ul li a:not([href]):hover {
+    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #818cf8;
+}
+
+/* ========== AVATAR / THUMB ========== */
+
+.tree a .pt-thumb {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 3px solid #ffffff;
+    margin-top: -44px;
+    position: relative;
+    z-index: 2;
+    background: #fff;
+    transition: all 0.4s;
+}
+.dark .tree a .pt-thumb {
+    border-color: #3f3f46;
+    background: #27272a;
+}
+
+.tree a .pt-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tree a:not([href]):hover .pt-thumb {
+    box-shadow: 0 0 0 2px #f0fdf4, 0 0 0 4px #6366f1;
+}
+.dark .tree a:not([href]):hover .pt-thumb {
+    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #818cf8;
+}
+
+.tree a strong {
+    display: block;
+    border-top: 1px solid #f3f4f6;
+    margin-top: 8px;
+    padding-top: 4px;
+    font-weight: 600;
+    font-size: 12px;
+}
+.dark .tree a strong {
+    border-top-color: #3f3f46;
+}
+
+/* Info text (tahun lahir, dll) */
+.tree a .pt-info {
+    font-size: 10px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 2px;
+}
+
+/* ========== OPTIONS (Edit/Delete/Add) ========== */
+
+.tree a .pt-options {
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f3f4f6;
+    border-radius: 4px 0 0 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 10;
+}
+.dark .tree a .pt-options {
+    background: #3f3f46;
+}
+
+.tree a .pt-options b {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+    border-bottom: 1px solid #ffffff;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #6b7280;
+}
+.dark .tree a .pt-options b {
+    border-bottom-color: #52525b;
+    color: #a1a1aa;
+}
+
+.tree a .pt-options b:first-of-type {
+    border-radius: 4px 0 0 0;
+}
+.tree a .pt-options b:last-of-type {
+    border-bottom: 0;
+    border-radius: 0 0 0 4px;
+}
+
+/* Edit = green, Delete = red, Add = yellow */
+.tree a .pt-options b.tree-edit:hover { background: #2ecc71; color: #fff; }
+.tree a .pt-options b.tree-delete:hover { background: #e84118; color: #fff; }
+.tree a .pt-options b.tree-add:hover { background: #fbc531; color: #fff; }
+
+.tree a:hover .pt-options {
+    visibility: visible;
+    opacity: 1;
+    left: -22px;
+}
+
+/* ========== SPOUSE (PARTNER) ========== */
+
+.tree a.partner {
+    margin: 0 3px;
+    background: #f9fafb;
+    position: relative;
+    margin-right: 0px;
+}
+.dark .tree a.partner {
+    background: #1f1f23;
+}
+
+.tree a.partner .pt-thumb {
+    width: 64px;
+    height: 64px;
+}
+.tree a.partner .pt-thumb img {
+    min-height: 64px;
+}
+
+/* Hidden partner placeholder (for layout) */
+.tree a.partner.hid {
+    visibility: hidden;
+    min-width: 80px;
+}
+
+/* ========== DEAD BADGE ========== */
+
+.tree a .pt-dead {
+    position: absolute;
+    background: #e23636;
+    border-radius: 30px;
+    color: #fff;
+    padding: 0 6px;
+    font-size: 8px;
+    height: 14px;
+    line-height: 14px;
+    left: 8px;
+    top: 8px;
+    z-index: 3;
+    font-weight: 600;
+}
+
+/* ========== CONNECTOR DOT ========== */
+
+.pt-emm {
+    position: absolute;
+    background: #6366f1;
+    top: -63px;
+    left: 45%;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    z-index: 15;
+    font-style: normal;
+}
+.dark .pt-emm {
+    background: #818cf8;
+}
+
+/* ========== ZOOM CONTROLS ========== */
+
+.pt-zoom-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 4px;
+    background: #ffffff;
+    padding: 4px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e7eb;
+    z-index: 20;
+}
+.dark .pt-zoom-controls {
+    background: #27272a;
+    border-color: #3f3f46;
+}
+
+.pt-zoom-controls button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+.pt-zoom-controls button:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+.dark .pt-zoom-controls button:hover {
+    background: #3f3f46;
+    color: #e4e4e7;
+}
+
+/* ========== AVATAR PICKER (form-avatar) ========== */
+
+.form-avatar .form-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.form-avatar .form-group {
+    margin: 0;
+}
+
+.form-avatar input.choice.image {
+    display: none;
+}
+
+.form-avatar input.choice.image + label {
+    cursor: pointer;
+    display: block;
+}
+
+.form-avatar input.choice.image + label b {
+    display: block;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.form-avatar input.choice.image + label b img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.form-avatar input.choice.image:checked + label b {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px #c7d2fe;
+}
+
+/* ========== WIFE GROUP (multiple wives children) ========== */
+
+.tree li.wife-group {
+    padding-top: 10px;
+}
+
+.tree li.wife-group > .wife-group-label {
+    display: inline-block;
+    background: #eef2ff;
+    color: #6366f1;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.dark .tree li.wife-group > .wife-group-label {
+    background: #312e81;
+    color: #a5b4fc;
+}
+
+/* Remove connector lines for wife-group wrapper */
+.tree li.wife-group::before,
+.tree li.wife-group::after {
+    border-top-color: #cbd5e1;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .tree-inner {
+        padding: 40px 20px;
+    }
+    .tree a .pt-thumb {
+        width: 60px;
+        height: 60px;
+        margin-top: -34px;
+    }
+    .tree a.partner .pt-thumb {
+        width: 48px;
+        height: 48px;
+    }
+}

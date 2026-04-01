@@ -1,0 +1,824 @@
+
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Ahmad Jamil - Pohon Keluarga</title>
+
+	<meta name="title" content="Ahmad Jamil - Pohon Keluarga">
+	<meta name="description" content="Pohon Keluarga merupakan aplikasi untuk menyusun Silsilah Keluarga. Anda bisa mengundang saudara untuk membantu memperluas silsilah">
+	<meta name="keywords" content="Aplikasi Silsilah Pohon Keluarga">
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="www.pohonkeluarga.com">
+	<meta property="og:title" content="Ahmad Jamil - Pohon Keluarga">
+	<meta property="og:description" content="Pohon Keluarga merupakan aplikasi untuk menyusun Silsilah Keluarga. Anda bisa mengundang saudara untuk membantu memperluas silsilah">
+	<meta property="og:image" content="www.pohonkeluarga.com">
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image">
+	<meta property="twitter:url" content="www.pohonkeluarga.com">
+	<meta property="twitter:title" content="Ahmad Jamil - Pohon Keluarga">
+	<meta property="twitter:description" content="Pohon Keluarga merupakan aplikasi untuk menyusun Silsilah Keluarga. Anda bisa mengundang saudara untuk membantu memperluas silsilah">
+	<meta property="twitter:image" content="www.pohonkeluarga.com">
+
+	<!-- Google Fonts -->
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:100,200,300,400,500,600,700,900%7CGentium+Basic:400italic&subset=latin,latin">
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,300,700">
+	<link href="//fonts.googleapis.com/css?family=Coda+Caption:800|Poppins|Squada+One|Sriracha&display=swap" rel="stylesheet">
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/bootstrap.min.css" />
+
+	<!-- Font Awseome -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/all.min.css">
+
+	<!-- jConfirm plugin -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/jquery-confirm.min.css">
+
+	<!-- jQuery Datepicker plugin -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/datepicker.min.css">
+
+	<!-- jQuery Lightbox plugin -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/lightbox.css" />
+
+	<!-- jQuery File input plugin -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/fileinput.css" />
+
+	<!-- Basic Style for Tags Input -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/amsify.suggestags.css">
+
+	<!-- Flag Icon -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/flag-icon.min.css">
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://app.pohonkeluarga.com/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://app.pohonkeluarga.com/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://app.pohonkeluarga.com/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+	<!-- Main CSS -->
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/style.css">
+	<link rel="stylesheet" href="https://app.pohonkeluarga.com/css/app.css">
+
+		<!-- mobile app -->
+	<link rel="icon" href="https://app.pohonkeluarga.com/images/icons/pohonkeluarga.png" />
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="application-name" content="Pohon Keluarga">
+	<meta name="apple-mobile-web-app-title" content="Pohon Keluarga">
+	<meta name="msapplication-starturl" content="/index">
+	<meta name="theme-color" content="#82aae3">
+	<link rel="apple-touch-icon" href="https://app.pohonkeluarga.com/images/icons/pohonkeluarga.png">
+
+	<link rel="manifest" href="https://app.pohonkeluarga.com/manifest.json">
+
+	<style>
+		.pt-header-menu .pt-logo,
+		.pt-tree h3 span,
+		.pt-header-menu .pt-search button,
+		.pt-pageplans .alert-success {
+			background: #91d8e4;
+		}
+
+		.pt-pageplans .alert-success span {
+			color: #91d8e4;
+		}
+
+		.pt-nav-menu,
+		.pt-pagination li.pt-active,
+		.pt-mnewmember button[type=submit],
+		.pt-pageplans .pt-plans .col:nth-of-type(2) .pt-plan,
+		.pt-pageplans .pt-plans .pt-plan button {
+			background: #82aae3;
+			border-color: #82aae3;
+			box-shadow: 4px 1px 6px #82aae345;
+		}
+
+		.pt-nav-menu ul li:first-of-type a:hover,
+		.pt-nav-menu ul li a:hover {
+			background: #f0f9f7;
+			color: #91d8e4;
+		}
+
+		.tree ul li a:not([href]):hover,
+		.tree ul li a:not([href]):hover .pt-thumb,
+		.pt-list .pt-title span,
+		.pt-list-item .pt-thumb {
+			box-shadow: 0 0 0 2px #f0f9f7, 0 0 0 4px #82aae3;
+		}
+
+		.pt-nav-menu ul li a:hover b,
+		.pt-index-right button {
+			background: #82aae3;
+			box-shadow: 0px 0px 7px #82aae345;
+		}
+
+		body,
+		.pt-sm {
+			background: #f0f9f7;
+		}
+
+		.pt-tree a.exp {
+			background: #777;
+			border: 1px solid #000;
+		}
+
+		.pt-tree a.exp .pt-thumb {
+			border: 3px solid #000;
+		}
+
+		.pt-header-menu .pt-list-menu .pt-notifi a.pt-notyshow {
+			color: #82aae3;
+		}
+
+		.pt-nav-menu ul li a,
+		.pt-list-item h3 a,
+		.pt-index-left h2 {
+			color: #f8f8f8;
+		}
+
+		#myTree .pt-item-details .pt-item-body .pt-name {
+			color: #35a299;
+		}
+
+		#myTree .pt-item-details.female .pt-name {
+			color: #d43233;
+		}
+
+		.choice[type=checkbox]:checked+label:before {
+			background-color: #82aae3;
+			border-color: #82aae3;
+		}
+
+		.choice:checked+label:before {
+			border-color: #82aae3;
+			box-shadow: 0 0 0 4px #82aae3 inset;
+		}
+
+		.tgl-light:checked+.tgl-btn {
+			background-color: #82aae3;
+		}
+
+		.pt-header-menu .pt-list-menu .pt-new-tree a {
+			background: #a29bfe;
+			box-shadow: 0 0 0 0 #FFF, 0 0 0 0 #a29bfe;
+		}
+
+		.pt-header-menu .pt-list-menu .pt-new-tree a:hover {
+			box-shadow: 0 0 0 2px #FFF, 0 0 0 3px #a29bfe;
+		}
+
+		.pt-header-menu .pt-list-menu .pt-dash a {
+			background: #fdb105;
+			box-shadow: 0 0 0 0 #FFF, 0 0 0 0 #fdb105;
+		}
+
+		.pt-header-menu .pt-list-menu .pt-dash a:hover {
+			box-shadow: 0 0 0 2px #FFF, 0 0 0 3px #fdb105;
+		}
+
+		.pt-form input[type=text],
+		.pt-form input[type=password],
+		.pt-form select,
+		.amsify-suggestags-area .amsify-suggestags-input-area,
+		.pt-mnewmember .amsify-suggestags-area .amsify-suggestags-input-area,
+		.pt-index-right #resetM input {
+			background: #f0f9f7;
+			border-bottom: 2px solid #82aae3;
+		}
+
+		.pt-form .pt-input i,
+		.pt-form .pt-input svg,
+		.pt-pagination li,
+		.pt-index-left p,
+		.pt-index-right .reset a,
+		.pt-index-right #resetM label i {
+			color: #82aae3;
+		}
+
+		.bg-0,
+		.pt-flist .more {
+			background: #82aae3;
+			box-shadow: 0px 0px 7px #82aae345;
+		}
+
+		.pt-list-item {
+			border: 1px solid #82aae356;
+			box-shadow: 0 0 10px #82aae326;
+		}
+
+		.pt-tree h3 {
+			background: #DDD;
+		}
+
+		.pt-index-right h3 a.active {
+			border-bottom: 2px solid #82aae3;
+			color: #82aae3;
+		}
+	</style>
+	
+</head>
+
+<body class="pt-login pt-pagetree">
+
+	<div class="pt-header-menu">
+		<div class="pt-logo">
+			<i class="fas fa-sitemap"></i>
+		</div>
+		<div class="pt-search">
+			<input type="text" name="search" placeholder="Cari Keluarga..." />
+			<button type="submit"><i class="fas fa-search"></i></button>
+			<div class="sresults"></div>
+		</div>
+		<div class="pt-list-menu">
+			<div class="pt-lang">
+				<a class="pt-slang" rel="1"><i class="flag-icon flag-icon-squared flag-icon-us"></i> English</a>				<ul>
+					<li><a class="pt-changelang" rel="1"><i class="flag-icon flag-icon-squared flag-icon-us"></i> English</a></li>				</ul>
+			</div>
+
+										<div class="pt-notifi">
+					<a href="#" class="pt-notyshow">
+						<i class="far fa-bell"></i><b>2</b>
+					</a>
+					<ul class="pt-drop">
+														<li class="unread read-notifi " rel="7315">
+									<div class="pt-thumb">
+										<img src="" alt="amuhshi" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'">
+									</div>
+									<div class="pt-cnt">
+										amuhshi have maked you <b>moderator</b> to <a href="https://app.pohonkeluarga.com/tree/ulul-azmie/9657">Ulul Azmie</a> family tree.									</div>
+								</li>
+														<li class="unread read-notifi " rel="7314">
+									<div class="pt-thumb">
+										<img src="" alt="amuhshi" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'">
+									</div>
+									<div class="pt-cnt">
+										amuhshi have maked you <b>moderator</b> to <a href="https://app.pohonkeluarga.com/tree/ahmad-jamil/9656">Ahmad Jamil</a> family tree.									</div>
+								</li>
+											</ul>
+				</div>
+				<div class="pt-new-tree">
+					<a href="#" data-toggle="modal" data-target="#addnewtree"><i class="fas fa-plus-circle"></i> Buat Silsilah</a>
+				</div>
+			
+			<div class="pt-thumb">
+				<img src="" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+			</div>
+			<span>amuhshi</span>
+		</div>
+	</div>
+
+	<div class="pt-nav-menu">
+		<ul>
+			<li><a href="https://app.pohonkeluarga.com/index"><i class="fas fa-home"></i><b>Home</b></a></li>
+													<li><a href="https://app.pohonkeluarga.com/plans.php"><i class="fas fa-trophy"></i><b>Paket</b></a></li>
+											<li><a href="https://app.pohonkeluarga.com/page/2"><i class="far fa-question-circle"></i><b>About</b></a></li>
+									<li><a href="https://app.pohonkeluarga.com/page/1"><i class="far fa-envelope-open"></i><b>Kontak</b></a></li>
+																	<li><a href="https://app.pohonkeluarga.com/user/details"><i class="far fa-address-card"></i><b>Detail</b></a></li>
+				<li><a href="#" class="logout"><i class="fas fa-power-off"></i><b>Logout!</b></a></li>
+					</ul>
+	</div>
+
+
+			<!-- New Tree -->
+		<div class="modal fade" id="addnewtree" tabindex="-1" role="dialog" aria-labelledby="addnewtreeLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="addnewtreeLabel">Keluarga</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+
+													<form class="pt-form" id="send-family-details" autocomplete="off">
+							<input autocomplete="false" name="hidden" type="password" style="display:none;">
+								<label>Nama Keluarga:</label>
+								<div class="pt-input">
+									<i class="far fa-user"></i>
+									<input type="text" name="name" placeholder="Isi dengan nama keluarga (ID unik)">
+								</div>
+								<label>Username Pengelola:</label>
+								<div class="pt-input">
+									<i class="fas fa-cogs"></i>
+									<input type="text" class="form-control" name="planets" value="">
+								</div>
+																	<div class="pt-input">
+										<label class="small mb-0">
+											<input class="tgl tgl-light" id="cbee3" value="1" name="check" type="checkbox"   />
+											<label class="tgl-btn mt-3" for="cbee3"></label>
+											<label>Bisakah semua orang melihat keluarga ini (tampilan publik)</label>
+										</label>
+										<small id="emailHelp" class="form-text text-muted">Silsilah terbuka untuk publik tanpa password</small>
+									</div>
+									<label>Password Lihat Silsilah:</label>
+									<div class="pt-input">
+										<i class="fas fa-lock"></i>
+										<input type="password" name="vpass">
+										<small id="emailHelp" class="form-text text-muted vpassHelp">Password untuk lihat silsilah.</small>
+									</div>
+																<input type="hidden" name="famid" value="" />
+								<hr />
+								<button type="submit" class="pt-button bg-0"><i class="fas fa-sign-in-alt"></i> Kirim Detail</button>
+							</form>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="pt-wrapper">
+
+					<div class="ads1"></div>
+		
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<form id="send-newmember" class="pt-mnewmember">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Tambah anggota baru</h4>
+				</div>
+									<div class="modal-body">
+						<div class="pt-form pt-forms">
+							<ul class="nav nav-tabs" role="tablist">
+								<li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Pribadi</a></li>
+								<li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Kontak</a></li>
+								<li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Biografi</a></li>
+								<li role="presentation" class="d-none"><a href="#pics" aria-controls="pics" role="tab" data-toggle="tab">Gambar</a></li>
+							</ul>
+
+							<!-- Tab panes -->
+							<div class="tab-content">
+								<div role="tabpanel" class="tab-pane active" id="home">
+									<div class="row">
+										<div class="col">
+											<label>Nama Depan:*<input type="text" placeholder="Isi nama depan" name="firstname" required /></label>
+										</div>
+										<div class="col">
+											<label>Nama Belakang<input type="text" placeholder="Isi nama belakang" name="lastname" /></label>
+										</div>
+										<div class="col-md-4">
+											<label>Jenis Hubungan</label>
+											<select name="type">
+												<option value="1">Anak</option>
+												<option value="2">Pasangan</option>
+												<option value="3">Mantan</option>
+												<option value="4">Orang Tua</option>
+											</select>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-7">
+											<label class="form-check-label" style="display:inline; top: -5px">JK*</label>
+											<input class="choice" id="cb1" value="1" name="gender" type="radio" required />
+											<label class="tgl-btn mr-2" for="cb1">Wanita</label>
+											<input class="choice" id="cb2" value="2" name="gender" type="radio" />
+											<label class="tgl-btn" for="cb2">Pria</label>
+										</div>
+										<div class="col-5">
+											<div class="form-group mb-0">
+												<input class="tgl tgl-light" id="cbs1" value="1" name="death" type="checkbox" checked />
+												<label class="tgl-btn mt-3" for="cbs1"></label>
+												<label>Hidup</label>
+												<!-- <input class="choice" id="cb3" value="1" name="death" type="checkbox" checked/> -->
+												<!-- <label class="tgl-btn mr-2" for="cb3">Hidup</label> -->
+											</div>
+										</div>
+									</div>
+
+									<div class="row">
+										<div class="col">
+											<label>Tgl Lahir:<br /><input type="text" name="birthdate" placeholder="00/00/0000" class="datepicker-here" data-language='en' data-position='top left' />
+											</label>
+										</div>
+										<div class="col">
+											<label>Tgl Pernikahan:<br /><input type="text" name="mariagedate" placeholder="00/00/0000" class="datepicker-here" data-language='en' data-position='top left' />
+											</label>
+										</div>
+										<div class="col">
+											<label>Tgl Wafat:<br /><input type="text" name="deathdate" placeholder="00/00/0000" class="datepicker-here" data-language='en' data-position='top left' />
+											</label>
+										</div>
+									</div>
+
+									<label class="link-u">Tautkan anggota ke user: <input type="text" class="form-control" name="user"></label>
+									<label class="member_notes">Keterangan <input type="text" class="form-control" name="member_notes"><small>Informasi tambahan anggota, tampil di diagram. Contoh : info domisili, dll</small></label>
+									<label>Photo:<input type="text" placeholder="Tulis URL Foto" name="photo" /></label>
+									<div class="prt-group">
+										<input type="file" name="poll_file" id="file" class="inputfile" />
+										<label for="file"><i class="fa fa-upload"></i> Pilih gambar dari perangkat</label>
+									</div>
+									<div class="form-avatar">
+										<div class="form-group"><label class="tt"><span>Atau pilih ikon</span></label></div>
+										<div class="form-inline">
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="1" id="sradioe1" class="choice image">
+													<label for="sradioe1"><b><img src="https://app.pohonkeluarga.com/images/avatar/1.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="2" id="sradioe2" class="choice image">
+													<label for="sradioe2"><b><img src="https://app.pohonkeluarga.com/images/avatar/2.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="3" id="sradioe3" class="choice image">
+													<label for="sradioe3"><b><img src="https://app.pohonkeluarga.com/images/avatar/3.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="4" id="sradioe4" class="choice image">
+													<label for="sradioe4"><b><img src="https://app.pohonkeluarga.com/images/avatar/4.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="5" id="sradioe5" class="choice image">
+													<label for="sradioe5"><b><img src="https://app.pohonkeluarga.com/images/avatar/5.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="6" id="sradioe6" class="choice image">
+													<label for="sradioe6"><b><img src="https://app.pohonkeluarga.com/images/avatar/6.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="7" id="sradioe7" class="choice image">
+													<label for="sradioe7"><b><img src="https://app.pohonkeluarga.com/images/avatar/7.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="8" id="sradioe8" class="choice image">
+													<label for="sradioe8"><b><img src="https://app.pohonkeluarga.com/images/avatar/8.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="9" id="sradioe9" class="choice image">
+													<label for="sradioe9"><b><img src="https://app.pohonkeluarga.com/images/avatar/9.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="10" id="sradioe10" class="choice image">
+													<label for="sradioe10"><b><img src="https://app.pohonkeluarga.com/images/avatar/10.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="11" id="sradioe11" class="choice image">
+													<label for="sradioe11"><b><img src="https://app.pohonkeluarga.com/images/avatar/11.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="12" id="sradioe12" class="choice image">
+													<label for="sradioe12"><b><img src="https://app.pohonkeluarga.com/images/avatar/12.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="13" id="sradioe13" class="choice image">
+													<label for="sradioe13"><b><img src="https://app.pohonkeluarga.com/images/avatar/13.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="14" id="sradioe14" class="choice image">
+													<label for="sradioe14"><b><img src="https://app.pohonkeluarga.com/images/avatar/14.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="15" id="sradioe15" class="choice image">
+													<label for="sradioe15"><b><img src="https://app.pohonkeluarga.com/images/avatar/15.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="16" id="sradioe16" class="choice image">
+													<label for="sradioe16"><b><img src="https://app.pohonkeluarga.com/images/avatar/16.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="17" id="sradioe17" class="choice image">
+													<label for="sradioe17"><b><img src="https://app.pohonkeluarga.com/images/avatar/17.jpg" /></b></label>
+												</div>
+																							<div class="form-group">
+													<input type="radio" name="avatar" value="18" id="sradioe18" class="choice image">
+													<label for="sradioe18"><b><img src="https://app.pohonkeluarga.com/images/avatar/18.jpg" /></b></label>
+												</div>
+																					</div>
+									</div>
+								</div>
+								<div role="tabpanel" class="tab-pane" id="profile">
+								<label class="member_family_link">Hubungkan ke Silsilah Lain <input type="text" class="form-control" name="member_family_link" id="member_family_link" /><small>Link ke silsilah keluarga lain, contoh silsilah pasangan</small></label>
+									<div class="row">
+										<div class="col">
+											<label>Facebook:<input type="text" placeholder="Isi Facebook" name="facebook" id="member_facebook" /></label>
+										</div>
+										<div class="col">
+											<label>Twitter:<input type="text" placeholder="Isi Twitter" name="twitter" /></label>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col">
+											<label>Instagram:<input type="text" placeholder="Isi Instagram" name="instagram" /></label>
+										</div>
+										<div class="col">
+											<label>Email:<input type="text" placeholder="Isi Email" name="email" />
+											</label>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col">
+											<label>Tel Rumah:<input type="text" placeholder="Isi Tel Rumah" name="tel" /></label>
+										</div>
+										<div class="col">
+											<label>Tel Seluler (WhatsApp):<input type="text" placeholder="Isi Tel Seluler" name="mobile" /></label>
+										</div>
+									</div>
+
+									<label>Website:<input type="text" placeholder="Isi Website" name="site" /></label>
+
+									<label>Alamat:<input type="text" placeholder="Alamat Domisili" name="address" /></label>
+
+
+								</div>
+								<div role="tabpanel" class="tab-pane" id="messages">
+									<label>No Urut:<input type="text" placeholder="Urutan Anak No" name="urutan" /></label>
+									<div class="row">
+										<div class="col">
+											<label>Tempat Lahir:<input type="text" placeholder="Isi Tempat Lahir" name="birthplace" /></label>
+										</div>
+										<div class="col">
+											<label>Tempat Meninggal:<input type="text" placeholder="Isi Tempat Meninggal" name="deathplace" /></label>
+										</div>
+									</div>
+
+									<label>Profesi:<textarea name="profession" placeholder="Isi Profesi"></textarea></label>
+									<label>Perusahaan:<textarea name="company" placeholder="Isi Perusahaan"></textarea></label>
+									<label>Hobby:<textarea name="interests" placeholder="Isi Hobby"></textarea></label>
+									<label>Catatan Bio:<textarea name="bio" placeholder="Isi Catatan Bio"></textarea></label>
+
+
+								</div>
+								<div role="tabpanel" class="tab-pane" id="pics">
+																			<div class="alert alert-warning">
+            <strong></strong> Anda tidak memiliki izin untuk menambahkan foto di album menggunakan paket yang Anda miliki, tingkatkan versi paket Anda!
+          </div>																	</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+						<button type="submit" class="btn btn-primary">Submit</button>
+						<input type="hidden" name="parent" />
+						<input type="hidden" name="id" />
+						<input type="hidden" name="nid" />
+					</div>
+							</form>
+		</div>
+	</div>
+</div><!-- Modal View Member  -->
+<div class="modal fade" id="heritageM" tabindex="-1" role="dialog" aria-labelledby="heritageMLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<form id="send-newheritage" class="pt-mnewmember">
+			<div class="modal-header">
+				<h5 class="modal-title">Menghubungkan Keluarga                     :</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			</div>
+						<div class="modal-body">
+				<label class="link-u">
+					Tautkan anggota ini sebagai orang tua dari keluarga:					<input type="text" class="form-control" name="heritage" value="">
+				</label>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+				<button type="submit" class="btn btn-primary">Submit</button>
+				<input type="hidden" name="member" value="" />
+				<input type="hidden" name="family" value="9656" />
+			</div>
+						</form>
+		</div>
+	</div>
+</div>
+
+	<div class="pt-tree">
+		<div class="pt-details">
+												<a class="pt-edit" rel="9656"><i class="fas fa-pencil-alt"></i> <span>Edit</span></a>
+					<a href="https://app.pohonkeluarga.com/wit.php?id=9656&t=ahmad-jamil" class="pt-table" rel="9656"><i class="fas fa-table"></i> <span>Table View</span></a>
+					<div class="pl-share xd-none float-right">
+						<button class="pt-download" id="pt-download" class="btn btn-primary">
+							<i class="fas fa-download"></i> <span></span>
+						</button>
+					</div>
+
+																			<!-- add button to vertical tree view -->
+			<div class="pl-share">
+				<a href="https://app.pohonkeluarga.com/ver.php?id=9656" class="btn btn-sm btn-outline-secondary">
+					<i class="fas fa-arrow-up"></i> Vertical Tree View
+				</a>
+			</div>
+			<div class="pl-share">
+				<span class="pl-share-button"><i class="fa fa-share"></i> <b>Share</b></span>
+				<ul class="dropdown">
+					<li>
+						<a class="bg-facebook" href="//www.facebook.com/sharer/sharer.php?u=https://app.pohonkeluarga.com/tree/ahmad-jamil/9656" target="_blank">
+							<i class="fab fa-facebook-f"></i> Facebook						</a>
+					</li>
+					<li>
+						<a class="bg-twitter" href="//twitter.com/home?status=https://app.pohonkeluarga.com/tree/ahmad-jamil/9656 Ahmad Jamil" target="_blank">
+							<i class="fab fa-twitter"></i> Twitter						</a>
+					</li>
+					<li>
+						<a class="bg-whatsapp" href="whatsapp://send?text=https://app.pohonkeluarga.com/tree/ahmad-jamil/9656" target="_blank">
+							<i class="fab fa-whatsapp"></i> Whatsapp						</a>
+					</li>
+					<li>
+						<a class="bg-youtube" href="mailto:?Subject=Ahmad Jamil&amp;Body=Ahmad Jamil https://app.pohonkeluarga.com/tree/ahmad-jamil/9656">
+							<i class="fas fa-envelope-open-text"></i> Kirim ke Email						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<h3 style="margin-bottom: 2px"><span><i class="fas fa-grin-stars"></i></span>Ahmad Jamil</h3>
+		<div class="row">
+			<div class="col">
+				<p style="margin-left: 24px">#9656</p>
+			</div>
+		</div>
+		<div class="pt-sm">
+
+			<div class="tree" id="div">
+									<ul>
+						<li class=" haswife active"><a rel="item-122719" class="partner">
+			
+				<div class="pt-thumb">
+					<img src="https://app.pohonkeluarga.com/images/avatar/3.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+				</div>
+				<strong>masruroh</strong><span class="pt-options">
+						<b class="tree-edit" rel="122719"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122719"><i class="far fa-trash-alt"></i></b>
+					</span></a><a rel="item-122738" class="partner">
+			
+				<div class="pt-thumb">
+					<img src="https://app.pohonkeluarga.com/images/avatar/14.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+				</div>
+				<strong>coba istri 2</strong><span class="pt-options">
+						<b class="tree-edit" rel="122738"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122738"><i class="far fa-trash-alt"></i></b>
+					</span></a><a class=" haswife active"><div class="pt-shoow" rel="item-122718">
+	
+	
+	
+		<div class="pt-thumb ">
+			<img src="https://app.pohonkeluarga.com/images/avatar/8.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+		</div>
+		<strong>Ahmad</strong></div><span class="pt-options">
+				<b class="tree-edit" rel="122718"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122718"><i class="far fa-trash-alt"></i></b>
+						<b class="tree-add" rel="122718"><i class="fas fa-plus" data-toggle="modal" data-target="#myModal"></i></b>
+						<b class="tree-add-fams d-none" rel="122718" data-toggle="modal" data-target="#heritageM"><i class="fas fa-users"></i></b></span></a><a class="partner hid"></a><a class="partner hid"></a><ul><li class=" haswife "><a rel="item-122728" class="partner">
+			
+				<div class="pt-thumb">
+					<img src="https://app.pohonkeluarga.com/images/avatar/10.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+				</div>
+				<strong>Ainur Rosyidah</strong><span class="pt-options">
+						<b class="tree-edit" rel="122728"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122728"><i class="far fa-trash-alt"></i></b>
+					</span></a><a class=" haswife "><div class="pt-shoow" rel="item-122720">
+	<em class="pt-emm" >-</em>
+	
+	
+		<div class="pt-thumb ">
+			<img src="https://app.pohonkeluarga.com/images/avatar/13.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+		</div>
+		<strong>M Abdul</strong><div class="cm_notes">Tinggal Di Kalicilik Demak</div></div><span class="pt-options">
+				<b class="tree-edit" rel="122720"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122720"><i class="far fa-trash-alt"></i></b>
+						<b class="tree-add" rel="122720"><i class="fas fa-plus" data-toggle="modal" data-target="#myModal"></i></b>
+						<b class="tree-add-fams d-none" rel="122720" data-toggle="modal" data-target="#heritageM"><i class="fas fa-users"></i></b></span></a><a class="partner hid"></a></li><li class=" "><a class=" "><div class="pt-shoow" rel="item-122729">
+	<em class="pt-emm" >-</em>
+	
+	
+		<div class="pt-thumb ">
+			<img src="https://app.pohonkeluarga.com/images/avatar/5.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+		</div>
+		<strong>M Ihlasul</strong></div><span class="pt-options">
+				<b class="tree-edit" rel="122729"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122729"><i class="far fa-trash-alt"></i></b>
+						<b class="tree-add" rel="122729"><i class="fas fa-plus" data-toggle="modal" data-target="#myModal"></i></b>
+						<b class="tree-add-fams d-none" rel="122729" data-toggle="modal" data-target="#heritageM"><i class="fas fa-users"></i></b></span></a></li><li class=" "><a class=" "><div class="pt-shoow" rel="item-122730">
+	<em class="pt-emm" >-</em>
+	
+	
+		<div class="pt-thumb ">
+			<img src="https://app.pohonkeluarga.com/images/avatar/13.jpg" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+		</div>
+		<strong>m Chaiz</strong></div><span class="pt-options">
+				<b class="tree-edit" rel="122730"><i class="fas fa-pencil-alt"></i></b>
+						<b class="tree-delete" rel="122730"><i class="far fa-trash-alt"></i></b>
+						<b class="tree-add" rel="122730"><i class="fas fa-plus" data-toggle="modal" data-target="#myModal"></i></b>
+						<b class="tree-add-fams d-none" rel="122730" data-toggle="modal" data-target="#heritageM"><i class="fas fa-users"></i></b></span></a></li></ul></li>					</ul>
+							</div>
+
+		</div>
+	</div>
+
+
+<!-- Modal View Member  -->
+<div class="modal fade" id="myTree" tabindex="-1" role="dialog" aria-labelledby="myTreeLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			<div class="modal-body"></div>
+		</div>
+	</div>
+</div>
+
+
+
+	<div class="pt-footer">
+		<div class="pt-container">
+				Copyright © 2023 <a href="https://app.pohonkeluarga.com">Pohon Keluarga</a>. All Rights Reserved.<br>
+				Programming and design by <a href="https://sketsaweb.com" target="_blank">sketsaweb.com</a>.
+		</div>
+	</div>
+</div>
+
+
+<!-- jQuery Library -->
+<script src="https://app.pohonkeluarga.com/js/jquery.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/popper.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/bootstrap.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/jquery.livequery.js"></script>
+<script src="https://app.pohonkeluarga.com/js/jquery-confirm.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/fileinput.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/lightbox.js"></script>
+<script src="https://app.pohonkeluarga.com/js/datepicker.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/datepicker.en.js"></script>
+<script src="https://app.pohonkeluarga.com/js/Chart.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/jquery.uploader.js"></script>
+<script src="https://app.pohonkeluarga.com/js/jspdf.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/html2canvas.js"></script>
+<script src="https://app.pohonkeluarga.com/js/panzoom.min.js"></script>
+<script src="https://app.pohonkeluarga.com/js/jquery.amsify.suggestags.js"></script>
+<script type="text/javascript" src="https://app.pohonkeluarga.com/js/sw-controller.js"></script>
+
+<script> var path = 'https://app.pohonkeluarga.com',  nophoto = 'https://app.pohonkeluarga.com/images/no_profile_pic.jpg', lang = {"rtl":"rtl_false","lang":"id","success":"Success!","error":"Error!","rip":"Wafat","no-result":"Tidak Ditemukan!","submit":"Submit","close":"Tutup","header":{"welcome":"Selamat Datang!","search":"Cari Keluarga...","home":"Home","family":"Silislah Keluarga","plans":"Paket","about":"About","contact":"Hubungi","details":"Detail","logout":"Logout!","no-not":"Tidak ada Notifikasi","newtree":"Buat Silsilah","dashboard":"Dashboard","users":"Users","fam":"Keluarga","fammanag":"Username Pengelola:","emailver":"Verifikasi Email:"},"plans":{"title":"Paket","desc":"Perpanjang masa langganan. Harga murah hanya 24 ribu per tahun atau 2.000 per bulan","month":"\/per bulan","btn":"Ayo Mulai"},"indexpage":{"h4":"Buat Silsilah Keluarga.","h2":"Siapa mereka?","p":"Jadikan silsilah keluarga Anda hidup dengan Aplikasi Silsilah Pohon Keluarga dan jangan biarkan hanya jadi kenangan yang menghilang. Bangun dengan partisipasi semua anggota keluarga dan buat lebih luas.","form_b":"Aplikasi Silsilah Pohon Keluarga","form_s":"Silakan Login atau Daftar","form_login":"Login","form_register":"Daftar","form_fid_l":"Nama Keluarga:","form_fid_i":"Isi dengan nama keluarga (ID unik)","form_pass_l":"Password:","form_pass_i":"Isi password","form_npass_l":"Password Baru:","form_npass_i":"Isi Password Baru","form_vpass_l":"Password Lihat Silsilah:","form_vpass_i":"Tulis kata sandi untuk lihat silsilah","form_email_l":"Email:","form_email_i":"Isi email","form_in":"Sign In","form_up":"Daftar","form_view":"Bisakah semua orang melihat keluarga ini (tampilan publik)","my":"Silsilah Keluargaku","list":"Daftar Silsilah yang dikelola!","more":"Lebih banyak!","forget":"Lupa password?","reset":"Reset sekarang","pravicy":"Kebijakan Privasi","byclick":"Dengan klik tombol 'Daftar' Anda secara otomatis menerima di {a} kami, jangan ragu untuk membacanya terlebih dahulu!"},"treepage":{"vp_t":"Lihat Password :","vp_p":"Mohon maaf, Silsilah keluarga ini bukan untuk umum. Anda harus memiliki password view untuk menampilkannya.","vp_i":"Tulis password tampilan","vp_b":"Submit","edit":"Edit","new":"Anggota Baru","link":"Link Silsilah","fam":" Silsilah :","share":"Share","share_f":"Facebook","share_t":"Twitter","share_w":"Whatsapp","share_e":"Kirim ke Email","pdf":"Export PDF (experimental)"},"heritage":{"title":"Menghubungkan Keluarga                     :","link":"Tautkan anggota ini sebagai orang tua dari keluarga:"},"detailspage":{"title":"Kelola detail Anda","send":"Kirim Detail","username":"Username","username_l":"Tulis username","image_n":"tidak ada gambar dipilih...","image_c":"Pilih Gambar"},"resetpage":{"title1":"Reset password:","email":"Alamat Email terdaftar","title":"Reset password baru:","npass":"Password baru      :","npass_l":"tulis password","rpass":"ulang Password        :","rpass_l":"tulis ulang password"},"listpage":{"title":"Daftar silsilah keluarga","no-result":"Tidak ditemukan!","members":"Anggota","my":"Silsilahku","edit":"Edit"},"timedate":{"time_second":"detik","time_minute":"menit","time_hour":"jam","time_day":"hari","time_week":"minggu","time_month":"bulan","time_year":"tahun","time_decade":"dekade","time_ago":"yanglalu"},"newmember":{"title":"Tambah anggota baru","personal":"Pribadi","contact":"Kontak","biographical":"Biografi","pictures":"Gambar","link":"Tautkan anggota ke user:","member_notes":"Keterangan","member_family_link":"Hubungkan ke Silsilah Lain","first":"Nama Depan:","last":"Nama Belakang","gender":"Jenis","female":"Wanita","male":"Pria","rtype":"Jenis Hubungan","child":"Anak","ex":"Mantan","parent":"Orang Tua","partner":"Pasangan","bdate":"Tgl Lahir","mdate":"Tgl Pernikahan","ddate":"Tgl Wafat","alive":"Hidup","photo_url":"Tulis URL Foto","photo":"Photo","choose":"Pilih gambar dari perangkat","instead":"Atau pilih ikon","website":"Website","address":"Alamat","tel":"Tel Rumah","mobile":"Tel Seluler (WhatsApp)","bplace":"Tempat Lahir","dplace":"Tempat Meninggal","profession":"Profesi","company":"Perusahaan","interests":"Hobby","bio":"Catatan Bio","photos":"Photo","lab1":"Isi nama depan","lab2":"Isi nama belakang","lab3":"Isi Facebook","lab4":"Isi Twitter","lab5":"Isi Instagram","lab6":"Isi Email","lab7":"Isi Website","lab7a":"Alamat Domisili","lab8":"Isi Tel Rumah","lab9":"Isi Tel Seluler","lab10":"Isi Tempat Lahir","lab11":"Isi Tempat Meninggal","lab12":"Isi Profesi","lab13":"Isi Perusahaan","lab14":"Isi Hobby","lab15":"Isi Catatan Bio","bornat":"Lahir tgl","bornin":"di","deadat":"Meninggal tgl","marriageat":"Menikah tgl"},"alerts":{"required":"Semua kolom diperlukan!","login":"Anda berhasil masuk!","viewp":"Kata sandi tampilan salah!","her_1":"Anda tidak dapat mewariskan keluarga ini karena bukan milik Anda!","her_2":"Anda tidak dapat mewariskan keluarga di silsilah yang sama!","her_3":"Anda tidak dapat mewariskan keluarga ini karena bukan untuk umum!","her_4":"Anda tidak dapat mewariskan keluarga ini!","alldone":"Success, Sip!","famexist":"Keluarga ini sudah ada!","name":"Nama diperlukan!","wrong":"ada yang salah!","correctemail":"Diperlukan format email yang betul!","existemail":"Email ini sudah terdaftar!","existusername":"Username ini sudah terdaftar!","regsuccess":"Anda telah berhasil terdaftar.","regsuccess1":"Anda telah berhasil terdaftar, kami mengirimi Anda email untuk verifikasi!","regsuccess2":"Anda telah berhasil terdaftar, selanjutnya akan dimoderasi oleh admin!","famsuccess":"Username Anda telah berhasil dibuat!","logsuccess":"Anda berhasil masuk!","logapprov":"pengguna ini memerlukan persetujuan admin sebelum masuk!","logverif":"pengguna ini perlu memverifikasi melalui alamat email!","logerror":"Username atau kata sandi salah!","reseterror":"Tidak ada pengguna dengan info ini!","resetsuccess":"Kata sandi reset berhasil dikirim.","pass1":"sandi lebih dari 6 huruf","pass2":"kata sandi tidak cocok dengan ulang sandi","pass3":"Anda dapat masuk dengan password baru","nodata":"","emailver":"Sip, Anda dapat login sekarang.","families":"Jumlah keluarga yang dapat ditambahkan untuk paket yang Anda miliki telah kedaluwarsa, harap perbarui paket Anda!","heritage":"Anda tidak memiliki izin mewariskan dengan paket yang Anda miliki, harap perbarui paket Anda!","members":"Jumlah anggota per keluarga yang dapat ditambahkan untuk paket yang Anda miliki telah kedaluwarsa, harap perbarui paket Anda!","albums":"Anda tidak memiliki izin untuk menambahkan foto di album menggunakan paket yang Anda miliki, tingkatkan versi paket Anda!","permission":"Anda tidak memiliki izin untuk mengakses halaman ini!","payment":"Pembayaran berhasil!","payment_f":"Gagal menerima pembayaran dari PayPal!","logout":"Anda yakin ingin logout?","nofile":"Tidak ada file dipilih...","de_mem":"Apakah Anda yakin ingin menghapus anggota ini?"},"dashboard":{"hello":"Hello,","welcome":"Selamat datang kembali lagi di dasbor Anda.","families":"Keluarga","users":"User","responses":"Anggota","questions":"Gambar","days":"Hari","months":"Bulan","new_u":"User Baru (24h)","latest_f":"Keluarga Terbaru","latest_m":"Anggota Terbaru","save":"Simpan","p_disacticate":"Nonaktifkan opsi paket","status":"Status","name":"nama","public":"umum","members":"anggota","moderators":"moderator","date":"Tgl","edit":"Edit","delete":"Delete","u_users":"Anggota","u_status":"Status","u_username":"Username","verification":"Verifikasi","u_registred":"Registred at","u_updated":"Updated at","u_delete":"Delete User","u_edit":"Edit User","u_create":"Tambah User","u_pages":"Halaman","npage":"Halaman Baru","title":"Judul","inmenu":"di Menu","created":"Created","p_title":"Pembayaran","p_user":"User","u_plan":"Paket","p_amount":"Jumlah","p_paymentid":"Payment ID","p_payerid":"Payer ID","created_at":"Created At","set_title":"Setting Umum","set_stitle":"Site title:","set_keys":"Site keywords:","set_desc":"Site Description:","set_url":"Site URL:","regstatus":"Status Pendaftaran:","byemail":"By Email","mneedsapproval":"Perlu Persetujuan Tanpa Email","open":"Open","hidereg":"Sembunyikan form pendaftaran","fneedsapproval":"Keluarga membutuhkan persetujuan sebelum ditayangkan","colors":"Warna","ptitle":"Page Title","picon":"Page Icon","pcontent":"Page Content","dmenu":"Tampilkan di menu","stats_line_d":"Statistics untuk 7 hari","stats_line_m":"Statistics tahun ini","planalert":"Paket telah berhasil ditambahkan."}};</script>
+
+<!-- DataTables  & Plugins -->
+<script src="https://app.pohonkeluarga.com/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/jszip/jszip.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="https://app.pohonkeluarga.com/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+
+<!-- Main JS -->
+<script src="https://app.pohonkeluarga.com/js/custom.js"></script>
+<script src="https://app.pohonkeluarga.com/js/index.js"></script>
+
+</body>
+</html>
+<script type="text/javascript">
+	$(document).ready(function() {
+		//pt-download click convert #div.tree to canvas (html2canvas) and download as image
+		//and Make sure that canvas element doesn't hit browser limitations for the canvas size or use the window configuration options to set a custom window size based on the canvas element:
+
+		$("#pt-download").click(async function() {
+			const element = document.querySelector(".tree"); // or "#yourElementId"
+
+			// Add before html2canvas call
+			html2canvas.defaultOptions = {
+				allowTaint: true,
+				foreignObjectRendering: true,
+				imageTimeout: 20000,
+				//maxCanvasSize: {
+				//	height: 8192,
+				//	width: 8192
+				//}
+			};
+
+			await html2canvas(element, {
+				scrollY: -window.scrollY, // Handle page scrolling
+				scrollX: -window.scrollX,
+				windowHeight: element.scrollHeight, // Full content height
+				windowWidth: element.scrollWidth, // Full content width
+				width: element.scrollWidth * 1.5, // Canvas width
+				height: element.scrollHeight, // Canvas height
+				scale: 2, // Adjust for higher resolution
+				logging: true, // Debug if needed
+				useCORS: true, // For external resources
+				onclone: (clonedDoc) => {
+					const clonedElement = clonedDoc.querySelector('.tree');
+					clonedElement.style.overflow = 'visible';
+					clonedElement.style.height = 'auto';
+				}
+			}).then(canvas => {
+				const link = document.createElement('a');
+				link.download = 'Ahmad Jamil.png';
+				link.href = canvas.toDataURL();
+				link.click();
+			});
+		});
+
+
+	});
+</script>
+<style>
+	/* Temporary debug CSS
+	.tree {
+		border: 2px solid red !important;
+	}
+	*/
+</style>
