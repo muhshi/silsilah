@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 @import "./tree.css";
 @import '../../vendor/livewire/flux/dist/flux.css';
 
@@ -11,6 +13,36 @@
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-headline: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Be Vietnam Pro', sans-serif;
+
+    --color-primary: #446349;
+    --color-primary-container: #d1f4d2;
+    --color-on-primary: #d8fcda;
+    --color-on-primary-container: #3f5e44;
+    --color-secondary: #405d84;
+    --color-secondary-container: #b7d3ff;
+    --color-on-secondary: #eef3ff;
+    --color-on-secondary-container: #2a496e;
+    --color-tertiary: #735801;
+    --color-tertiary-container: #f9d377;
+    --color-on-tertiary: #fff1d8;
+    --color-on-tertiary-container: #5f4800;
+    --color-surface: #fbf6ec;
+    --color-on-surface: #302f28;
+    --color-surface-variant: #e2dcd0;
+    --color-on-surface-variant: #5e5b54;
+    --color-outline: #7a776f;
+    --color-outline-variant: #b1ada4;
+    --color-background: #fbf6ec;
+    --color-on-background: #302f28;
+
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f5f0e5;
+    --color-surface-container: #ede8dc;
+    --color-surface-container-high: #e7e2d6;
+    --color-surface-container-highest: #e2dcd0;
+
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -65,3 +97,15 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@utility leaf-shape {
+  border-top-left-radius: 3rem;
+  border-bottom-right-radius: 3rem;
+  border-top-right-radius: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

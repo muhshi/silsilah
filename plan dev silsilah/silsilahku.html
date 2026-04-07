@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#b7d3ff",
+              "on-error-container": "#520c00",
+              "secondary-fixed-dim": "#a8c6f2",
+              "on-surface-variant": "#5e5b54",
+              "tertiary-container": "#f9d377",
+              "primary-container": "#d1f4d2",
+              "inverse-on-surface": "#a09d94",
+              "outline": "#7a776f",
+              "tertiary": "#735801",
+              "tertiary-fixed-dim": "#eac56b",
+              "primary-fixed": "#d1f4d2",
+              "secondary-dim": "#335177",
+              "inverse-primary": "#d9fddb",
+              "tertiary-fixed": "#f9d377",
+              "on-secondary-fixed": "#14355a",
+              "surface-container-highest": "#e2dcd0",
+              "error-container": "#f95630",
+              "error": "#b02500",
+              "on-background": "#302f28",
+              "surface-variant": "#e2dcd0",
+              "on-primary-fixed": "#2d4b33",
+              "surface-container": "#ede8dc",
+              "error-dim": "#b92902",
+              "surface-dim": "#d9d4c7",
+              "surface-tint": "#446349",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e7e2d6",
+              "background": "#fbf6ec",
+              "on-tertiary": "#fff1d8",
+              "on-primary": "#d8fcda",
+              "on-tertiary-fixed": "#483500",
+              "primary": "#446349",
+              "tertiary-dim": "#644c00",
+              "outline-variant": "#b1ada4",
+              "on-secondary-fixed-variant": "#345278",
+              "surface": "#fbf6ec",
+              "primary-dim": "#38563d",
+              "on-secondary-container": "#2a496e",
+              "inverse-surface": "#0f0e09",
+              "on-primary-fixed-variant": "#49684e",
+              "surface-bright": "#fbf6ec",
+              "on-tertiary-fixed-variant": "#6a5100",
+              "on-surface": "#302f28",
+              "secondary-container": "#b7d3ff",
+              "primary-fixed-dim": "#c3e6c5",
+              "on-primary-container": "#3f5e44",
+              "on-error": "#ffefec",
+              "on-secondary": "#eef3ff",
+              "on-tertiary-container": "#5f4800",
+              "secondary": "#405d84",
+              "surface-container-low": "#f5f0e5"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Be Vietnam Pro"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .leaf-shape {
+        border-top-left-radius: 3rem;
+        border-bottom-right-radius: 3rem;
+        border-top-right-radius: 1.5rem;
+        border-bottom-left-radius: 1.5rem;
+      }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="bg-[#fbf6ec]/70 dark:bg-[#302f28]/70 backdrop-blur-md fixed top-0 w-full z-50">
+<nav class="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<span class="text-2xl font-black text-[#446349] dark:text-[#d1f4d2] font-['Plus_Jakarta_Sans'] tracking-tight">Silsilah</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#446349] dark:text-[#d1f4d2] font-bold font-['Plus_Jakarta_Sans'] hover:scale-105 transition-transform duration-200" href="#">Garden</a>
+<a class="text-[#302f28]/60 dark:text-[#fbf6ec]/60 font-['Plus_Jakarta_Sans'] hover:scale-105 transition-transform duration-200" href="#">Trees</a>
+<a class="text-[#302f28]/60 dark:text-[#fbf6ec]/60 font-['Plus_Jakarta_Sans'] hover:scale-105 transition-transform duration-200" href="#">Archive</a>
+<a class="text-[#302f28]/60 dark:text-[#fbf6ec]/60 font-['Plus_Jakarta_Sans'] hover:scale-105 transition-transform duration-200" href="#">Me</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#446349] hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#446349] hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile" class="w-10 h-10 rounded-full bg-primary-container border-2 border-white shadow-sm" data-alt="Close-up portrait of a person with friendly expression in soft natural lighting with blurry green background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYYz4Uu-QVlQ4SGmPrKR6wK3H6zMiry4JzI5i4_3noDnKePFu6HUF_aaM_K5gW3eGaxnO-sEVAbzzD2wFIbSiRdEZSu-QZBNaPVp7G8FbplQEVCEvmvdQui2xVJYbgDBHkfipkLWSTwfuZIKX1TYVHlYELKX8QvY_SGnpgE21KBgkQ-58HoUYuPt0ij3cENZrXlrHHsn4tBFoHdUnmFiwTZaWlb7dlA77DSKJFF4Z6LM9yOA-1b2pGRXzq0n1RHXtJQqOh2D7GWxc"/>
+</div>
+</nav>
+</header>
+<div class="flex pt-20 pb-24 md:pb-0 max-w-7xl mx-auto min-h-screen">
+<!-- Sidebar Navigation (Desktop) -->
+<aside class="hidden md:flex flex-col w-64 p-6 gap-2 sticky top-20 self-start">
+<a class="flex items-center gap-3 px-4 py-3 rounded-full bg-surface-container-high text-primary font-bold" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-headline">Family Tree</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-headline">Heritage Lists</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-headline">Photo Archive</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-headline">Settings</span>
+</a>
+<div class="mt-8 p-6 leaf-shape bg-primary-container/30 relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="font-headline font-bold text-primary mb-2">Heritage Hearth</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Nurture your family legacy in our digital garden.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-8xl">park</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 px-6 py-8">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div class="max-w-xl">
+<span class="text-primary font-headline font-bold tracking-widest text-xs uppercase mb-2 block">The Living Heritage</span>
+<h1 class="text-5xl font-headline font-extrabold text-on-surface mb-4 leading-tight">Daftar Silsilah</h1>
+<p class="text-on-surface-variant text-lg leading-relaxed">Kelola dan telusuri akar sejarah keluarga Anda. Setiap nama adalah sebuah cerita yang layak untuk diabadikan.</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-[#86A789] text-on-primary px-8 py-4 rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto">
+<span class="material-symbols-outlined">add</span>
+                    Buat Silsilah
+                </button>
+</div>
+<!-- Bento Grid / Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+<!-- Family Card 1 -->
+<div class="group bg-surface-container-low leaf-shape p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden">
+<div class="flex items-start justify-between mb-8">
+<div class="w-16 h-16 bg-primary-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div class="bg-surface-container-highest/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            AKTIF
+                        </div>
+</div>
+<h3 class="text-2xl font-headline font-bold text-on-surface mb-2">Ahmad Jamil</h3>
+<div class="flex items-center gap-4 text-on-surface-variant text-sm mb-6">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">group</span>
+                            6 members
+                        </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">schedule</span>
+                            37 menit yang lalu
+                        </span>
+</div>
+<div class="flex -space-x-3 mb-8">
+<img class="w-10 h-10 rounded-full border-4 border-surface-container-low group-hover:border-white transition-colors" data-alt="Portrait of an elderly man with a warm smile wearing traditional attire in soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfuSwy1JV4cYRetRqiVR0Yav3KKEcihrS4wBUzL7q91EldSw37VWSpvck5J70s3nSGGllYlsgDl-Iuk8Aol05beuKAFmdjiag4orSJiKWCQOGwUcFrMcvNlCBPPGm5RGPHubtkGoGKaGF3uk9sf8wVqHuivCKqw0phx5ZnsyiLLaNUgc3SmHMW5zjqiPOFmbUe80pVwqH8a29wchO63NLQOLY5cJH_bTnX9UfFE9haBt5n7KItzAuoSKFc7BMFKhOQ1Opggj4UKt8"/>
+<img class="w-10 h-10 rounded-full border-4 border-surface-container-low group-hover:border-white transition-colors" data-alt="Close-up of a smiling young woman with dark hair in a sunlit garden setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvWdNpd8JeJrLOvTTSGfDr_FbvKaeAStKHX7do6P09wPltv73aXWqSDvVdWMj-N4kCS3dlZMGOYGMde8034HHo1PPUR9MdirIHvLmH_M-vX1Fmkn6K9SjMsoaDCxMr9Q3B664oIyvnD7RnG0twn5nWDZ1sbs99qrzkwtCZdVb2eE7o2ldcQdE33Tc5IYIIjOJ21xXb5dyOB_Ti5u_toxREBFtKalhwjle-HKxKITtb8z06ztppkPf23j0Ev1rhbbjPDkhFqXYbE7c"/>
+<img class="w-10 h-10 rounded-full border-4 border-surface-container-low group-hover:border-white transition-colors" data-alt="Portrait of a young boy laughing with natural sunlight highlighting his features" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6P5m32rR04ICqXIYWmXur5XyKo0gNYu_qyfUP6vOL4k1AEq7aaU1o6E4xPjk7JYpRRzrU6wnO3M_uYYQB5ZlLxXyUNYPSimr9Sjx5CdqevfyxGu8RE76Gzov1Vi7IrTQpHNHqRutQiWz8Nt3-Zx2egCOhNn-Mspekx5lqzRsVQzsDFkKXQ80ziexJVKv1UshjRQXiUisJNJlTpWj1bTFxg3Nrsk2gHzBE21F_iyV7KPh4s0sFcoHqnXsSeoAMDGQ-Nfhe2bOMsxQ"/>
+<div class="w-10 h-10 rounded-full border-4 border-surface-container-low group-hover:border-white bg-primary text-white flex items-center justify-center text-xs font-bold transition-colors">+3</div>
+</div>
+<button class="w-full py-3 rounded-full bg-primary/10 text-primary font-bold hover:bg-primary hover:text-white transition-all">
+                        Lihat Silsilah
+                    </button>
+<!-- Decorative background shape -->
+<div class="absolute -right-6 -bottom-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
+</div>
+<!-- Family Card 2 -->
+<div class="group bg-surface-container-low leaf-shape p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden">
+<div class="flex items-start justify-between mb-8">
+<div class="w-16 h-16 bg-secondary-container/40 rounded-lg flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl">nature_people</span>
+</div>
+<div class="bg-surface-container-highest/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                            BARU
+                        </div>
+</div>
+<h3 class="text-2xl font-headline font-bold text-on-surface mb-2">Ulul Azmie</h3>
+<div class="flex items-center gap-4 text-on-surface-variant text-sm mb-6">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">group</span>
+                            0 members
+                        </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">schedule</span>
+                            15 detik yang lalu
+                        </span>
+</div>
+<div class="mb-8 h-10 flex items-center">
+<p class="text-xs italic text-outline italic">Belum ada anggota yang ditambahkan...</p>
+</div>
+<button class="w-full py-3 rounded-full bg-secondary/10 text-secondary font-bold hover:bg-secondary hover:text-white transition-all">
+                        Tambah Anggota
+                    </button>
+</div>
+<!-- Placeholder Card -->
+<div class="group border-4 border-dashed border-outline-variant/30 leaf-shape p-8 flex flex-col items-center justify-center text-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-outline-variant group-hover:scale-110 group-hover:bg-primary/20 group-hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined text-3xl">add_circle</span>
+</div>
+<div>
+<h3 class="text-xl font-headline font-bold text-on-surface">Start a New Branch</h3>
+<p class="text-sm text-on-surface-variant mt-1">Tambah silsilah keluarga baru</p>
+</div>
+</div>
+</div>
+<!-- Descriptive Asymmetric Section -->
+<section class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div class="order-2 md:order-1 relative">
+<div class="absolute -top-12 -left-12 w-64 h-64 bg-tertiary-container/20 rounded-full blur-3xl -z-10"></div>
+<img class="w-full h-80 object-cover leaf-shape shadow-2xl" data-alt="An artistic black and white overhead photo of a family putting their hands together in the center of a circle, symbolizing unity and heritage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMdSqwe1gMC3DhtrdLpwz_D0rKJJR5G8-EnTxN0ud5ZVS0WJP0mQCWkU8SScOavoMeQaqBapiiVZR6lPYXHQYmBV8mE81ZdHkua-nh3OoByKG9aHek5-xS7hhtnxvNwjegfmEJo64v_UWAAHB1jHKnnUdcjn5pMm7oBj9LVMP5plBtwRbJ8wB8o_b6F9Y2mMI1tSh3uDp5o2oB-guyq2VB44Q2d10SwgIpsIXl7v04J6dMw5KxPrrdhTn1rPk_e1ZeYjqpNVyOTIw"/>
+</div>
+<div class="order-1 md:order-2">
+<h2 class="text-3xl font-headline font-bold text-on-surface mb-6 italic">"Setiap keluarga memiliki akar yang dalam, namun setiap dahan tumbuh ke arah yang berbeda."</h2>
+<p class="text-on-surface-variant leading-relaxed mb-8">Gunakan platform Silsilah untuk mendokumentasikan setiap momen penting. Dari foto lama hingga cerita yang hampir terlupakan, biarkan warisan Anda tetap hidup untuk generasi mendatang.</p>
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-4xl font-headline font-extrabold text-primary">120+</span>
+<span class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Pohon Dibuat</span>
+</div>
+<div class="w-px h-12 bg-outline-variant/20 mx-4"></div>
+<div class="flex flex-col">
+<span class="text-4xl font-headline font-extrabold text-tertiary">2.5k</span>
+<span class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Anggota Terdata</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-[#fbf6ec]/80 dark:bg-[#302f28]/80 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-8 pb-6 pt-3 shadow-[0_-8px_32px_rgba(48,47,40,0.06)] rounded-t-[3rem]">
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#446349] to-[#86A789] text-white rounded-full p-3 scale-110 -translate-y-2 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-['Be_Vietnam_Pro'] text-[11px] font-semibold">Garden</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#302f28]/50 dark:text-[#fbf6ec]/50 p-2 hover:text-[#446349] dark:hover:text-[#d1f4d2]" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-['Be_Vietnam_Pro'] text-[11px] font-semibold">Trees</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#302f28]/50 dark:text-[#fbf6ec]/50 p-2 hover:text-[#446349] dark:hover:text-[#d1f4d2]" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-['Be_Vietnam_Pro'] text-[11px] font-semibold">Archive</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#302f28]/50 dark:text-[#fbf6ec]/50 p-2 hover:text-[#446349] dark:hover:text-[#d1f4d2]" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Be_Vietnam_Pro'] text-[11px] font-semibold">Me</span>
+</a>
+</nav>
+</body></html>

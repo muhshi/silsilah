@@ -3,6 +3,7 @@
 use Livewire\Component;
 use App\Models\FamilyTree;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
@@ -32,70 +33,128 @@ new class extends Component
 
     public function with()
     {
+        $trees = auth()->user()->familyTrees()->withCount('members')->latest()->get();
+        // Calculate total members across all trees user owns
+        $totalMembers = $trees->sum('members_count');
+        $totalTrees = $trees->count();
+        
         return [
-            'trees' => auth()->user()->familyTrees()->withCount('members')->latest()->get(),
+            'trees' => $trees,
+            'totalMembers' => $totalMembers,
+            'totalTrees' => $totalTrees,
         ];
     }
 };
 ?>
 
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-xl font-semibold dark:text-white">Silsilah Keluargaku</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Daftar Silsilah yang Anda kelola!</p>
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div class="max-w-xl">
+            <span class="text-primary font-headline font-bold tracking-widest text-xs uppercase mb-2 block">The Living Heritage</span>
+            <h1 class="text-5xl font-headline font-extrabold text-on-surface mb-4 leading-tight">Daftar Silsilah</h1>
+            <p class="text-on-surface-variant text-lg leading-relaxed">Kelola dan telusuri akar sejarah keluarga Anda. Setiap nama adalah sebuah cerita yang layak untuk diabadikan.</p>
         </div>
-        
         <flux:modal.trigger name="create-tree-modal">
-            <flux:button variant="primary" icon="plus">Buat Silsilah</flux:button>
+            <button class="flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-[#86A789] text-on-primary px-8 py-4 rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto">
+                <span class="material-symbols-outlined">add</span>
+                Buat Silsilah
+            </button>
         </flux:modal.trigger>
     </div>
 
-    @if($trees->isEmpty())
-        <div class="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-            <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-indigo-50 dark:bg-indigo-900/20">
-                <flux:icon.users class="w-6 h-6 text-indigo-500" />
+    <!-- Bento Grid / Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        @foreach($trees as $tree)
+            <!-- Family Card -->
+            <div onclick="window.location='{{ route('tree.show', $tree->id) }}'" class="group bg-surface-container-low leaf-shape p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden">
+                <div class="flex items-start justify-between mb-8">
+                    <div class="w-16 h-16 bg-primary-container rounded-lg flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+                    </div>
+                    @if($tree->is_public)
+                        <div class="bg-surface-container-highest/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            PUBLIK
+                        </div>
+                    @else
+                        <div class="bg-surface-container-highest/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                            PRIVAT
+                        </div>
+                    @endif
+                </div>
+                
+                <h3 class="text-2xl font-headline font-bold text-on-surface mb-2">{{ $tree->name }}</h3>
+                <div class="flex items-center gap-4 text-on-surface-variant text-sm mb-6">
+                    <span class="flex items-center gap-1 whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base">group</span>
+                        {{ $tree->members_count }} members
+                    </span>
+                    <span class="flex items-center gap-1 whitespace-nowrap">
+                        <span class="material-symbols-outlined text-base">schedule</span>
+                        {{ $tree->created_at->diffForHumans() }}
+                    </span>
+                </div>
+                
+                @if($tree->members_count > 0)
+                    <div class="flex -space-x-3 mb-8 h-10">
+                        <div class="w-10 h-10 rounded-full border-4 border-surface-container-low bg-primary text-white flex items-center justify-center text-xs font-bold">{{ $tree->members_count }}</div>
+                    </div>
+                @else
+                    <div class="mb-8 h-10 flex items-center">
+                        <p class="text-xs text-outline italic">Belum ada anggota yang ditambahkan...</p>
+                    </div>
+                @endif
+                
+                <button class="w-full py-3 rounded-full bg-primary/10 text-primary font-bold hover:bg-primary hover:text-white transition-all">
+                    Lihat Silsilah
+                </button>
+                
+                <!-- Decorative background shape -->
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Belum ada Silsilah</h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Mulai dengan membuat silsilah keluarga pertama Anda.</p>
-        </div>
-    @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach($trees as $tree)
-                <flux:card class="relative flex flex-col transition hover:border-indigo-500 group">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-medium dark:text-white">
-                                <a href="{{ route('tree.show', $tree->id) }}" class="focus:outline-none">
-                                    <span class="absolute inset-0" aria-hidden="true"></span>
-                                    {{ $tree->name }}
-                                </a>
-                            </h3>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Dikelola sejak {{ $tree->created_at->diffForHumans() }}
-                            </p>
-                        </div>
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500">
-                            <flux:icon.users class="w-5 h-5" />
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                        <div class="flex items-center gap-1.5 pl-3 border-l-2 border-indigo-500">
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $tree->members_count }}</span>
-                            <span>Anggota</span>
-                        </div>
-                        @if($tree->is_public)
-                            <flux:badge size="sm" color="green" class="ml-auto">Publik</flux:badge>
-                        @else
-                            <flux:badge size="sm" color="zinc" class="ml-auto">Privat</flux:badge>
-                        @endif
-                    </div>
-                </flux:card>
-            @endforeach
-        </div>
-    @endif
+        @endforeach
 
+        <!-- Placeholder Card -->
+        <flux:modal.trigger name="create-tree-modal">
+            <div class="group border-4 border-dashed border-outline-variant/30 leaf-shape p-8 flex flex-col items-center justify-center text-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer h-full min-h-[300px]">
+                <div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-outline-variant group-hover:scale-110 group-hover:bg-primary/20 group-hover:text-primary transition-all duration-300">
+                    <span class="material-symbols-outlined text-3xl">add_circle</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-headline font-bold text-on-surface">Start a New Branch</h3>
+                    <p class="text-sm text-on-surface-variant mt-1">Tambah silsilah keluarga baru</p>
+                </div>
+            </div>
+        </flux:modal.trigger>
+    </div>
+
+    <!-- Descriptive Asymmetric Section -->
+    <section class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div class="order-2 md:order-1 relative">
+            <div class="absolute -top-12 -left-12 w-64 h-64 bg-tertiary-container/20 rounded-full blur-3xl -z-10"></div>
+            <img class="w-full h-80 object-cover leaf-shape shadow-2xl" alt="Momen Keluarga" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMdSqwe1gMC3DhtrdLpwz_D0rKJJR5G8-EnTxN0ud5ZVS0WJP0mQCWkU8SScOavoMeQaqBapiiVZR6lPYXHQYmBV8mE81ZdHkua-nh3OoByKG9aHek5-xS7hhtnxvNwjegfmEJo64v_UWAAHB1jHKnnUdcjn5pMm7oBj9LVMP5plBtwRbJ8wB8o_b6F9Y2mMI1tSh3uDp5o2oB-guyq2VB44Q2d10SwgIpsIXl7v04J6dMw5KxPrrdhTn1rPk_e1ZeYjqpNVyOTIw"/>
+        </div>
+        <div class="order-1 md:order-2">
+            <h2 class="text-3xl font-headline font-bold text-on-surface mb-6 italic">"Setiap keluarga memiliki akar yang dalam, namun setiap dahan tumbuh ke arah yang berbeda."</h2>
+            <p class="text-on-surface-variant leading-relaxed mb-8">Gunakan platform Silsilah untuk mendokumentasikan setiap momen penting. Dari foto lama hingga cerita yang hampir terlupakan, biarkan warisan Anda tetap hidup untuk generasi mendatang.</p>
+            
+            <div class="flex gap-4">
+                <div class="flex flex-col">
+                    <span class="text-4xl font-headline font-extrabold text-primary">{{ $totalTrees }}</span>
+                    <span class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Pohon Dibuat</span>
+                </div>
+                <div class="w-px h-12 bg-outline-variant/20 mx-4"></div>
+                <div class="flex flex-col">
+                    <span class="text-4xl font-headline font-extrabold text-tertiary">{{ $totalMembers }}</span>
+                    <span class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Anggota Terdata</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Form for Create Tree -->
     <flux:modal name="create-tree-modal" class="md:w-[32rem]">
         <form wire:submit="createTree" class="space-y-6">
             <div>
