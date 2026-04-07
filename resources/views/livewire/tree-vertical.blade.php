@@ -9,17 +9,24 @@ new class extends Component
 {
     public $tree;
     public ?int $focusMemberId = null;
+    public $isPublic = false;
+    public $publicSlug = null;
 
-    public function mount($id)
+    public function mount($id, $isPublic = false, $publicSlug = null)
     {
+        $this->isPublic = $isPublic;
+        $this->publicSlug = $publicSlug;
+
         $this->tree = FamilyTree::with([
             'members',
             'members.marriagesAsHusband.wife',
             'members.marriagesAsWife.husband',
         ])->findOrFail($id);
 
-        if ($this->tree->users()->where('user_id', auth()->id())->doesntExist() && !$this->tree->is_public) {
-            abort(403, 'Unauthorized access.');
+        if (!$this->isPublic) {
+            if ($this->tree->users()->where('user_id', auth()->id())->doesntExist() && !$this->tree->is_public) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         $this->focusMemberId = request()->query('member') ? (int) request()->query('member') : null;
@@ -130,17 +137,22 @@ new class extends Component
             @endif
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <flux:button size="sm" icon="arrow-left" href="{{ route('tree.show', $tree->id) }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
-            <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
-            @if($tree->slug)
-                <flux:button size="sm" icon="share" x-data="{ shared: false }"
-                    x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); shared = true; setTimeout(() => shared = false, 2000)"
-                    class="!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!bg-emerald-900/30 dark:!text-emerald-400 dark:hover:!bg-emerald-900/50">
-                    <span x-show="!shared">Share</span>
-                    <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
-                </flux:button>
+            @if(!$isPublic)
+                <flux:button size="sm" icon="arrow-left" href="{{ route('tree.show', $tree->id) }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
+                <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
+                @if($tree->slug)
+                    <flux:button size="sm" icon="share" x-data="{ shared: false }"
+                        x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); shared = true; setTimeout(() => shared = false, 2000)"
+                        class="!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!bg-emerald-900/30 dark:!text-emerald-400 dark:hover:!bg-emerald-900/50">
+                        <span x-show="!shared">Share</span>
+                        <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
+                    </flux:button>
+                @endif
+                <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
+            @else
+                <flux:button size="sm" icon="arrow-left" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug) : '#' }}" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
+                <flux:button size="sm" icon="document-text" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#' }}" class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
             @endif
-            <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
         </div>
     </div>
 
@@ -239,5 +251,7 @@ new class extends Component
         @endforeach
     </div>
 
-    <livewire:member-manager :tree-id="$tree->id" />
+    @if(!$isPublic)
+        <livewire:member-manager :tree-id="$tree->id" />
+    @endif
 </div>

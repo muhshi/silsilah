@@ -7,8 +7,10 @@ use App\Models\FamilyTree;
 new class extends Component
 {
     public $tree;
+    public $isPublic = false;
+    public $publicSlug = null;
 
-    public function mount($id)
+    public function mount($id, $isPublic = false, $publicSlug = null)
     {
         $this->tree = FamilyTree::with([
             'members',
@@ -16,8 +18,10 @@ new class extends Component
             'members.marriagesAsWife.husband',
         ])->findOrFail($id);
 
-        if ($this->tree->users()->where('user_id', auth()->id())->doesntExist() && !$this->tree->is_public) {
-            abort(403, 'Unauthorized access to this family tree.');
+        if (!$this->isPublic) {
+            if ($this->tree->users()->where('user_id', auth()->id())->doesntExist() && !$this->tree->is_public) {
+                abort(403, 'Unauthorized access to this family tree.');
+            }
         }
     }
 
@@ -54,7 +58,7 @@ new class extends Component
 };
 ?>
 
-<div class="w-full max-w-[100vw]">
+<div class="w-full max-w-[100vw]" x-data="canvasTree()">
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between px-4 lg:px-8 py-4 gap-3">
         <div class="min-w-0">
@@ -64,24 +68,40 @@ new class extends Component
             @endif
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <flux:button size="sm" icon="arrow-left" href="{{ route('dashboard') }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Kembali</flux:button>
-            <flux:button size="sm" icon="list-bullet" href="{{ route('tree.vertical', $tree->id) }}" wire:navigate class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
-            <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
-            @if($tree->slug)
-                <flux:button size="sm" icon="share" x-data="{ shared: false }"
-                    x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); shared = true; setTimeout(() => shared = false, 2000)"
-                    class="!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!bg-emerald-900/30 dark:!text-emerald-400 dark:hover:!bg-emerald-900/50">
-                    <span x-show="!shared">Share</span>
-                    <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
-                </flux:button>
+            @if(!$isPublic)
+                <flux:button size="sm" icon="arrow-left" href="{{ route('dashboard') }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Kembali</flux:button>
+                <flux:button size="sm" icon="list-bullet" href="{{ route('tree.vertical', $tree->id) }}" wire:navigate class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
+                <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
+                @if($tree->slug)
+                    <flux:button size="sm" icon="share" x-data="{ shared: false }"
+                        x-on:click="navigator.clipboard.writeText('{{ url('/public/tree/' . $tree->slug) }}'); shared = true; setTimeout(() => shared = false, 2000)"
+                        class="!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!bg-emerald-900/30 dark:!text-emerald-400 dark:hover:!bg-emerald-900/50">
+                        <span x-show="!shared">Share</span>
+                        <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
+                    </flux:button>
+                @endif
+                <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
+            @else
+                <flux:button size="sm" icon="list-bullet" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#' }}" class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
+                <flux:button size="sm" icon="document-text" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#' }}" class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
             @endif
-            <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
+
+            <flux:button size="sm" icon="photo"
+                href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'png', 'view' => 'horizontal']) }}"
+                class="!bg-blue-50 !text-blue-700 hover:!bg-blue-100 dark:!bg-blue-900/30 dark:!text-blue-400 dark:hover:!bg-blue-900/50">
+                Gambar
+            </flux:button>
+            <flux:button size="sm" icon="document-arrow-down"
+                href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'horizontal']) }}"
+                class="!bg-rose-50 !text-rose-700 hover:!bg-rose-100 dark:!bg-rose-900/30 dark:!text-rose-400 dark:hover:!bg-rose-900/50">
+                PDF
+            </flux:button>
         </div>
     </div>
 
     {{-- Tree Canvas --}}
     <div class="px-4 lg:px-8 pb-8">
-        <div class="pt-sm" x-data="canvasTree()" x-ref="container"
+        <div class="pt-sm" x-ref="container"
              @mousedown="startDrag($event)"
              @mousemove="doDrag($event)"
              @mouseup="stopDrag()"
@@ -117,7 +137,9 @@ new class extends Component
     </div>
 
     {{-- Member Manager --}}
-    <livewire:member-manager :tree-id="$tree->id" />
+    @if(!$isPublic)
+        <livewire:member-manager :tree-id="$tree->id" />
+    @endif
 </div>
 
 @script
@@ -190,7 +212,7 @@ new class extends Component
 
         zoomIn() { this.scale = Math.min(3, this.scale + 0.15); },
         zoomOut() { this.scale = Math.max(0.2, this.scale - 0.15); },
-        resetView() { this.centerTree(); }
+        resetView() { this.centerTree(); },
     }));
 </script>
 @endscript

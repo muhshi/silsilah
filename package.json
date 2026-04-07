@@ -10,7 +10,10 @@
         "@tailwindcss/vite": "^4.1.11",
         "autoprefixer": "^10.4.20",
         "concurrently": "^9.0.1",
+        "html2canvas": "^1.4.1",
+        "jspdf": "^4.2.1",
         "laravel-vite-plugin": "^3.0.0",
+        "puppeteer": "^24.40.0",
         "tailwindcss": "^4.0.7",
         "vite": "^8.0.0"
     },
