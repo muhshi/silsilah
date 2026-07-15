@@ -124,7 +124,13 @@ new class extends Component
 
         // Auto-assign avatar if none selected and no photo/url
         if (!$this->memberId && !$this->avatar_id && !$this->photo && !$this->photo_url) {
-            $data['avatar_id'] = $this->gender === 'male' ? rand(1, 9) : rand(10, 18);
+            $maleAvatars = ['anak laki.png', 'anak.png', 'bayi 1.png', 'bapak peci hitam.png', 'dewasa laki.png', 'kakek peci putih.png', 'makasar.png', 'pemuda.png', 'pria sorban.png', 'remaja 1.png', 'remaja timur.png'];
+            $femaleAvatars = ['anak perempuan.png', 'dewasa perempuan.png', 'hijab.png', 'ibu hijab kacamata.png', 'nenek hijab.png', 'nenek makasar.png', 'remaja perempuan hijab.png', 'remaja.png'];
+            
+            $this->avatar_id = $this->gender === 'male' 
+                ? $maleAvatars[array_rand($maleAvatars)] 
+                : $femaleAvatars[array_rand($femaleAvatars)];
+            $data['avatar_id'] = $this->avatar_id;
         }
 
         // Handle photo URL (priority: upload > url > avatar)
@@ -373,13 +379,16 @@ new class extends Component
                 {{-- Avatar picker --}}
                 <div class="form-avatar">
                     <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300 block mb-2">Atau pilih ikon</label>
-                    <div class="form-inline">
-                        @for($i = 1; $i <= 18; $i++)
+                    <div class="form-inline flex flex-wrap gap-2">
+                        @php
+                        $allAvatars = ['anak laki.png', 'anak perempuan.png', 'anak.png', 'bapak peci hitam.png', 'bayi 1.png', 'dewasa laki.png', 'dewasa perempuan.png', 'hijab.png', 'ibu hijab kacamata.png', 'kakek peci putih.png', 'makasar.png', 'nenek hijab.png', 'nenek makasar.png', 'pemuda.png', 'pria sorban.png', 'remaja 1.png', 'remaja perempuan hijab.png', 'remaja timur.png', 'remaja.png'];
+                        @endphp
+                        @foreach($allAvatars as $avatarName)
                             <div class="form-group">
-                                <input type="radio" name="avatar" wire:model="avatar_id" value="{{ $i }}" id="sradioe{{ $i }}" class="choice image" />
-                                <label for="sradioe{{ $i }}"><b><img src="https://app.pohonkeluarga.com/images/avatar/{{ $i }}.jpg" alt="Avatar {{ $i }}" /></b></label>
+                                <input type="radio" name="avatar" wire:model="avatar_id" value="{{ $avatarName }}" id="sradioe_{{ Str::slug($avatarName) }}" class="choice image" />
+                                <label for="sradioe_{{ Str::slug($avatarName) }}"><b><img src="{{ asset('images/avatar/' . $avatarName) }}" alt="Avatar" /></b></label>
                             </div>
-                        @endfor
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -449,8 +458,8 @@ new class extends Component
                 $vmAvatar = $vm->photo 
                     ? asset('storage/' . $vm->photo) 
                     : ($vm->avatar_id 
-                        ? 'https://app.pohonkeluarga.com/images/avatar/' . $vm->avatar_id . '.jpg' 
-                        : 'https://app.pohonkeluarga.com/images/no_profile_pic.jpg');
+                        ? asset('images/avatar/' . $vm->avatar_id) 
+                        : asset('images/no_profile_pic.jpg'));
             @endphp
             <div class="text-center">
                 <div class="mx-auto w-24 h-24 rounded-full overflow-hidden border-4 {{ $vm->gender === 'female' ? 'border-pink-300' : 'border-teal-300' }} shadow-md">

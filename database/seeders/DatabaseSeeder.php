@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Kakek Sugiono',
             'birth_date' => '1950-01-01',
             'is_living' => false,
-            'avatar_id' => 18,
+            'avatar_id' => 'kakek peci putih.png',
         ]);
 
         $nenek = \App\Models\Member::factory()->create([
@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Nenek Sumiati',
             'birth_date' => '1955-05-05',
             'is_living' => true,
-            'avatar_id' => 11,
+            'avatar_id' => 'nenek hijab.png',
         ]);
 
         \App\Models\Marriage::factory()->create([
@@ -59,14 +59,14 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Budi Santoso',
             'father_id' => $kakek->id,
             'mother_id' => $nenek->id,
-            'avatar_id' => 2,
+            'avatar_id' => 'bapak peci hitam.png',
         ]);
 
         $ibu = \App\Models\Member::factory()->create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Siti Aminah',
-            'avatar_id' => 3,
+            'avatar_id' => 'ibu hijab kacamata.png',
         ]);
 
         \App\Models\Marriage::factory()->create([
@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Sri Wahyuni',
             'father_id' => $kakek->id,
             'mother_id' => $nenek->id,
-            'avatar_id' => 4,
+            'avatar_id' => 'dewasa perempuan.png',
         ]);
 
         // Gen 3: Anak-anak dari Ayah dan Ibu
@@ -92,7 +92,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Dimas',
             'father_id' => $ayah->id,
             'mother_id' => $ibu->id,
-            'avatar_id' => 5,
+            'avatar_id' => 'anak laki.png',
         ]);
 
         \App\Models\Member::factory()->create([
@@ -101,7 +101,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Dinda',
             'father_id' => $ayah->id,
             'mother_id' => $ibu->id,
-            'avatar_id' => 6,
+            'avatar_id' => 'anak perempuan.png',
         ]);
         
         // Buat folder storage untuk avatars jika belum ada dummy files

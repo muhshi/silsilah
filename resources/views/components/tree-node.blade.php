@@ -25,13 +25,11 @@
     // Avatar helper
     $getAvatar = function($m) {
         if ($m->photo) {
-            return str_starts_with($m->photo, 'http')
-                ? $m->photo
-                : asset('storage/' . $m->photo);
+            return asset('storage/' . $m->photo);
         }
         return $m->avatar_id
-            ? 'https://app.pohonkeluarga.com/images/avatar/' . $m->avatar_id . '.jpg'
-            : 'https://app.pohonkeluarga.com/images/no_profile_pic.jpg';
+            ? asset('images/avatar/' . $m->avatar_id)
+            : asset('images/no_profile_pic.jpg');
     };
     $avatarUrl = $getAvatar($member);
 @endphp
@@ -41,7 +39,7 @@
     @foreach($spouses as $spouse)
         <a class="partner gender-{{ $spouse->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })">
             <div class="pt-thumb">
-                <img src="{{ $getAvatar($spouse) }}" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+                <img src="{{ $getAvatar($spouse) }}" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
             </div>
             <strong>{{ trim($spouse->first_name . ' ' . $spouse->last_name) }}</strong>
             <span class="pt-options">
@@ -61,7 +59,7 @@
             <span class="pt-dead">Wafat</span>
         @endif
         <div class="pt-thumb">
-            <img src="{{ $avatarUrl }}" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+            <img src="{{ $avatarUrl }}" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
         </div>
         <strong>{{ trim($member->first_name . ' ' . $member->last_name) }}</strong>
 

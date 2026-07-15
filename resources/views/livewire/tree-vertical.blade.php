@@ -55,11 +55,11 @@ new class extends Component
         // Helper: get avatar URL
         $getAvatar = function($m) {
             if ($m->photo) {
-                return str_starts_with($m->photo, 'http') ? $m->photo : asset('storage/' . $m->photo);
+                return asset('storage/' . $m->photo);
             }
             return $m->avatar_id
-                ? 'https://app.pohonkeluarga.com/images/avatar/' . $m->avatar_id . '.jpg'
-                : 'https://app.pohonkeluarga.com/images/no_profile_pic.jpg';
+                ? asset('images/avatar/' . $m->avatar_id)
+                : asset('images/no_profile_pic.jpg');
         };
 
         // Determine the focus member and their context
@@ -187,7 +187,7 @@ new class extends Component
                     {{-- Main member --}}
                     <div class="flex items-center gap-3 cursor-pointer" wire:click="$dispatch('show-member', { id: {{ $member->id }} })">
                         <div class="w-16 h-16 rounded-full overflow-hidden border-3 {{ $member->gender === 'female' ? 'border-pink-400' : 'border-teal-400' }} shadow">
-                            <img src="{{ $getAvatar($member) }}" class="w-full h-full object-cover" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+                            <img src="{{ $getAvatar($member) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
                         </div>
                         <div>
                             <strong class="text-lg {{ $member->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $member->first_name }} {{ $member->last_name }}</strong>
@@ -205,7 +205,7 @@ new class extends Component
                         <span class="text-lg">❤️</span>
                         <div class="flex items-center gap-3 cursor-pointer" wire:click="$dispatch('show-member', { id: {{ $spouse->id }} })">
                             <div class="w-14 h-14 rounded-full overflow-hidden border-2 {{ $spouse->gender === 'female' ? 'border-pink-300' : 'border-teal-300' }} shadow">
-                                <img src="{{ $getAvatar($spouse) }}" class="w-full h-full object-cover" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+                                <img src="{{ $getAvatar($spouse) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
                             </div>
                             <div>
                                 <strong class="text-base {{ $spouse->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $spouse->first_name }}</strong>

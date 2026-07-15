@@ -10,7 +10,7 @@
         {{-- Photo --}}
         <div class="w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-zinc-600 flex-shrink-0 cursor-pointer"
              wire:click="$dispatch('show-member', { id: {{ $child->id }} })">
-            <img src="{{ $getAvatar($child) }}" class="w-full h-full object-cover" onerror="this.src='https://app.pohonkeluarga.com/images/no_profile_pic.jpg'" />
+            <img src="{{ $getAvatar($child) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
         </div>
 
         {{-- Info --}}
