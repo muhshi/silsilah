@@ -206,7 +206,25 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
     // Remove onerror attributes (fallback images not needed in export)
     $html = preg_replace('/\s*onerror="[^"]*"/', '', $html);
 
-    $chromePath = trim(shell_exec('node -e "console.log(require(\'puppeteer\').executablePath())"'));
+    $chromePaths = [
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // macOS
+        '/usr/bin/google-chrome', // Linux
+        '/usr/bin/google-chrome-stable', // Linux
+        '/usr/bin/chromium-browser', // Linux
+    ];
+    
+    $chromePath = null;
+    foreach ($chromePaths as $path) {
+        if (file_exists($path)) {
+            $chromePath = $path;
+            break;
+        }
+    }
+
+    if (!$chromePath) {
+        // Fallback to puppeteer executable path if system chrome not found
+        $chromePath = trim(shell_exec('node -e "console.log(require(\'puppeteer\').executablePath())"'));
+    }
 
     $browsershot = Browsershot::html($html)
         ->setChromePath($chromePath)
