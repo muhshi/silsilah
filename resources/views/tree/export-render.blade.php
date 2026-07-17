@@ -8,6 +8,10 @@
         $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
         $cssFile = $manifest['resources/css/app.css']['file'] ?? null;
         $cssContent = $cssFile ? file_get_contents(public_path('build/' . $cssFile)) : '';
+        // Strip external fonts to prevent Puppeteer hanging on network requests
+        $cssContent = preg_replace('/@import\s+url\([^)]+\);?/', '', $cssContent);
+        $cssContent = preg_replace('/@import\s+"[^"]+";?/', '', $cssContent);
+        $cssContent = preg_replace("/@import\s+'[^']+';?/", '', $cssContent);
     @endphp
     <style>{!! $cssContent !!}</style>
 
