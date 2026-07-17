@@ -18,6 +18,9 @@
             background: #ffffff !important;
             margin: 0;
             padding: 0;
+            min-width: 1920px;
+            min-height: 1080px;
+            display: block;
         }
         .pt-sm {
             overflow: visible !important;
@@ -37,7 +40,7 @@
     </style>
 </head>
 <body>
-    <div style="display: inline-block; padding: 40px;">
+    <div style="display: inline-block; padding: 40px; min-width: 100%; min-height: 100%;">
         @if(($viewType ?? 'horizontal') === 'simple')
             <div class="tree simple-tree" id="simpleTree">
                 <ul>
