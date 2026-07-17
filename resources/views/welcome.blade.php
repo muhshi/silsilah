@@ -71,50 +71,8 @@
             <!-- Tree illustration -->
             <div class="mt-16 lg:mt-20">
                 <div class="rounded-2xl border border-surface-variant/60 bg-surface-container-low p-1.5 sm:p-3 shadow-lg">
-                    <div class="rounded-xl overflow-hidden bg-surface-container aspect-[16/9] flex items-center justify-center relative">
-                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-surface-container/80 z-10"></div>
-
-                        {{-- Stylized family tree diagram --}}
-                        <div class="relative z-0 flex flex-col items-center gap-6 py-10">
-                            {{-- Generation 1 --}}
-                            <div class="flex items-center gap-4">
-                                <div class="size-14 sm:size-16 rounded-full bg-primary-container border-[3px] border-surface-container-lowest shadow-sm flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-primary text-xl sm:text-2xl">person</span>
-                                </div>
-                                <div class="w-6 h-0.5 bg-outline-variant rounded-full"></div>
-                                <div class="size-14 sm:size-16 rounded-full bg-secondary-container border-[3px] border-surface-container-lowest shadow-sm flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-secondary text-xl sm:text-2xl">person</span>
-                                </div>
-                            </div>
-
-                            {{-- Connector --}}
-                            <div class="w-0.5 h-6 bg-outline-variant rounded-full"></div>
-
-                            {{-- Horizontal branch --}}
-                            <div class="relative">
-                                <div class="absolute top-0 left-1/4 right-1/4 h-0.5 bg-outline-variant rounded-full"></div>
-                                <div class="flex items-start gap-12 sm:gap-20">
-                                    <div class="flex flex-col items-center gap-2">
-                                        <div class="w-0.5 h-4 bg-outline-variant rounded-full"></div>
-                                        <div class="size-11 sm:size-13 rounded-full bg-tertiary-container border-[3px] border-surface-container-lowest shadow-sm flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-tertiary text-lg sm:text-xl">person</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col items-center gap-2">
-                                        <div class="w-0.5 h-4 bg-outline-variant rounded-full"></div>
-                                        <div class="size-11 sm:size-13 rounded-full bg-primary-container border-[3px] border-surface-container-lowest shadow-sm flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-primary text-lg sm:text-xl">person</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col items-center gap-2">
-                                        <div class="w-0.5 h-4 bg-outline-variant rounded-full"></div>
-                                        <div class="size-11 sm:size-13 rounded-full bg-secondary-container border-[3px] border-surface-container-lowest shadow-sm flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-secondary text-lg sm:text-xl">person</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="rounded-xl overflow-hidden bg-[#F9F6F1] flex items-center justify-center relative">
+                        <img src="{{ asset('images/hero-tree.png') }}" alt="Pohon Keluarga" class="w-full h-auto object-cover">
                     </div>
                 </div>
             </div>

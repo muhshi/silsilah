@@ -44,10 +44,33 @@ new class extends Component
             'totalTrees' => $totalTrees,
         ];
     }
+
+    public function upgradeToPremium($treeId)
+    {
+        $tree = auth()->user()->familyTrees()->findOrFail($treeId);
+        $tree->update(['is_premium' => true]);
+        
+        session()->flash('success', 'Berhasil! Pohon ini sekarang adalah Pohon Premium.');
+        return redirect()->route('dashboard');
+    }
 };
 ?>
 
 <div class="space-y-6">
+    <!-- Flash Messages -->
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-800 px-5 py-4 rounded-xl flex items-center gap-3 dark:bg-green-900/30 dark:border-green-700 dark:text-green-300">
+            <span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+            <span class="font-medium text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl flex items-center gap-3 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300">
+            <span class="material-symbols-outlined text-red-600 dark:text-red-400">error</span>
+            <span class="font-medium text-sm">{{ session('error') }}</span>
+        </div>
+    @endif
+
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div class="max-w-xl">
@@ -67,22 +90,32 @@ new class extends Component
     <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         @foreach($trees as $tree)
             <!-- Family Card -->
-            <div onclick="window.location='{{ route('tree.show', $tree->id) }}'" class="group bg-surface-container-low leaf-shape p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden">
+            <div wire:key="tree-{{ $tree->id }}" onclick="window.location='{{ route('tree.show', $tree->id) }}'" class="group bg-gradient-to-br from-[#F4F7F4] to-white border border-outline-variant/40 leaf-shape p-8 shadow-sm transition-all hover:shadow-xl hover:shadow-primary/10 hover:border-primary/40 cursor-pointer relative overflow-hidden dark:from-zinc-800/80 dark:to-zinc-800 dark:border-zinc-700">
                 <div class="flex items-start justify-between mb-8">
-                    <div class="w-16 h-16 bg-primary-container rounded-lg flex items-center justify-center text-primary">
+                    <div class="w-16 h-16 bg-primary-container/80 rounded-lg flex items-center justify-center text-primary shadow-inner">
                         <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">eco</span>
                     </div>
-                    @if($tree->is_public)
-                        <div class="bg-surface-container-highest/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                            PUBLIK
-                        </div>
-                    @else
-                        <div class="bg-surface-container-highest/50 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
-                            PRIVAT
-                        </div>
-                    @endif
+                    
+                    <div class="flex flex-col items-end gap-1.5">
+                        @if($tree->is_public)
+                            <div class="bg-surface-container-highest/60 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                PUBLIK
+                            </div>
+                        @else
+                            <div class="bg-surface-container-highest/60 px-3 py-1 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                PRIVAT
+                            </div>
+                        @endif
+                        
+                        @if($tree->is_premium)
+                            <div class="bg-tertiary/15 px-3 py-1 rounded-full text-[10px] font-bold text-tertiary flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[12px]">workspace_premium</span>
+                                PREMIUM
+                            </div>
+                        @endif
+                    </div>
                 </div>
                 
                 <h3 class="text-2xl font-headline font-bold text-on-surface mb-2">{{ $tree->name }}</h3>
@@ -107,9 +140,18 @@ new class extends Component
                     </div>
                 @endif
                 
-                <button class="w-full py-3 rounded-full bg-primary/10 text-primary font-bold hover:bg-primary hover:text-white transition-all">
-                    Lihat Silsilah
-                </button>
+                
+                <div class="flex flex-col gap-2 relative z-10">
+                    <button onclick="event.stopPropagation(); window.location='{{ route('tree.show', $tree->id) }}'" class="w-full py-3 rounded-full bg-primary/10 text-primary font-bold hover:bg-primary hover:text-white transition-all">
+                        Lihat Silsilah
+                    </button>
+                    
+                    @if(!$tree->is_premium)
+                        <button wire:click.stop="upgradeToPremium({{ $tree->id }})" class="w-full py-2 rounded-full border border-tertiary text-tertiary text-sm font-bold hover:bg-tertiary hover:text-white transition-all">
+                            Upgrade Premium (Dummy)
+                        </button>
+                    @endif
+                </div>
                 
                 <!-- Decorative background shape -->
                 <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>

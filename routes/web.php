@@ -15,6 +15,9 @@ Route::view('/', 'welcome')->name('home');
 Route::get('auth/google', [SocialiteController::class, 'redirect'])->name('auth.google');
 Route::get('auth/google/callback', [SocialiteController::class, 'callback']);
 
+// Invitation Accept Route
+Route::get('invitations/accept/{token}', [\App\Http\Controllers\InvitationController::class, 'accept'])->name('invitation.accept');
+
 // Image proxy to bypass CORS for export
 Route::get('api/image-proxy', function () {
     $url = request()->query('url');

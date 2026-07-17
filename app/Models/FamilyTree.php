@@ -15,6 +15,7 @@ class FamilyTree extends Model
         'slug',
         'description',
         'is_public',
+        'is_premium',
         'view_password',
     ];
 

@@ -80,6 +80,7 @@ new class extends Component
                         <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
                     </flux:button>
                 @endif
+                <flux:button size="sm" icon="cog" wire:click="$dispatch('open-tree-settings')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Pengaturan</flux:button>
                 <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
             @else
                 <flux:button size="sm" icon="list-bullet" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#' }}" class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
@@ -139,6 +140,7 @@ new class extends Component
     {{-- Member Manager --}}
     @if(!$isPublic)
         <livewire:member-manager :tree-id="$tree->id" />
+        <livewire:tree-settings :tree-id="$tree->id" />
     @endif
 </div>
 
