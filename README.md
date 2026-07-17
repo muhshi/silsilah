@@ -19,11 +19,7 @@ Aplikasi ini berjalan di atas teknologi mutakhir dari ekosistem Laravel:
    - Dukungan pilihan Avatar statis (lokal) sesuai dengan jenis kelamin dan rentang usia.
 
 2. **Manajemen Relasi Kekerabatan**
-   - Penambahan relasi antar anggota dengan sangat mudah:
-     - Anak (Child of)
-     - Orang Tua (Parent of)
-     - Pasangan (Spouse of)
-     - Mantan Pasangan (Ex of)
+   - Penambahan relasi antar anggota dengan sangat mudah.
    - Tabel relasi khusus (`marriages`) untuk mendata status suami/istri beserta tanggal pernikahannya.
 
 3. **Visualisasi Pohon Keluarga**
@@ -31,8 +27,13 @@ Aplikasi ini berjalan di atas teknologi mutakhir dari ekosistem Laravel:
    - Menampilkan fallback avatar dan indikator visual untuk status gender serta status meninggal dunia (Wafat).
    - Sidebar navigasi yang responsif di perangkat desktop dan mobile.
 
+4. **Autentikasi Modern (Google SSO)**
+   - Pendaftaran dan Login instan via akun Google menggunakan Laravel Socialite.
+   - Pendaftaran standar (email/password) dinonaktifkan untuk mendukung alur satu klik (one-click signup).
+   - Halaman login didesain ulang secara eksklusif menggunakan design system lokal (earthy tokens) dengan visual terpisah (split panel).
+
 ## 🗄️ Struktur Database Inti
-- `users`: Autentikasi dan identitas pengguna.
+- `users`: Autentikasi dan identitas pengguna (ditambah kolom `google_id` dan `avatar`).
 - `family_trees`: Menyimpan nama dan deskripsi pohon silsilah (mendukung pengaturan privasi *is_public*).
 - `members`: Tabel utama yang menyimpan data setiap individu dalam pohon keluarga. Memiliki koneksi *self-referencing* untuk `father_id` dan `mother_id`.
 - `marriages`: Tabel *pivot* dengan data tambahan yang menghubungkan `husband_id` dan `wife_id`.
@@ -41,13 +42,22 @@ Aplikasi ini berjalan di atas teknologi mutakhir dari ekosistem Laravel:
 1. `composer install`
 2. `npm install`
 3. Buat file `.env` dan atur koneksi database.
-4. `php artisan key:generate`
-5. `php artisan migrate:fresh --seed` (Seeder akan membuat *dummy data* lengkap dengan relasinya).
-6. `composer dev` (Untuk menjalankan Laravel Server, Queue, Pail, dan Vite secara bersamaan menggunakan konfigurasi `livewire-starter-kit`).
+4. Tambahkan kredensial Google API ke `.env`:
+   ```env
+   GOOGLE_CLIENT_ID=xxx
+   GOOGLE_CLIENT_SECRET=xxx
+   GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
+   ```
+5. `php artisan key:generate`
+6. `php artisan migrate:fresh --seed` (Seeder akan membuat *dummy data* lengkap dengan relasinya).
+7. `composer dev` (Untuk menjalankan Laravel Server, Queue, Pail, dan Vite secara bersamaan menggunakan konfigurasi `livewire-starter-kit`).
 
 ## 📝 Changelog
 *Catat setiap perubahan teknis di bagian ini mengikuti standar [Keep a Changelog](https://keepachangelog.com/).*
 
 ### [Unreleased]
+- **Added:** Integrasi Google SSO (Laravel Socialite) untuk proses login dan registrasi satu klik.
+- **Added:** Layout auth baru bergaya split-panel elegan yang sesuai dengan design system utama (earth tokens).
+- **Changed:** Penonaktifan pendaftaran manual (email/password) dan pengalihan seluruh rute pendaftaran ke Google SSO.
 - **Added:** Konversi penggunaan external Avatar service menjadi aset Avatar lokal yang disimpan di `public/images/avatar/`.
 - **Changed:** Penyesuaian `DatabaseSeeder` dan `MemberManager` untuk mengadopsi struktur penamaan file avatar lokal.

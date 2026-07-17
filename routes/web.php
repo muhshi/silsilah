@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SocialiteController;
 use App\Models\FamilyTree;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -9,6 +10,10 @@ use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
 
 Route::view('/', 'welcome')->name('home');
+
+// SSO Routes
+Route::get('auth/google', [SocialiteController::class, 'redirect'])->name('auth.google');
+Route::get('auth/google/callback', [SocialiteController::class, 'callback']);
 
 // Image proxy to bypass CORS for export
 Route::get('api/image-proxy', function () {
