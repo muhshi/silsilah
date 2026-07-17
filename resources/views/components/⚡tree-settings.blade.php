@@ -26,8 +26,17 @@ new class extends Component
         $this->showModal = true;
     }
 
+    public function deleteTree()
+    {
+        \Illuminate\Support\Facades\Gate::authorize('delete', $this->tree);
+        $this->tree->delete();
+        session()->flash('success', 'Pohon silsilah berhasil dihapus.');
+        return redirect()->route('dashboard');
+    }
+
     public function sendInvite()
     {
+        \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
         if (!$this->tree->is_premium) {
             session()->flash('error', 'Fitur kolaborasi hanya tersedia untuk Pohon Premium.');
             return;
@@ -66,12 +75,14 @@ new class extends Component
 
     public function cancelInvite($id)
     {
+        \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
         TreeInvitation::where('id', $id)->delete();
         session()->flash('success', 'Undangan dibatalkan.');
     }
     
     public function removeEditor($userId)
     {
+        \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
         $this->tree->users()->detach($userId);
         session()->flash('success', 'Kolaborator dihapus.');
     }
@@ -109,6 +120,14 @@ new class extends Component
                         Untuk sementara, pengaturan umum seperti nama dan visibilitas dikelola saat pembuatan pohon.
                         Anda dapat memperbaruinya di masa mendatang.
                     </p>
+
+                    <div class="mt-8 p-4 border border-red-200 bg-red-50 dark:border-red-900/30 dark:bg-red-900/10 rounded-xl">
+                        <h4 class="font-bold text-red-600 dark:text-red-400 mb-1">Zona Berbahaya</h4>
+                        <p class="text-xs text-red-500 mb-3">Tindakan ini akan menghapus seluruh data pohon, anggota keluarga, dan foto-fotonya secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
+                        <flux:modal.trigger name="confirm-delete-tree">
+                            <flux:button variant="danger" size="sm">Hapus Pohon</flux:button>
+                        </flux:modal.trigger>
+                    </div>
                 </div>
             @endif
 
@@ -186,6 +205,23 @@ new class extends Component
                 </div>
             @endif
 
+        </div>
+    </flux:modal>
+
+    <!-- Confirm Delete Modal -->
+    <flux:modal name="confirm-delete-tree" class="md:w-[24rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg" class="text-red-600">Hapus Pohon?</flux:heading>
+                <flux:subheading>Apakah Anda yakin ingin menghapus pohon ini secara permanen?</flux:subheading>
+            </div>
+            
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Batal</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="deleteTree" variant="danger">Ya, Hapus</flux:button>
+            </div>
         </div>
     </flux:modal>
 </div>

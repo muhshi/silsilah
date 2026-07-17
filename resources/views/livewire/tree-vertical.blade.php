@@ -148,6 +148,7 @@ new class extends Component
                         <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
                     </flux:button>
                 @endif
+                <flux:button size="sm" icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Import Data</flux:button>
                 <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
             @else
                 <flux:button size="sm" icon="arrow-left" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug) : '#' }}" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
@@ -253,5 +254,6 @@ new class extends Component
 
     @if(!$isPublic)
         <livewire:member-manager :tree-id="$tree->id" />
+        <livewire:import-members :tree-id="$tree->id" />
     @endif
 </div>

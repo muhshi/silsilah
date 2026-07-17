@@ -31,6 +31,13 @@ new class extends Component
         $this->mount($this->tree->id);
     }
 
+    public function leaveTree()
+    {
+        $this->tree->users()->detach(auth()->id());
+        session()->flash('success', 'Anda telah keluar dari pohon ini.');
+        return redirect()->route('dashboard');
+    }
+
     public function with()
     {
         $allMembers = $this->tree->members;
@@ -80,7 +87,12 @@ new class extends Component
                         <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
                     </flux:button>
                 @endif
-                <flux:button size="sm" icon="cog" wire:click="$dispatch('open-tree-settings')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Pengaturan</flux:button>
+                @can('update', $tree)
+                    <flux:button size="sm" icon="cog" wire:click="$dispatch('open-tree-settings')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Pengaturan</flux:button>
+                @else
+                    <flux:button size="sm" icon="arrow-right-on-rectangle" wire:click="leaveTree" class="!bg-red-50 !text-red-700 hover:!bg-red-100 dark:!bg-red-900/30 dark:!text-red-400 dark:hover:!bg-red-900/50">Keluar Pohon</flux:button>
+                @endcan
+                <flux:button size="sm" icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Import Data</flux:button>
                 <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
             @else
                 <flux:button size="sm" icon="list-bullet" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#' }}" class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
@@ -137,10 +149,11 @@ new class extends Component
         </div>
     </div>
 
-    {{-- Member Manager --}}
+    {{-- Member Manager & Modals --}}
     @if(!$isPublic)
         <livewire:member-manager :tree-id="$tree->id" />
         <livewire:tree-settings :tree-id="$tree->id" />
+        <livewire:import-members :tree-id="$tree->id" />
     @endif
 </div>
 

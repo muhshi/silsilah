@@ -94,6 +94,7 @@ new class extends Component
 
     public function save()
     {
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', FamilyTree::findOrFail($this->treeId));
         $this->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -198,6 +199,7 @@ new class extends Component
 
     public function deleteMember()
     {
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', FamilyTree::findOrFail($this->treeId));
         if ($this->memberId) {
             Marriage::where('husband_id', $this->memberId)->orWhere('wife_id', $this->memberId)->delete();
             Member::findOrFail($this->memberId)->delete();
