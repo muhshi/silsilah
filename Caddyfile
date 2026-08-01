@@ -1,0 +1,19 @@
+{
+	frankenphp
+	order php_server before file_server
+}
+
+:80 {
+	root * /app/public
+
+	encode zstd br gzip
+
+	# Direct livewire request handling
+	@livewire path /livewire/*
+	handle @livewire {
+		rewrite * /index.php?{query}
+	}
+
+	php_server
+	file_server
+}

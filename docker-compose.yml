@@ -1,0 +1,54 @@
+services:
+  silsilah-franken:
+    container_name: silsilah-franken
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - SERVER_NAME=:80
+      - PHP_INI_MEMORY_LIMIT=512M
+      - PHP_INI_MAX_EXECUTION_TIME=300
+    ports:
+      - "8881:80"
+    volumes:
+      - app-storage:/app/storage
+    networks:
+      - default
+      - mysql-stack_mysql_network
+
+  silsilah-worker:
+    container_name: silsilah-worker
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - app-storage:/app/storage
+    networks:
+      - default
+      - mysql-stack_mysql_network
+
+  silsilah-scheduler:
+    container_name: silsilah-scheduler
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: php artisan schedule:work
+    volumes:
+      - app-storage:/app/storage
+    networks:
+      - default
+      - mysql-stack_mysql_network
+
+volumes:
+  app-storage:
+
+networks:
+  default: {}
+  mysql-stack_mysql_network:
+    external: true

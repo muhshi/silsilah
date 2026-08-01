@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\InvitationController;
 use App\Models\FamilyTree;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -16,7 +17,7 @@ Route::get('auth/google', [SocialiteController::class, 'redirect'])->name('auth.
 Route::get('auth/google/callback', [SocialiteController::class, 'callback']);
 
 // Invitation Accept Route
-Route::get('invitations/accept/{token}', [\App\Http\Controllers\InvitationController::class, 'accept'])->name('invitation.accept');
+Route::get('invitations/accept/{token}', [InvitationController::class, 'accept'])->name('invitation.accept');
 
 // Image proxy to bypass CORS for export
 Route::get('api/image-proxy', function () {
@@ -211,8 +212,9 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
         '/usr/bin/google-chrome', // Linux
         '/usr/bin/google-chrome-stable', // Linux
         '/usr/bin/chromium-browser', // Linux
+        '/usr/bin/chromium', // Linux
     ];
-    
+
     $chromePath = null;
     foreach ($chromePaths as $path) {
         if (file_exists($path)) {
@@ -221,7 +223,7 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
         }
     }
 
-    if (!$chromePath) {
+    if (! $chromePath) {
         // Fallback to puppeteer executable path if system chrome not found
         $chromePath = trim(shell_exec('node -e "console.log(require(\'puppeteer\').executablePath())"'));
     }
