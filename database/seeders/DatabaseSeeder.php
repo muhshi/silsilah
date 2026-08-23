@@ -13,22 +13,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::factory()->create([
+        $user = User::create([
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => bcrypt('password'),
         ]);
 
-        $familyTree = \App\Models\FamilyTree::factory()->create([
+        $familyTree = \App\Models\FamilyTree::create([
             'name' => 'Keluarga Tester',
             'description' => 'Silsilah keluarga utama untuk testing otomatis.',
+            'slug' => 'keluarga-tester',
             'is_public' => true,
         ]);
 
         $familyTree->users()->attach($user->id, ['role' => 'owner']);
 
         // Gen 1: Kakek & Nenek
-        $kakek = \App\Models\Member::factory()->create([
+        $kakek = \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'male',
             'first_name' => 'Kakek Sugiono',
@@ -37,7 +38,7 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'kakek peci putih.png',
         ]);
 
-        $nenek = \App\Models\Member::factory()->create([
+        $nenek = \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Nenek Sumiati',
@@ -46,14 +47,14 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'nenek hijab.png',
         ]);
 
-        \App\Models\Marriage::factory()->create([
+        \App\Models\Marriage::create([
             'husband_id' => $kakek->id,
             'wife_id' => $nenek->id,
             'marriage_date' => '1975-01-01',
         ]);
 
         // Gen 2: Ayah (Anak Kakek Nenek) & Ibu
-        $ayah = \App\Models\Member::factory()->create([
+        $ayah = \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'male',
             'first_name' => 'Budi Santoso',
@@ -62,21 +63,21 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'bapak peci hitam.png',
         ]);
 
-        $ibu = \App\Models\Member::factory()->create([
+        $ibu = \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Siti Aminah',
             'avatar_id' => 'ibu hijab kacamata.png',
         ]);
 
-        \App\Models\Marriage::factory()->create([
+        \App\Models\Marriage::create([
             'husband_id' => $ayah->id,
             'wife_id' => $ibu->id,
             'marriage_date' => '2000-02-02',
         ]);
 
         // Gen 2: Saudara Perempuan Ayah (Anak Kakek Nenek)
-        \App\Models\Member::factory()->create([
+        \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Sri Wahyuni',
@@ -86,7 +87,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Gen 3: Anak-anak dari Ayah dan Ibu
-        \App\Models\Member::factory()->create([
+        \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'male',
             'first_name' => 'Dimas',
@@ -95,7 +96,7 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'anak laki.png',
         ]);
 
-        \App\Models\Member::factory()->create([
+        \App\Models\Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Dinda',
