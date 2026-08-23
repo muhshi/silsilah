@@ -47,8 +47,11 @@
 
     {{-- Children --}}
     @if($allChildren->isNotEmpty())
-        @if($spouses->count() > 1 && $member->gender === 'male')
-            @php $grouped = $allChildren->groupBy('mother_id'); @endphp
+        @if($spouses->count() > 1)
+            @php
+                $groupKey = $member->gender === 'male' ? 'mother_id' : 'father_id';
+                $grouped = $allChildren->groupBy($groupKey);
+            @endphp
             <ul>
                 @foreach($spouses as $spouse)
                     @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
@@ -58,9 +61,9 @@
                         @endforeach
                     @endif
                 @endforeach
-                @php $noMotherChildren = $grouped->get(null, collect())->merge($grouped->filter(fn($v, $k) => $k && !$spouses->pluck('id')->contains($k))->flatten(1)); @endphp
-                @if($noMotherChildren->isNotEmpty())
-                    @foreach($noMotherChildren as $child)
+                @php $unassignedChildren = $grouped->get(null, collect())->merge($grouped->filter(fn($v, $k) => $k && !$spouses->pluck('id')->contains($k))->flatten(1)); @endphp
+                @if($unassignedChildren->isNotEmpty())
+                    @foreach($unassignedChildren as $child)
                         <x-simple-tree-node :member="$child" :all-members="$allMembers" />
                     @endforeach
                 @endif

@@ -43,12 +43,31 @@ new class extends Component
     // Manual parent selectors
     public $father_id;
     public $mother_id;
+    public $other_parent_id;
 
     public function getAvailableMembersProperty()
     {
         return Member::where('family_tree_id', $this->treeId)
             ->when($this->memberId, fn($q) => $q->where('id', '!=', $this->memberId))
             ->orderBy('first_name')->get();
+    }
+
+    public function getTargetSpousesProperty()
+    {
+        if (!$this->targetMemberId || $this->relType !== 'child_of') {
+            return collect();
+        }
+
+        $target = Member::with(['marriagesAsHusband.wife', 'marriagesAsWife.husband'])->find($this->targetMemberId);
+        if (!$target) {
+            return collect();
+        }
+
+        if ($target->gender === 'male') {
+            return $target->marriagesAsHusband->map(fn($m) => $m->wife)->filter();
+        } else {
+            return $target->marriagesAsWife->map(fn($m) => $m->husband)->filter();
+        }
     }
 
     public function autoDetectGender(): void
@@ -69,6 +88,10 @@ new class extends Component
     public function updatedRelType($value)
     {
         $this->autoDetectGender();
+        $spouses = $this->targetSpouses;
+        if ($spouses->isNotEmpty()) {
+            $this->other_parent_id = $spouses->first()->id;
+        }
     }
 
     #[On('create-member')]
@@ -81,6 +104,11 @@ new class extends Component
         $this->gender = 'male';
 
         $this->autoDetectGender();
+
+        $spouses = $this->targetSpouses;
+        if ($spouses->isNotEmpty()) {
+            $this->other_parent_id = $spouses->first()->id;
+        }
 
         Flux::modal('member-modal')->show();
     }
@@ -173,8 +201,14 @@ new class extends Component
                 if ($this->relType === 'child_of') {
                     if ($target->gender === 'male') {
                         $data['father_id'] = $target->id;
+                        if ($this->other_parent_id) {
+                            $data['mother_id'] = $this->other_parent_id;
+                        }
                     } else {
                         $data['mother_id'] = $target->id;
+                        if ($this->other_parent_id) {
+                            $data['father_id'] = $this->other_parent_id;
+                        }
                     }
                 }
             }
@@ -202,13 +236,13 @@ new class extends Component
             if (in_array($this->relType, ['spouse_of', 'ex_of']) && $this->targetMemberId) {
                 $target = Member::find($this->targetMemberId);
                 if ($target) {
-                    $husband_id = $target->gender === 'male' ? $target->id : $member->id;
-                    $wife_id = $target->gender === 'female' ? $target->id : $member->id;
+                    $husbandId = $member->gender === 'male' ? $member->id : $target->id;
+                    $wifeId = $member->gender === 'female' ? $member->id : $target->id;
                     
                     Marriage::create([
-                        'husband_id' => $husband_id,
-                        'wife_id' => $wife_id,
-                        'marriage_date' => $this->marriage_date ?: now(),
+                        'husband_id' => $husbandId,
+                        'wife_id' => $wifeId,
+                        'marriage_date' => $this->marriage_date ?: null,
                         'is_current' => $this->relType === 'spouse_of',
                     ]);
                 }
@@ -216,6 +250,8 @@ new class extends Component
         }
 
         Flux::modal('member-modal')->close();
+        $this->dispatch('member-updated');
+        session()->flash('success', $this->memberId ? 'Anggota berhasil diperbarui.' : 'Anggota berhasil ditambahkan.');
         $this->dispatch('refresh-tree');
     }
 
@@ -327,7 +363,7 @@ new class extends Component
         $this->reset([
             'memberId', 'first_name', 'last_name', 'gender', 'is_living',
             'birth_date', 'death_date', 'birth_place', 'profession', 'bio',
-            'photo', 'photo_url', 'avatar_id', 'father_id', 'mother_id', 'relType', 'targetMemberId',
+            'photo', 'photo_url', 'avatar_id', 'father_id', 'mother_id', 'other_parent_id', 'relType', 'targetMemberId',
             'marriage_date', 'member_notes'
         ]);
     }
@@ -366,6 +402,25 @@ new class extends Component
                         <flux:select.option value="ex_of">Mantan</flux:select.option>
                         <flux:select.option value="parent_of">Orang Tua</flux:select.option>
                     </flux:select>
+                @endif
+
+                {{-- Pasangan / Orang Tua Kedua (only when relType === 'child_of') --}}
+                @if(!$memberId && $targetMemberId && $relType === 'child_of')
+                    @php $targetSpouses = $this->targetSpouses; @endphp
+                    @if($targetSpouses->isNotEmpty())
+                        @php
+                            $targetObj = \App\Models\Member::find($targetMemberId);
+                            $parentLabel = $targetObj?->gender === 'male' ? 'Pilih Ibu (Pasangan)' : 'Pilih Ayah (Pasangan)';
+                        @endphp
+                        <flux:select wire:model.live="other_parent_id" :label="$parentLabel">
+                            <flux:select.option value="">-- Tidak Diatur --</flux:select.option>
+                            @foreach($targetSpouses as $sp)
+                                <flux:select.option value="{{ $sp->id }}">
+                                    {{ $sp->first_name }} {{ $sp->last_name }} @if($targetSpouses->count() > 1) (#{{ $loop->iteration }}) @endif
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    @endif
                 @endif
 
                 <div class="grid grid-cols-2 gap-4">

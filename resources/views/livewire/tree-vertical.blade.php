@@ -262,25 +262,29 @@ new class extends Component
 
             {{-- Children List --}}
             @if($children->isNotEmpty())
-                @if($spouses->count() > 1 && $member->gender === 'male')
-                    {{-- Grouped by wife --}}
-                    @php $grouped = $children->groupBy('mother_id'); @endphp
+                @if($spouses->count() > 1)
+                    {{-- Grouped by spouse (mother_id if father, father_id if mother) --}}
+                    @php
+                        $groupKey = $member->gender === 'male' ? 'mother_id' : 'father_id';
+                        $grouped = $children->groupBy($groupKey);
+                    @endphp
                     @foreach($spouses as $spouse)
                         @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
                         @if($spouseChildren->isNotEmpty())
-                            <p class="text-xs font-semibold text-indigo-500 uppercase tracking-wider mt-4 ml-1">Anak dari {{ $spouse->first_name }}</p>
-                            <div class="space-y-2">
+                            <p class="text-xs font-semibold text-indigo-500 uppercase tracking-wider mt-4 ml-1">Anak dari {{ $spouse->first_name }} {{ $spouse->last_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif</p>
+                            <div class="space-y-2 mt-1">
                                 @foreach($spouseChildren as $child)
                                     @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants])
                                 @endforeach
                             </div>
                         @endif
                     @endforeach
-                    {{-- Children without mother --}}
-                    @php $noMother = $grouped->get(null, collect()); @endphp
-                    @if($noMother->isNotEmpty())
-                        <div class="space-y-2 mt-2">
-                            @foreach($noMother as $child)
+                    {{-- Children without spouse assigned --}}
+                    @php $unassigned = $grouped->get(null, collect()); @endphp
+                    @if($unassigned->isNotEmpty())
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4 ml-1">Anak (Lainnya)</p>
+                        <div class="space-y-2 mt-1">
+                            @foreach($unassigned as $child)
                                 @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants])
                             @endforeach
                         </div>

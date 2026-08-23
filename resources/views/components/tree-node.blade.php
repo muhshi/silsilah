@@ -89,18 +89,19 @@
 
     {{-- Children rendering --}}
     @if($allChildren->isNotEmpty())
-        @if($spouses->count() > 1 && $member->gender === 'male')
-            {{-- Multiple wives: group children by mother --}}
+        @if($spouses->count() > 1)
+            {{-- Multiple spouses: group children by other parent --}}
             @php
-                $grouped = $allChildren->groupBy('mother_id');
+                $groupKey = $member->gender === 'male' ? 'mother_id' : 'father_id';
+                $grouped = $allChildren->groupBy($groupKey);
             @endphp
             <ul>
                 @foreach($spouses as $spouse)
                     @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
                     @if($spouseChildren->isNotEmpty())
-                        {{-- Wrapper li for each wife's children group --}}
+                        {{-- Wrapper li for each spouse's children group --}}
                         <li class="wife-group">
-                            <span class="wife-group-label">{{ $spouse->first_name }}</span>
+                            <span class="wife-group-label">{{ $spouse->first_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif</span>
                             <ul>
                                 @foreach($spouseChildren as $child)
                                     <x-tree-node :member="$child" :all-members="$allMembers" />
@@ -109,10 +110,10 @@
                         </li>
                     @endif
                 @endforeach
-                {{-- Children with no mother assigned --}}
-                @php $noMotherChildren = $grouped->get(null, collect())->merge($grouped->filter(fn($v, $k) => $k && !$spouses->pluck('id')->contains($k))->flatten(1)); @endphp
-                @if($noMotherChildren->isNotEmpty())
-                    @foreach($noMotherChildren as $child)
+                {{-- Children with no other parent assigned --}}
+                @php $unassignedChildren = $grouped->get(null, collect())->merge($grouped->filter(fn($v, $k) => $k && !$spouses->pluck('id')->contains($k))->flatten(1)); @endphp
+                @if($unassignedChildren->isNotEmpty())
+                    @foreach($unassignedChildren as $child)
                         <x-tree-node :member="$child" :all-members="$allMembers" />
                     @endforeach
                 @endif
