@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       - PUID=1000
       - PGID=1000
@@ -14,6 +16,7 @@ services:
     ports:
       - "8881:80"
     volumes:
+      - ./.env:/app/.env
       - app-storage:/app/storage
     networks:
       - default
@@ -26,7 +29,10 @@ services:
       context: .
       dockerfile: Dockerfile
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    env_file:
+      - .env
     volumes:
+      - ./.env:/app/.env
       - app-storage:/app/storage
     networks:
       - default
@@ -39,7 +45,10 @@ services:
       context: .
       dockerfile: Dockerfile
     command: php artisan schedule:work
+    env_file:
+      - .env
     volumes:
+      - ./.env:/app/.env
       - app-storage:/app/storage
     networks:
       - default
