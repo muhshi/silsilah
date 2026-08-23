@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     fontconfig \
     fonts-dejavu-core \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) intl gd zip pdo_mysql opcache \
+    && docker-php-ext-install -j$(nproc) intl gd zip pdo_mysql opcache exif \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
