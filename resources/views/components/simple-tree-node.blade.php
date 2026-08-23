@@ -24,7 +24,13 @@
     {{-- Spouse(s) --}}
     @foreach($spouses as $spouse)
         <a class="partner st-{{ $spouse->gender }}">
+            @if($spouses->count() > 1)
+                <span class="text-[9px] font-bold bg-amber-500 text-white px-1 rounded-full mr-1">#{{ $loop->iteration }}</span>
+            @endif
             <strong>{{ $spouse->first_name }}</strong>
+            @if(!$spouse->is_living)
+                <span class="text-[9px] bg-red-500 text-white px-1 rounded ml-1">Wafat</span>
+            @endif
         </a>
     @endforeach
 

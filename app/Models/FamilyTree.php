@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\FamilyTreeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class FamilyTree extends Model
 {
-    /** @use HasFactory<\Database\Factories\FamilyTreeFactory> */
+    /** @use HasFactory<FamilyTreeFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -23,11 +27,11 @@ class FamilyTree extends Model
     {
         static::creating(function (FamilyTree $tree) {
             if (empty($tree->slug)) {
-                $base = \Illuminate\Support\Str::slug($tree->name);
+                $base = Str::slug($tree->name);
                 $slug = $base;
                 $counter = 1;
                 while (static::where('slug', $slug)->exists()) {
-                    $slug = $base . '-' . $counter++;
+                    $slug = $base.'-'.$counter++;
                 }
                 $tree->slug = $slug;
             }
@@ -35,17 +39,17 @@ class FamilyTree extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<\App\Models\User>
+     * @return BelongsToMany<User>
      */
-    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withPivot('role')->withTimestamps();
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Member>
+     * @return HasMany<Member>
      */
-    public function members(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function members(): HasMany
     {
         return $this->hasMany(Member::class);
     }

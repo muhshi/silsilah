@@ -42,20 +42,31 @@ new class extends Component
     {
         $allMembers = $this->tree->members;
 
-        // Collect ALL member IDs who appear as a wife/spouse somewhere
-        // These will be rendered inline as ".partner" by tree-node
-        $wifeIdsInMarriages = collect();
+        $nonRootIds = collect();
         foreach ($allMembers as $m) {
-            if ($m->gender === 'male') {
+            if ($m->father_id !== null || $m->mother_id !== null) {
+                $nonRootIds->push($m->id);
+            }
+        }
+        foreach ($allMembers as $m) {
+            if ($m->relationLoaded('marriagesAsHusband')) {
                 foreach ($m->marriagesAsHusband as $marriage) {
-                    $wifeIdsInMarriages->push($marriage->wife_id);
+                    $husband = $allMembers->firstWhere('id', $marriage->husband_id);
+                    $wife = $allMembers->firstWhere('id', $marriage->wife_id);
+                    if ($husband && $wife) {
+                        $hHasParents = $husband->father_id !== null || $husband->mother_id !== null;
+                        $wHasParents = $wife->father_id !== null || $wife->mother_id !== null;
+                        if ($hHasParents || $wHasParents) {
+                            $nonRootIds->push($husband->id);
+                            $nonRootIds->push($wife->id);
+                        } else {
+                            $nonRootIds->push($wife->id);
+                        }
+                    }
                 }
             }
         }
-
-        // Root = parentless members, excluding wives who are shown as partners
-        $parentless = $allMembers->whereNull('father_id')->whereNull('mother_id');
-        $rootMembers = $parentless->whereNotIn('id', $wifeIdsInMarriages->unique());
+        $rootMembers = $allMembers->whereNotIn('id', $nonRootIds->unique());
 
         return [
             'rootMembers' => $rootMembers,
@@ -68,15 +79,17 @@ new class extends Component
 <div class="w-full max-w-[100vw]" x-data="canvasTree()">
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between px-4 lg:px-8 py-4 gap-3">
-        <div class="min-w-0">
-            <h2 class="text-2xl font-bold dark:text-white truncate">{{ $tree->name }}</h2>
+        <div>
+            <h1 class="text-xl font-extrabold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                <span>🌳</span> {{ $tree->name }}
+            </h1>
             @if($tree->description)
-                <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ $tree->description }}</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $tree->description }}</p>
             @endif
         </div>
+
         <div class="flex items-center gap-2 flex-wrap">
-            @if(!$isPublic)
-                <flux:button size="sm" icon="arrow-left" href="{{ route('dashboard') }}" wire:navigate class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Kembali</flux:button>
+            @if($tree)
                 <flux:button size="sm" icon="list-bullet" href="{{ route('tree.vertical', $tree->id) }}" wire:navigate class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
                 <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
                 @if($tree->slug)
@@ -90,7 +103,7 @@ new class extends Component
                 @can('update', $tree)
                     <flux:button size="sm" icon="cog" wire:click="$dispatch('open-tree-settings')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Pengaturan</flux:button>
                 @else
-                    <flux:button size="sm" icon="arrow-right-on-rectangle" wire:click="leaveTree" class="!bg-red-50 !text-red-700 hover:!bg-red-100 dark:!bg-red-900/30 dark:!text-red-400 dark:hover:!bg-red-900/50">Keluar Pohon</flux:button>
+                    <flux:button size="sm" icon="arrow-right-start-on-rectangle" wire:click="leaveTree" class="!bg-red-50 !text-red-700 hover:!bg-red-100 dark:!bg-red-900/30 dark:!text-red-400 dark:hover:!bg-red-900/50">Keluar Pohon</flux:button>
                 @endcan
                 <flux:button size="sm" icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Import Data</flux:button>
                 <flux:button size="sm" variant="primary" icon="plus" wire:click="$dispatch('create-member')">Anggota Baru</flux:button>
@@ -99,16 +112,22 @@ new class extends Component
                 <flux:button size="sm" icon="document-text" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#' }}" class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
             @endif
 
-            <flux:button size="sm" icon="photo"
-                href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'png', 'view' => 'horizontal']) }}"
-                class="!bg-blue-50 !text-blue-700 hover:!bg-blue-100 dark:!bg-blue-900/30 dark:!text-blue-400 dark:hover:!bg-blue-900/50">
-                Gambar
-            </flux:button>
-            <flux:button size="sm" icon="document-arrow-down"
-                href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'horizontal']) }}"
-                class="!bg-rose-50 !text-rose-700 hover:!bg-rose-100 dark:!bg-rose-900/30 dark:!text-rose-400 dark:hover:!bg-rose-900/50">
-                PDF
-            </flux:button>
+            <flux:dropdown>
+                <flux:button size="sm" icon="arrow-down-tray" class="!bg-purple-50 !text-purple-700 hover:!bg-purple-100 dark:!bg-purple-900/30 dark:!text-purple-400 dark:hover:!bg-purple-900/50">
+                    Export
+                </flux:button>
+                <flux:menu>
+                    <flux:menu.item icon="photo" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'png', 'view' => 'horizontal']) }}">
+                        Export Gambar (PNG)
+                    </flux:menu.item>
+                    <flux:menu.item icon="document-arrow-down" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'horizontal']) }}">
+                        Export Dokumen (PDF)
+                    </flux:menu.item>
+                    <flux:menu.item icon="code-bracket" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'json']) }}">
+                        Export Data (JSON)
+                    </flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
         </div>
     </div>
 

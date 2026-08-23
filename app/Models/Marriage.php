@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\MarriageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Marriage extends Model
 {
-    /** @use HasFactory<\Database\Factories\MarriageFactory> */
+    /** @use HasFactory<MarriageFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -29,17 +31,17 @@ class Marriage extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Member, \App\Models\Marriage>
+     * @return BelongsTo<Member, Marriage>
      */
-    public function husband(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function husband(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'husband_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Member, \App\Models\Marriage>
+     * @return BelongsTo<Member, Marriage>
      */
-    public function wife(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function wife(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'wife_id');
     }

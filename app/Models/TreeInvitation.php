@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TreeInvitation extends Model
 {
@@ -15,9 +16,9 @@ class TreeInvitation extends Model
     ];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\FamilyTree, \App\Models\TreeInvitation>
+     * @return BelongsTo<FamilyTree, TreeInvitation>
      */
-    public function familyTree(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function familyTree(): BelongsTo
     {
         return $this->belongsTo(FamilyTree::class);
     }

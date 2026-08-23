@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Member extends Model
 {
-    /** @use HasFactory<\Database\Factories\MemberFactory> */
+    /** @use HasFactory<MemberFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -51,59 +54,61 @@ class Member extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\FamilyTree, \App\Models\Member>
+     * @return BelongsTo<FamilyTree, Member>
      */
-    public function familyTree(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function familyTree(): BelongsTo
     {
         return $this->belongsTo(FamilyTree::class);
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Member, \App\Models\Member>
+     * @return BelongsTo<Member, Member>
      */
-    public function father(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function father(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'father_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Member, \App\Models\Member>
+     * @return BelongsTo<Member, Member>
      */
-    public function mother(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function mother(): BelongsTo
     {
         return $this->belongsTo(Member::class, 'mother_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Member>
+     * @return HasMany<Member>
      */
-    public function childrenAsFather(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function childrenAsFather(): HasMany
     {
         return $this->hasMany(Member::class, 'father_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Member>
+     * @return HasMany<Member>
      */
-    public function childrenAsMother(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function childrenAsMother(): HasMany
     {
         return $this->hasMany(Member::class, 'mother_id');
     }
 
     /**
      * Current Member as Husband
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Marriage>
+     *
+     * @return HasMany<Marriage>
      */
-    public function marriagesAsHusband(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function marriagesAsHusband(): HasMany
     {
         return $this->hasMany(Marriage::class, 'husband_id');
     }
 
     /**
      * Current Member as Wife
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Marriage>
+     *
+     * @return HasMany<Marriage>
      */
-    public function marriagesAsWife(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function marriagesAsWife(): HasMany
     {
         return $this->hasMany(Marriage::class, 'wife_id');
     }

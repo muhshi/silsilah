@@ -35,17 +35,31 @@ new class extends Component
     {
         $allMembers = $this->tree->members;
 
-        $wifeIdsInMarriages = collect();
+        $nonRootIds = collect();
         foreach ($allMembers as $m) {
-            if ($m->gender === 'male') {
+            if ($m->father_id !== null || $m->mother_id !== null) {
+                $nonRootIds->push($m->id);
+            }
+        }
+        foreach ($allMembers as $m) {
+            if ($m->relationLoaded('marriagesAsHusband')) {
                 foreach ($m->marriagesAsHusband as $marriage) {
-                    $wifeIdsInMarriages->push($marriage->wife_id);
+                    $husband = $allMembers->firstWhere('id', $marriage->husband_id);
+                    $wife = $allMembers->firstWhere('id', $marriage->wife_id);
+                    if ($husband && $wife) {
+                        $hHasParents = $husband->father_id !== null || $husband->mother_id !== null;
+                        $wHasParents = $wife->father_id !== null || $wife->mother_id !== null;
+                        if ($hHasParents || $wHasParents) {
+                            $nonRootIds->push($husband->id);
+                            $nonRootIds->push($wife->id);
+                        } else {
+                            $nonRootIds->push($wife->id);
+                        }
+                    }
                 }
             }
         }
-
-        $parentless = $allMembers->whereNull('father_id')->whereNull('mother_id');
-        $rootMembers = $parentless->whereNotIn('id', $wifeIdsInMarriages->unique());
+        $rootMembers = $allMembers->whereNotIn('id', $nonRootIds->unique());
 
         return [
             'rootMembers' => $rootMembers,
@@ -81,16 +95,22 @@ new class extends Component
                 <flux:button size="sm" icon="list-bullet" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#' }}" class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
             @endif
 
-            <flux:button size="sm" icon="photo"
-                href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'png', 'view' => 'simple']) }}"
-                class="!bg-blue-50 !text-blue-700 hover:!bg-blue-100 dark:!bg-blue-900/30 dark:!text-blue-400 dark:hover:!bg-blue-900/50">
-                Gambar
-            </flux:button>
-            <flux:button size="sm" icon="document-arrow-down"
-                href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'simple']) }}"
-                class="!bg-rose-50 !text-rose-700 hover:!bg-rose-100 dark:!bg-rose-900/30 dark:!text-rose-400 dark:hover:!bg-rose-900/50">
-                PDF
-            </flux:button>
+            <flux:dropdown>
+                <flux:button size="sm" icon="arrow-down-tray" class="!bg-purple-50 !text-purple-700 hover:!bg-purple-100 dark:!bg-purple-900/30 dark:!text-purple-400 dark:hover:!bg-purple-900/50">
+                    Export
+                </flux:button>
+                <flux:menu>
+                    <flux:menu.item icon="photo" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'png', 'view' => 'simple']) }}">
+                        Export Gambar (PNG)
+                    </flux:menu.item>
+                    <flux:menu.item icon="document-arrow-down" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'simple']) }}">
+                        Export Dokumen (PDF)
+                    </flux:menu.item>
+                    <flux:menu.item icon="code-bracket" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'json']) }}">
+                        Export Data (JSON)
+                    </flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
         </div>
     </div>
 

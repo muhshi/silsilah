@@ -18,7 +18,7 @@ class FamilyTreeFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->lastName() . ' Family',
+            'name' => fake()->lastName().' Family',
             'description' => fake()->sentence(),
             'is_public' => fake()->boolean(80),
             'view_password' => null,

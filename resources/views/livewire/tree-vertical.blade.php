@@ -99,14 +99,31 @@ new class extends Component
 
         // Root members (if no focus)
         if (!$focusMember) {
-            $wifeIds = collect();
-            foreach ($allMembers->where('gender', 'male') as $m) {
-                foreach ($m->marriagesAsHusband as $marriage) {
-                    $wifeIds->push($marriage->wife_id);
+            $nonRootIds = collect();
+            foreach ($allMembers as $m) {
+                if ($m->father_id !== null || $m->mother_id !== null) {
+                    $nonRootIds->push($m->id);
                 }
             }
-            $parentless = $allMembers->whereNull('father_id')->whereNull('mother_id');
-            $rootMembers = $parentless->whereNotIn('id', $wifeIds->unique());
+            foreach ($allMembers as $m) {
+                if ($m->relationLoaded('marriagesAsHusband')) {
+                    foreach ($m->marriagesAsHusband as $marriage) {
+                        $husband = $allMembers->firstWhere('id', $marriage->husband_id);
+                        $wife = $allMembers->firstWhere('id', $marriage->wife_id);
+                        if ($husband && $wife) {
+                            $hHasParents = $husband->father_id !== null || $husband->mother_id !== null;
+                            $wHasParents = $wife->father_id !== null || $wife->mother_id !== null;
+                            if ($hHasParents || $wHasParents) {
+                                $nonRootIds->push($husband->id);
+                                $nonRootIds->push($wife->id);
+                            } else {
+                                $nonRootIds->push($wife->id);
+                            }
+                        }
+                    }
+                }
+            }
+            $rootMembers = $allMembers->whereNotIn('id', $nonRootIds->unique());
         } else {
             $rootMembers = collect([$focusMember]);
         }
@@ -154,6 +171,23 @@ new class extends Component
                 <flux:button size="sm" icon="arrow-left" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug) : '#' }}" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-zinc-700">Horizontal</flux:button>
                 <flux:button size="sm" icon="document-text" href="{{ $publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#' }}" class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
             @endif
+
+            <flux:dropdown>
+                <flux:button size="sm" icon="arrow-down-tray" class="!bg-purple-50 !text-purple-700 hover:!bg-purple-100 dark:!bg-purple-900/30 dark:!text-purple-400 dark:hover:!bg-purple-900/50">
+                    Export
+                </flux:button>
+                <flux:menu>
+                    <flux:menu.item icon="photo" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'png', 'view' => 'vertical']) }}">
+                        Export Gambar (PNG)
+                    </flux:menu.item>
+                    <flux:menu.item icon="document-arrow-down" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'vertical']) }}">
+                        Export Dokumen (PDF)
+                    </flux:menu.item>
+                    <flux:menu.item icon="code-bracket" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'json']) }}">
+                        Export Data (JSON)
+                    </flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
         </div>
     </div>
 
@@ -183,20 +217,22 @@ new class extends Component
             @endphp
 
             {{-- Parent Card --}}
-            <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl p-5 shadow-sm">
+            <div class="bg-white dark:bg-zinc-900 rounded-xl shadow-md border border-gray-200 dark:border-zinc-700 p-5">
                 <div class="flex items-center gap-4 flex-wrap">
-                    {{-- Main member --}}
+                    {{-- Primary Member --}}
                     <div class="flex items-center gap-3 cursor-pointer" wire:click="$dispatch('show-member', { id: {{ $member->id }} })">
-                        <div class="w-16 h-16 rounded-full overflow-hidden border-3 {{ $member->gender === 'female' ? 'border-pink-400' : 'border-teal-400' }} shadow">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-2 {{ $member->gender === 'female' ? 'border-pink-500' : 'border-teal-500' }} shadow-md">
                             <img src="{{ $getAvatar($member) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
                         </div>
                         <div>
-                            <strong class="text-lg {{ $member->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $member->first_name }} {{ $member->last_name }}</strong>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-lg font-bold {{ $member->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $member->first_name }} {{ $member->last_name }}</h3>
+                                @if(!$member->is_living)
+                                    <span class="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded font-medium">Wafat</span>
+                                @endif
+                            </div>
                             @if($member->birth_date)
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($member->birth_date)->format('d M Y') }}</p>
-                            @endif
-                            @if(!$member->is_living)
-                                <span class="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded">Wafat</span>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">🎂 {{ \Carbon\Carbon::parse($member->birth_date)->format('d M Y') }}</p>
                             @endif
                         </div>
                     </div>
@@ -205,11 +241,19 @@ new class extends Component
                     @foreach($spouses as $spouse)
                         <span class="text-lg">❤️</span>
                         <div class="flex items-center gap-3 cursor-pointer" wire:click="$dispatch('show-member', { id: {{ $spouse->id }} })">
-                            <div class="w-14 h-14 rounded-full overflow-hidden border-2 {{ $spouse->gender === 'female' ? 'border-pink-300' : 'border-teal-300' }} shadow">
+                            <div class="w-14 h-14 rounded-full overflow-hidden border-2 {{ $spouse->gender === 'female' ? 'border-pink-300' : 'border-teal-300' }} shadow relative">
                                 <img src="{{ $getAvatar($spouse) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
+                                @if($spouses->count() > 1)
+                                    <span class="absolute top-0 left-0 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow">#{{ $loop->iteration }}</span>
+                                @endif
                             </div>
                             <div>
-                                <strong class="text-base {{ $spouse->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $spouse->first_name }}</strong>
+                                <div class="flex items-center gap-1.5">
+                                    <strong class="text-base {{ $spouse->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $spouse->first_name }} {{ $spouse->last_name }}</strong>
+                                    @if(!$spouse->is_living)
+                                        <span class="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded font-medium">Wafat</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach

@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\FamilyTree;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Marriage;
+use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -19,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        $familyTree = \App\Models\FamilyTree::create([
+        $familyTree = FamilyTree::create([
             'name' => 'Keluarga Tester',
             'description' => 'Silsilah keluarga utama untuk testing otomatis.',
             'slug' => 'keluarga-tester',
@@ -29,7 +32,7 @@ class DatabaseSeeder extends Seeder
         $familyTree->users()->attach($user->id, ['role' => 'owner']);
 
         // Gen 1: Kakek & Nenek
-        $kakek = \App\Models\Member::create([
+        $kakek = Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'male',
             'first_name' => 'Kakek Sugiono',
@@ -38,7 +41,7 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'kakek peci putih.png',
         ]);
 
-        $nenek = \App\Models\Member::create([
+        $nenek = Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Nenek Sumiati',
@@ -47,14 +50,14 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'nenek hijab.png',
         ]);
 
-        \App\Models\Marriage::create([
+        Marriage::create([
             'husband_id' => $kakek->id,
             'wife_id' => $nenek->id,
             'marriage_date' => '1975-01-01',
         ]);
 
         // Gen 2: Ayah (Anak Kakek Nenek) & Ibu
-        $ayah = \App\Models\Member::create([
+        $ayah = Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'male',
             'first_name' => 'Budi Santoso',
@@ -63,21 +66,21 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'bapak peci hitam.png',
         ]);
 
-        $ibu = \App\Models\Member::create([
+        $ibu = Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Siti Aminah',
             'avatar_id' => 'ibu hijab kacamata.png',
         ]);
 
-        \App\Models\Marriage::create([
+        Marriage::create([
             'husband_id' => $ayah->id,
             'wife_id' => $ibu->id,
             'marriage_date' => '2000-02-02',
         ]);
 
         // Gen 2: Saudara Perempuan Ayah (Anak Kakek Nenek)
-        \App\Models\Member::create([
+        Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Sri Wahyuni',
@@ -87,7 +90,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Gen 3: Anak-anak dari Ayah dan Ibu
-        \App\Models\Member::create([
+        Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'male',
             'first_name' => 'Dimas',
@@ -96,7 +99,7 @@ class DatabaseSeeder extends Seeder
             'avatar_id' => 'anak laki.png',
         ]);
 
-        \App\Models\Member::create([
+        Member::create([
             'family_tree_id' => $familyTree->id,
             'gender' => 'female',
             'first_name' => 'Dinda',
@@ -104,10 +107,10 @@ class DatabaseSeeder extends Seeder
             'mother_id' => $ibu->id,
             'avatar_id' => 'anak perempuan.png',
         ]);
-        
+
         // Buat folder storage untuk avatars jika belum ada dummy files
         $avatarPath = public_path('images/avatar');
-        if (!file_exists($avatarPath)) {
+        if (! file_exists($avatarPath)) {
             @mkdir($avatarPath, 0755, true);
         }
     }

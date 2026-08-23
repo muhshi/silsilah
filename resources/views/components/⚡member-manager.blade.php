@@ -51,6 +51,26 @@ new class extends Component
             ->orderBy('first_name')->get();
     }
 
+    public function autoDetectGender(): void
+    {
+        if (in_array($this->relType, ['spouse_of', 'ex_of']) && $this->targetMemberId) {
+            $target = Member::find($this->targetMemberId);
+            if ($target) {
+                $this->gender = $target->gender === 'male' ? 'female' : 'male';
+            }
+        }
+    }
+
+    public function updatedTargetMemberId($value)
+    {
+        $this->autoDetectGender();
+    }
+
+    public function updatedRelType($value)
+    {
+        $this->autoDetectGender();
+    }
+
     #[On('create-member')]
     public function createMember($targetId = null, $relType = 'child_of')
     {
@@ -59,6 +79,8 @@ new class extends Component
         $this->relType = $relType;
         $this->is_living = true;
         $this->gender = 'male';
+
+        $this->autoDetectGender();
 
         Flux::modal('member-modal')->show();
     }
@@ -338,7 +360,7 @@ new class extends Component
 
                 {{-- Jenis Hubungan (only for new member with target) --}}
                 @if(!$memberId && $targetMemberId)
-                    <flux:select wire:model="relType" label="Jenis Hubungan">
+                    <flux:select wire:model.live="relType" label="Jenis Hubungan">
                         <flux:select.option value="child_of">Anak</flux:select.option>
                         <flux:select.option value="spouse_of">Pasangan</flux:select.option>
                         <flux:select.option value="ex_of">Mantan</flux:select.option>

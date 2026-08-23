@@ -5,8 +5,6 @@ namespace App\Notifications;
 use App\Models\FamilyTree;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class CollaboratorJoinedNotification extends Notification
@@ -14,6 +12,7 @@ class CollaboratorJoinedNotification extends Notification
     use Queueable;
 
     public $collaborator;
+
     public $tree;
 
     /**

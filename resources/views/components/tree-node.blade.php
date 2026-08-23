@@ -38,6 +38,12 @@
     {{-- Spouse(s) — smaller, only edit/delete --}}
     @foreach($spouses as $spouse)
         <a class="partner gender-{{ $spouse->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })">
+            @if($spouses->count() > 1)
+                <span class="pt-spouse-num">#{{ $loop->iteration }}</span>
+            @endif
+            @if(!$spouse->is_living)
+                <span class="pt-dead">Wafat</span>
+            @endif
             <div class="pt-thumb">
                 <img src="{{ $getAvatar($spouse) }}" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
             </div>

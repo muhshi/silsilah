@@ -5,8 +5,8 @@ namespace App\Mail;
 use App\Models\FamilyTree;
 use App\Models\TreeInvitation;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -16,6 +16,7 @@ class TreeInvitationMail extends Mailable
     use Queueable, SerializesModels;
 
     public $invitation;
+
     public $tree;
 
     /**
@@ -33,7 +34,7 @@ class TreeInvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Undangan Kolaborasi Pohon Silsilah: ' . $this->tree->name,
+            subject: 'Undangan Kolaborasi Pohon Silsilah: '.$this->tree->name,
         );
     }
 
@@ -45,7 +46,7 @@ class TreeInvitationMail extends Mailable
         return new Content(
             markdown: 'emails.tree-invitation',
             with: [
-                'acceptUrl' => url('/invitations/accept/' . $this->invitation->token),
+                'acceptUrl' => url('/invitations/accept/'.$this->invitation->token),
             ],
         );
     }
@@ -53,7 +54,7 @@ class TreeInvitationMail extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

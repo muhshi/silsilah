@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\FamilyTree;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class FamilyTreePolicy
 {
@@ -14,6 +13,7 @@ class FamilyTreePolicy
     private function getRole(User $user, FamilyTree $familyTree): ?string
     {
         $pivot = $familyTree->users()->where('user_id', $user->id)->first();
+
         return $pivot ? $pivot->pivot->role : null;
     }
 

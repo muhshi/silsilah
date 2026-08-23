@@ -34,7 +34,15 @@
             @if($childSpouses->isNotEmpty())
                 <div class="mt-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
                     @foreach($childSpouses as $sp)
-                        <span class="text-sm text-gray-500 dark:text-gray-400">❤️ {{ $sp->first_name }} {{ $sp->last_name }}</span>
+                        <div class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 mr-3">
+                            <span>❤️ {{ $sp->first_name }} {{ $sp->last_name }}</span>
+                            @if($childSpouses->count() > 1)
+                                <span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-[10px] font-bold px-1.5 rounded-full">#{{ $loop->iteration }}</span>
+                            @endif
+                            @if(!$sp->is_living)
+                                <span class="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded font-medium">Wafat</span>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
             @endif

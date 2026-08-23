@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\InvitationController;
 use App\Models\FamilyTree;
+use App\Models\Marriage;
+use Carbon\Carbon;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -131,10 +133,10 @@ Route::get('tree/{id}/export-render', function (int $id) {
     ]);
 })->name('tree.export.render');
 
-// Export trigger — generates PNG or PDF via Browsershot::html()
+// Export trigger — generates PNG, PDF, or JSON
 Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
     set_time_limit(120);
-    abort_unless(in_array($format, ['png', 'pdf']), 400);
+    abort_unless(in_array($format, ['png', 'pdf', 'json']), 400);
 
     $tree = FamilyTree::with([
         'members',
@@ -142,21 +144,78 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
         'members.marriagesAsWife.husband',
     ])->findOrFail($id);
 
-    $viewType = request()->query('view', 'horizontal');
     $filename = Str::slug($tree->name).'-Silsilah';
+    $allMembers = $tree->members;
+
+    if ($format === 'json') {
+        $marriages = Marriage::whereIn('husband_id', $allMembers->pluck('id'))
+            ->orWhereIn('wife_id', $allMembers->pluck('id'))
+            ->get();
+
+        $jsonData = [
+            'tree' => [
+                'id' => $tree->id,
+                'name' => $tree->name,
+                'description' => $tree->description,
+            ],
+            'members' => $allMembers->map(fn ($m) => [
+                'id' => $m->id,
+                'first_name' => $m->first_name,
+                'last_name' => $m->last_name,
+                'gender' => $m->gender,
+                'birth_date' => $m->birth_date ? Carbon::parse($m->birth_date)->format('Y-m-d') : null,
+                'death_date' => $m->death_date ? Carbon::parse($m->death_date)->format('Y-m-d') : null,
+                'is_living' => (bool) $m->is_living,
+                'birth_place' => $m->birth_place,
+                'profession' => $m->profession,
+                'address' => $m->address,
+                'bio' => $m->bio,
+                'father_id' => $m->father_id,
+                'mother_id' => $m->mother_id,
+                'avatar_id' => $m->avatar_id,
+            ])->values(),
+            'marriages' => $marriages->map(fn ($mr) => [
+                'id' => $mr->id,
+                'husband_id' => $mr->husband_id,
+                'wife_id' => $mr->wife_id,
+                'marriage_date' => $mr->marriage_date ? Carbon::parse($mr->marriage_date)->format('Y-m-d') : null,
+                'is_current' => (bool) $mr->is_current,
+            ])->values(),
+        ];
+
+        return response()->json($jsonData, 200, [
+            'Content-Disposition' => "attachment; filename=\"{$filename}.json\"",
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    $viewType = request()->query('view', 'horizontal');
 
     // Prepare tree data server-side (same logic as Livewire components)
-    $allMembers = $tree->members;
-    $wifeIdsInMarriages = collect();
+    $nonRootIds = collect();
     foreach ($allMembers as $m) {
-        if ($m->gender === 'male') {
+        if ($m->father_id !== null || $m->mother_id !== null) {
+            $nonRootIds->push($m->id);
+        }
+    }
+    foreach ($allMembers as $m) {
+        if ($m->relationLoaded('marriagesAsHusband')) {
             foreach ($m->marriagesAsHusband as $marriage) {
-                $wifeIdsInMarriages->push($marriage->wife_id);
+                $husband = $allMembers->firstWhere('id', $marriage->husband_id);
+                $wife = $allMembers->firstWhere('id', $marriage->wife_id);
+                if ($husband && $wife) {
+                    $hHasParents = $husband->father_id !== null || $husband->mother_id !== null;
+                    $wHasParents = $wife->father_id !== null || $wife->mother_id !== null;
+                    if ($hHasParents || $wHasParents) {
+                        $nonRootIds->push($husband->id);
+                        $nonRootIds->push($wife->id);
+                    } else {
+                        $nonRootIds->push($wife->id);
+                    }
+                }
             }
         }
     }
-    $parentless = $allMembers->whereNull('father_id')->whereNull('mother_id');
-    $rootMembers = $parentless->whereNotIn('id', $wifeIdsInMarriages->unique());
+    $rootMembers = $allMembers->whereNotIn('id', $nonRootIds->unique());
 
     // Render HTML server-side (CSS already inlined by the view, no @vite)
     $html = view('tree.export-render', [

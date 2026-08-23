@@ -323,6 +323,21 @@
     font-weight: 600;
 }
 
+.tree a .pt-spouse-num {
+    position: absolute;
+    background: #f59e0b;
+    border-radius: 30px;
+    color: #fff;
+    padding: 0 5px;
+    font-size: 8px;
+    height: 14px;
+    line-height: 14px;
+    right: 8px;
+    top: 8px;
+    z-index: 3;
+    font-weight: 700;
+}
+
 /* ========== CONNECTOR DOT ========== */
 
 .pt-emm {
