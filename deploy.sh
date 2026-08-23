@@ -6,7 +6,8 @@
 
 set -e  # Berhenti jika ada error
 
-APP_DIR=~/apps/silsilah
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${SCRIPT_DIR}"
 CONTAINER_NAME=silsilah-franken
 WORKER_NAME=silsilah-worker
 SCHEDULER_NAME=silsilah-scheduler
