@@ -45,31 +45,6 @@ new class extends Component
     public $mother_id;
     public $other_parent_id;
 
-    public function getAvailableMembersProperty()
-    {
-        return Member::where('family_tree_id', $this->treeId)
-            ->when($this->memberId, fn($q) => $q->where('id', '!=', $this->memberId))
-            ->orderBy('first_name')->get();
-    }
-
-    public function getTargetSpousesProperty()
-    {
-        if (!$this->targetMemberId || $this->relType !== 'child_of') {
-            return collect();
-        }
-
-        $target = Member::with(['marriagesAsHusband.wife', 'marriagesAsWife.husband'])->find($this->targetMemberId);
-        if (!$target) {
-            return collect();
-        }
-
-        if ($target->gender === 'male') {
-            return $target->marriagesAsHusband->map(fn($m) => $m->wife)->filter();
-        } else {
-            return $target->marriagesAsWife->map(fn($m) => $m->husband)->filter();
-        }
-    }
-
     public function autoDetectGender(): void
     {
         if (in_array($this->relType, ['spouse_of', 'ex_of']) && $this->targetMemberId) {
@@ -88,9 +63,29 @@ new class extends Component
     public function updatedRelType($value)
     {
         $this->autoDetectGender();
-        $spouses = $this->targetSpouses;
-        if ($spouses->isNotEmpty()) {
-            $this->other_parent_id = $spouses->first()->id;
+        if ($this->relType === 'child_of' && $this->targetMemberId) {
+            $spouses = $this->getTargetSpouses();
+            if ($spouses->isNotEmpty()) {
+                $this->other_parent_id = $spouses->first()->id;
+            }
+        }
+    }
+
+    protected function getTargetSpouses()
+    {
+        if (!$this->targetMemberId) {
+            return collect();
+        }
+
+        $target = Member::with(['marriagesAsHusband.wife', 'marriagesAsWife.husband'])->find($this->targetMemberId);
+        if (!$target) {
+            return collect();
+        }
+
+        if ($target->gender === 'male') {
+            return $target->marriagesAsHusband->map(fn($m) => $m->wife)->filter();
+        } else {
+            return $target->marriagesAsWife->map(fn($m) => $m->husband)->filter();
         }
     }
 
@@ -105,9 +100,11 @@ new class extends Component
 
         $this->autoDetectGender();
 
-        $spouses = $this->targetSpouses;
-        if ($spouses->isNotEmpty()) {
-            $this->other_parent_id = $spouses->first()->id;
+        if ($this->relType === 'child_of' && $this->targetMemberId) {
+            $spouses = $this->getTargetSpouses();
+            if ($spouses->isNotEmpty()) {
+                $this->other_parent_id = $spouses->first()->id;
+            }
         }
 
         Flux::modal('member-modal')->show();
@@ -140,6 +137,37 @@ new class extends Component
         }
 
         Flux::modal('member-modal')->show();
+    }
+
+    public function with()
+    {
+        $targetMember = null;
+        $targetSpouses = collect();
+        $availableMembers = collect();
+
+        if ($this->targetMemberId) {
+            $targetMember = Member::with(['marriagesAsHusband.wife', 'marriagesAsWife.husband'])->find($this->targetMemberId);
+            if ($targetMember && $this->relType === 'child_of') {
+                if ($targetMember->gender === 'male') {
+                    $targetSpouses = $targetMember->marriagesAsHusband->map(fn($m) => $m->wife)->filter();
+                } else {
+                    $targetSpouses = $targetMember->marriagesAsWife->map(fn($m) => $m->husband)->filter();
+                }
+            }
+        }
+
+        if ($this->memberId || (!$this->targetMemberId)) {
+            $availableMembers = Member::where('family_tree_id', $this->treeId)
+                ->when($this->memberId, fn($q) => $q->where('id', '!=', $this->memberId))
+                ->orderBy('first_name')
+                ->get();
+        }
+
+        return [
+            'targetMember' => $targetMember,
+            'targetSpouses' => $targetSpouses,
+            'availableMembers' => $availableMembers,
+        ];
     }
 
     public function save()
@@ -375,12 +403,9 @@ new class extends Component
         <form wire:submit="save" class="space-y-5">
             <div>
                 <flux:heading size="lg">{{ $memberId ? 'Edit Anggota' : 'Tambah Anggota Baru' }}</flux:heading>
-                @if($targetMemberId)
-                    @php
-                        $targetName = \App\Models\Member::find($targetMemberId)?->first_name ?? '';
-                    @endphp
+                @if($targetMember)
                     <flux:subheading>
-                        Menambahkan anggota baru terkait dengan <strong>{{ $targetName }}</strong>
+                        Menambahkan anggota baru terkait dengan <strong>{{ $targetMember->first_name }} {{ $targetMember->last_name }}</strong>
                     </flux:subheading>
                 @else
                     <flux:subheading>Masukkan detail informasi anggota silsilah.</flux:subheading>
@@ -405,22 +430,18 @@ new class extends Component
                 @endif
 
                 {{-- Pasangan / Orang Tua Kedua (only when relType === 'child_of') --}}
-                @if(!$memberId && $targetMemberId && $relType === 'child_of')
-                    @php $targetSpouses = $this->targetSpouses; @endphp
-                    @if($targetSpouses->isNotEmpty())
-                        @php
-                            $targetObj = \App\Models\Member::find($targetMemberId);
-                            $parentLabel = $targetObj?->gender === 'male' ? 'Pilih Ibu (Pasangan)' : 'Pilih Ayah (Pasangan)';
-                        @endphp
-                        <flux:select wire:model.live="other_parent_id" :label="$parentLabel">
-                            <flux:select.option value="">-- Tidak Diatur --</flux:select.option>
-                            @foreach($targetSpouses as $sp)
-                                <flux:select.option value="{{ $sp->id }}">
-                                    {{ $sp->first_name }} {{ $sp->last_name }} @if($targetSpouses->count() > 1) (#{{ $loop->iteration }}) @endif
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    @endif
+                @if(!$memberId && $targetMember && $relType === 'child_of' && $targetSpouses->isNotEmpty())
+                    @php
+                        $parentLabel = $targetMember->gender === 'male' ? 'Pilih Ibu (Pasangan)' : 'Pilih Ayah (Pasangan)';
+                    @endphp
+                    <flux:select wire:model="other_parent_id" :label="$parentLabel">
+                        <flux:select.option value="">-- Tidak Diatur --</flux:select.option>
+                        @foreach($targetSpouses as $sp)
+                            <flux:select.option value="{{ $sp->id }}">
+                                {{ $sp->first_name }} {{ $sp->last_name }} @if($targetSpouses->count() > 1) (#{{ $loop->iteration }}) @endif
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
                 @endif
 
                 <div class="grid grid-cols-2 gap-4">
@@ -473,19 +494,19 @@ new class extends Component
             </div>
 
             {{-- Relasi Manual (Edit mode only) --}}
-            @if($memberId || (!$targetMemberId && $this->availableMembers->count() > 0))
+            @if($memberId || (!$targetMemberId && $availableMembers->isNotEmpty()))
                 <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
                     <div class="grid grid-cols-2 gap-4">
                         <flux:select wire:model="father_id" label="Ayah" placeholder="-- Tidak Diketahui --">
                             <flux:select.option value="">-- Tidak Diketahui --</flux:select.option>
-                            @foreach($this->availableMembers->where('gender', 'male') as $m)
+                            @foreach($availableMembers->where('gender', 'male') as $m)
                                 <flux:select.option value="{{ $m->id }}">{{ $m->first_name }} {{ $m->last_name }}</flux:select.option>
                             @endforeach
                         </flux:select>
 
                         <flux:select wire:model="mother_id" label="Ibu" placeholder="-- Tidak Diketahui --">
                             <flux:select.option value="">-- Tidak Diketahui --</flux:select.option>
-                            @foreach($this->availableMembers->where('gender', 'female') as $m)
+                            @foreach($availableMembers->where('gender', 'female') as $m)
                                 <flux:select.option value="{{ $m->id }}">{{ $m->first_name }} {{ $m->last_name }}</flux:select.option>
                             @endforeach
                         </flux:select>
@@ -523,7 +544,16 @@ new class extends Component
                     <flux:modal.close>
                         <flux:button variant="ghost">Tutup</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary">Submit</flux:button>
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="save">Simpan</span>
+                        <span wire:loading wire:target="save" class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Menyimpan...</span>
+                        </span>
+                    </flux:button>
                 </div>
             </div>
         </form>
