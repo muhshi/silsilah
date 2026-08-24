@@ -105,6 +105,7 @@
             <ul>
                 @foreach($spouses as $spouse)
                     @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
+                    @if($spouseChildren->isNotEmpty())
                         @php
                             $spMarriage = $marriages->first(fn($m) => $member->gender === 'male' ? $m->wife_id === $spouse->id : $m->husband_id === $spouse->id);
                             $spIsCurrent = $spMarriage ? $spMarriage->is_current : true;
