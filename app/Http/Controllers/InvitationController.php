@@ -9,6 +9,28 @@ use Illuminate\Support\Facades\Auth;
 
 class InvitationController extends Controller
 {
+    public function show(Request $request, $token)
+    {
+        $invitation = TreeInvitation::where('token', $token)->where('status', 'pending')->first();
+
+        if (! $invitation) {
+            return redirect()->route('home')->with('error', 'Tautan undangan tidak valid atau sudah kedaluwarsa.');
+        }
+
+        $tree = $invitation->familyTree;
+        $owner = $tree->users()->wherePivot('role', 'owner')->first();
+
+        if (! Auth::check()) {
+            session(['url.intended' => route('invitation.accept.process', $token)]);
+        }
+
+        return view('tree.invitation', [
+            'invitation' => $invitation,
+            'tree' => $tree,
+            'owner' => $owner,
+        ]);
+    }
+
     public function accept(Request $request, $token)
     {
         $invitation = TreeInvitation::where('token', $token)->where('status', 'pending')->first();
@@ -18,17 +40,15 @@ class InvitationController extends Controller
         }
 
         if (! Auth::check()) {
-            // Save intended url to redirect after Google SSO
-            session(['url.intended' => url()->current()]);
+            session(['url.intended' => route('invitation.accept.process', $token)]);
 
-            // Redirect to login page with a message
             return redirect()->route('login')->with('info', 'Silakan masuk dengan akun Google untuk menerima undangan kolaborasi.');
         }
 
         $user = Auth::user();
 
-        // Check if email matches
-        if (strtolower($user->email) !== strtolower($invitation->email)) {
+        // Check if email matches (only if email was specifically set)
+        if ($invitation->email && strtolower($user->email) !== strtolower($invitation->email)) {
             return redirect()->route('dashboard')->with('error', 'Email akun Anda tidak cocok dengan email undangan.');
         }
 
@@ -42,8 +62,10 @@ class InvitationController extends Controller
             $tree->users()->updateExistingPivot($user->id, ['role' => $invitation->role]);
         }
 
-        // Update invitation status
-        $invitation->update(['status' => 'accepted']);
+        // Update invitation status if email-specific
+        if ($invitation->email) {
+            $invitation->update(['status' => 'accepted']);
+        }
 
         // Log activity
         ActivityLog::log(

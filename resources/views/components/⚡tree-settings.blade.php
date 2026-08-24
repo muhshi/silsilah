@@ -4,6 +4,7 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use App\Models\FamilyTree;
 use App\Models\TreeInvitation;
+use App\Models\ActivityLog;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 
@@ -131,6 +132,27 @@ new class extends Component
         session()->flash('success', 'Undangan berhasil dikirim.');
     }
 
+    public function createLinkInvite()
+    {
+        \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
+
+        $token = Str::random(40);
+        $invitation = TreeInvitation::create([
+            'family_tree_id' => $this->treeId,
+            'email' => null,
+            'role' => 'editor',
+            'token' => $token,
+        ]);
+
+        ActivityLog::log(
+            $this->treeId,
+            'invitation_sent',
+            "Membuat tautan undangan kolaborasi umum"
+        );
+
+        session()->flash('success', 'Link undangan kolaborasi berhasil dibuat.');
+    }
+
     public function cancelInvite($id)
     {
         \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
@@ -145,7 +167,7 @@ new class extends Component
         $name = $user ? $user->name : 'Kolaborator';
         $this->tree->users()->detach($userId);
 
-        \App\Models\ActivityLog::log(
+        ActivityLog::log(
             $this->treeId,
             'collaborator_removed',
             "Menghapus kolaborator '{$name}'"
@@ -159,7 +181,7 @@ new class extends Component
         return [
             'invitations' => TreeInvitation::where('family_tree_id', $this->treeId)->where('status', 'pending')->get(),
             'editors' => $this->tree->users()->where('role', 'editor')->get(),
-            'logs' => \App\Models\ActivityLog::with('user')
+            'logs' => ActivityLog::with('user')
                 ->where('family_tree_id', $this->treeId)
                 ->latest()
                 ->take(50)
@@ -247,46 +269,67 @@ new class extends Component
             @if($activeTab === 'collab')
                 <div class="space-y-6 pt-4">
                     <!-- Collaboration Settings -->
-                    <div>
-                        <h4 class="font-bold text-on-surface mb-2">Undang Kolaborator (Editor)</h4>
-                        <p class="text-xs text-on-surface-variant mb-4">Mereka dapat menambah, mengedit, atau menghapus anggota di pohon ini.</p>
-                        
-                        <form wire:submit="sendInvite" class="flex gap-2">
-                            <div class="flex-1">
-                                <flux:input wire:model="inviteEmail" type="email" placeholder="email@contoh.com" required />
-                            </div>
-                            <flux:button type="submit" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-medium">Undang</flux:button>
-                        </form>
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="font-bold text-sm text-zinc-900 dark:text-white mb-1">Undang Kolaborator (Editor)</h4>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-3">Kolaborator dapat menambah, mengedit, atau menghapus anggota di silsilah ini.</p>
+
+                            <form wire:submit="sendInvite" class="flex gap-2">
+                                <div class="flex-1">
+                                    <flux:input wire:model="inviteEmail" type="email" placeholder="Masukkan email calon editor" />
+                                </div>
+                                <flux:button type="submit" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-medium">Kirim Email</flux:button>
+                            </form>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="text-xs text-zinc-400">atau</span>
+                            <button type="button" wire:click="createLinkInvite" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                <span>+ Buat Link Undangan Langsung</span>
+                            </button>
+                        </div>
+
                         @if (session()->has('error'))
-                            <p class="text-xs text-red-500 mt-1">{{ session('error') }}</p>
+                            <p class="text-xs text-red-500 font-medium mt-1">{{ session('error') }}</p>
                         @endif
                         @if (session()->has('success'))
-                            <p class="text-xs text-emerald-600 font-medium mt-1">{{ session('success') }}</p>
+                            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">{{ session('success') }}</p>
                         @endif
                     </div>
 
                     <!-- Pending Invitations -->
                     @if($invitations->count() > 0)
                     <div>
-                        <h4 class="font-bold text-sm text-on-surface mb-2">Undangan Menunggu</h4>
+                        <h4 class="font-bold text-sm text-zinc-900 dark:text-white mb-2">Undangan Menunggu</h4>
                         <ul class="space-y-2 border border-zinc-200 dark:border-zinc-700/60 rounded-xl divide-y divide-zinc-100 dark:divide-zinc-800">
                             @foreach($invitations as $inv)
-                            <li class="p-3 flex items-center justify-between gap-3" x-data="{ copied: false }">
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ $inv->email }}</p>
-                                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400 break-all select-all font-mono mt-0.5">{{ url('/invitations/accept/' . $inv->token) }}</p>
-                                </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <button type="button"
-                                            x-on:click="navigator.clipboard.writeText('{{ url('/invitations/accept/' . $inv->token) }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                                            class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
-                                        <span x-show="!copied">Salin Link</span>
-                                        <span x-show="copied" class="text-emerald-600 dark:text-emerald-400 font-bold">Tersalin!</span>
-                                    </button>
-                                    <span class="text-zinc-300 dark:text-zinc-700">•</span>
-                                    <button wire:click="cancelInvite({{ $inv->id }})" class="text-xs text-red-500 hover:underline">Batal</button>
-                                </div>
-                            </li>
+                                @php
+                                    $inviteUrl = url('/invitations/accept/' . $inv->token);
+                                    $inviteMsg = "Halo! Kamu diundang untuk berkolaborasi mengelola pohon silsilah keluarga \"{$tree->name}\" di Silsilah.\n\nKlik tautan berikut untuk bergabung sebagai Editor:\n{$inviteUrl}";
+                                @endphp
+                                <li class="p-3 flex items-center justify-between gap-3" x-data="{ msgCopied: false }">
+                                    <div class="min-w-0 flex-1">
+                                        @if($inv->email)
+                                            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ $inv->email }}</p>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                                🔗 Link Undangan Langsung
+                                            </span>
+                                        @endif
+                                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 break-all select-all font-mono mt-1">{{ $inviteUrl }}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <button type="button"
+                                                x-on:click="navigator.clipboard.writeText({{ json_encode($inviteMsg) }}); msgCopied = true; setTimeout(() => msgCopied = false, 2500)"
+                                                class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium flex items-center gap-1 cursor-pointer">
+                                            <span x-show="!msgCopied">Salin Pesan Undangan</span>
+                                            <span x-show="msgCopied" class="text-emerald-600 dark:text-emerald-400 font-bold">Pesan Tersalin!</span>
+                                        </button>
+                                        <span class="text-zinc-300 dark:text-zinc-700">•</span>
+                                        <button wire:click="cancelInvite({{ $inv->id }})" class="text-xs text-red-500 hover:underline cursor-pointer">Batal</button>
+                                    </div>
+                                </li>
                             @endforeach
                         </ul>
                     </div>

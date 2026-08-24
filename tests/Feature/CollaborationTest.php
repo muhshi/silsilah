@@ -50,7 +50,7 @@ it('allows user to accept invitation and become editor', function () {
     ]);
 
     $response = $this->actingAs($editorUser)
-        ->get(route('invitation.accept', 'test-token-123'));
+        ->get(route('invitation.accept.process', 'test-token-123'));
 
     $response->assertRedirect(route('tree.show', $tree->id));
 
@@ -118,4 +118,36 @@ it('records activity log when members are added and edited', function () {
         ->and($log->action)->toBe('member_created')
         ->and($log->user_id)->toBe($owner->id)
         ->and($log->description)->toContain('Budi Santoso');
+});
+
+it('allows creating direct link invitation without email', function () {
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
+        ->call('createLinkInvite')
+        ->assertHasNoErrors();
+
+    $invitation = TreeInvitation::where('family_tree_id', $tree->id)->whereNull('email')->first();
+    expect($invitation)->not->toBeNull()
+        ->and($invitation->role)->toBe('editor');
+});
+
+it('shows invitation preview page with open graph metadata', function () {
+    $tree = FamilyTree::factory()->create(['name' => 'Trah Mangun']);
+    $invitation = TreeInvitation::create([
+        'family_tree_id' => $tree->id,
+        'email' => null,
+        'role' => 'editor',
+        'token' => 'og-token-789',
+        'status' => 'pending',
+    ]);
+
+    $this->get(route('invitation.accept', 'og-token-789'))
+        ->assertSuccessful()
+        ->assertSee('Undangan Kolaborasi Silsilah Trah Mangun')
+        ->assertSee('og:title');
 });
