@@ -18,3 +18,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+<style>
+    .livewire-progress-bar {
+        background-color: #6366f1 !important;
+        height: 3px !important;
+    }
+</style>

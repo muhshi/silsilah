@@ -12,6 +12,9 @@ new class extends Component
 
     public function mount($id, $isPublic = false, $publicSlug = null)
     {
+        $this->isPublic = $isPublic;
+        $this->publicSlug = $publicSlug;
+
         $this->tree = FamilyTree::with([
             'members',
             'members.marriagesAsHusband.wife',
@@ -40,6 +43,12 @@ new class extends Component
 
     public function with()
     {
+        $this->tree->loadMissing([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ]);
+
         $allMembers = $this->tree->members;
 
         $nonRootIds = collect();
@@ -89,7 +98,7 @@ new class extends Component
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            @if($tree)
+            @if(!$isPublic)
                 <flux:button size="sm" icon="list-bullet" href="{{ route('tree.vertical', $tree->id) }}" wire:navigate class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
                 <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
                 @if($tree->slug)
@@ -174,6 +183,14 @@ new class extends Component
         <livewire:tree-settings :tree-id="$tree->id" />
         <livewire:import-members :tree-id="$tree->id" />
     @endif
+    {{-- Floating Loading Indicator --}}
+    <div wire:loading.flex class="fixed bottom-6 right-6 bg-zinc-900/90 text-white px-4 py-2.5 rounded-full shadow-2xl items-center gap-3 text-sm font-medium z-50 border border-zinc-700/50 backdrop-blur-md">
+        <svg class="animate-spin h-4 w-4 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Memuat data...</span>
+    </div>
 </div>
 
 @script
