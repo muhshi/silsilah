@@ -38,6 +38,9 @@
     <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} st-{{ $member->gender }}"
        wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })">
         <strong>{{ $member->first_name }}</strong>
+        @if(!$member->is_living)
+            <span class="text-[9px] bg-red-500 text-white px-1 rounded ml-1">Wafat</span>
+        @endif
     </a>
 
     {{-- Hidden partner placeholder(s) --}}
