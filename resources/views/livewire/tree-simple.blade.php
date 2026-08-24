@@ -152,15 +152,16 @@ new class extends Component
 
     {{-- Simple Tree Canvas --}}
     <div class="px-4 lg:px-8 pb-8">
-        <div class="pt-sm" x-ref="container"
+        <div class="pt-sm touch-none select-none" x-ref="container"
              @mousedown="startDrag($event)"
              @mousemove="doDrag($event)"
              @mouseup="stopDrag()"
              @mouseleave="stopDrag()"
              @wheel.prevent="doZoom($event)"
-             @touchstart.passive="startTouch($event)"
+             @touchstart="startTouch($event)"
              @touchmove.prevent="doTouch($event)"
-             @touchend="stopTouch()">
+             @touchend="stopTouch($event)"
+             @touchcancel="stopTouch($event)">
 
             <div class="tree-inner" x-ref="inner" :style="transformStyle">
                 <div class="tree simple-tree" id="simpleTree">
@@ -173,7 +174,7 @@ new class extends Component
             </div>
 
             {{-- Zoom Controls --}}
-            <div class="pt-zoom-controls">
+            <div class="pt-zoom-controls" @touchstart.stop @click.stop>
                 <button @click="zoomOut()" title="Zoom Out">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
@@ -210,6 +211,10 @@ new class extends Component
         dragging: false,
         startX: 0,
         startY: 0,
+        initialPinchDistance: 0,
+        initialScale: 1,
+        pinchCenterX: 0,
+        pinchCenterY: 0,
 
         get transformStyle() {
             return `transform: translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
@@ -255,22 +260,59 @@ new class extends Component
         },
 
         startTouch(e) {
+            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.pt-zoom-controls')) return;
+
             if (e.touches.length === 1) {
                 this.dragging = true;
                 this.startX = e.touches[0].clientX - this.panX;
                 this.startY = e.touches[0].clientY - this.panY;
+                this.initialPinchDistance = 0;
+            } else if (e.touches.length === 2) {
+                this.dragging = false;
+                this.initialPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                this.initialScale = this.scale;
+                const rect = this.$refs.container.getBoundingClientRect();
+                this.pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+                this.pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
             }
         },
         doTouch(e) {
             if (e.touches.length === 1 && this.dragging) {
                 this.panX = e.touches[0].clientX - this.startX;
                 this.panY = e.touches[0].clientY - this.startY;
+            } else if (e.touches.length === 2 && this.initialPinchDistance) {
+                if (e.cancelable) e.preventDefault();
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                if (currentDistance > 0) {
+                    const factor = currentDistance / this.initialPinchDistance;
+                    const newScale = Math.min(3, Math.max(0.2, this.initialScale * factor));
+                    const ratio = newScale / this.scale;
+                    this.panX = this.pinchCenterX - ratio * (this.pinchCenterX - this.panX);
+                    this.panY = this.pinchCenterY - ratio * (this.pinchCenterY - this.panY);
+                    this.scale = newScale;
+                }
             }
         },
-        stopTouch() { this.dragging = false; },
+        stopTouch(e) {
+            if (!e || e.touches.length === 0) {
+                this.dragging = false;
+                this.initialPinchDistance = 0;
+            } else if (e.touches.length === 1) {
+                this.dragging = true;
+                this.startX = e.touches[0].clientX - this.panX;
+                this.startY = e.touches[0].clientY - this.panY;
+                this.initialPinchDistance = 0;
+            }
+        },
 
-        zoomIn() { this.scale = Math.min(3, this.scale + 0.15); },
-        zoomOut() { this.scale = Math.max(0.2, this.scale - 0.15); },
+        zoomIn() { this.scale = Math.min(3, this.scale + 0.2); },
+        zoomOut() { this.scale = Math.max(0.2, this.scale - 0.2); },
         resetView() { this.centerTree(); },
     }));
 </script>
