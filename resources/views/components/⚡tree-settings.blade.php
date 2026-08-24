@@ -308,7 +308,27 @@ new class extends Component
                                     $inviteUrl = url('/invitations/accept/' . $inv->token);
                                     $inviteMsg = "Halo! Kamu diundang untuk berkolaborasi mengelola pohon silsilah keluarga \"{$tree->name}\" di Silsilah.\n\nKlik tautan berikut untuk bergabung sebagai Editor:\n{$inviteUrl}";
                                 @endphp
-                                <li class="p-3 flex items-center justify-between gap-3" x-data="{ msgCopied: false }">
+                                <li class="p-3 flex items-center justify-between gap-3" x-data="{
+                                    msgCopied: false,
+                                    copyText(text) {
+                                        if (navigator.clipboard && window.isSecureContext) {
+                                            navigator.clipboard.writeText(text);
+                                        } else {
+                                            const ta = document.createElement('textarea');
+                                            ta.value = text;
+                                            ta.style.position = 'fixed';
+                                            ta.style.left = '-999999px';
+                                            ta.style.top = '-999999px';
+                                            document.body.appendChild(ta);
+                                            ta.focus();
+                                            ta.select();
+                                            try { document.execCommand('copy'); } catch(e) {}
+                                            document.body.removeChild(ta);
+                                        }
+                                        this.msgCopied = true;
+                                        setTimeout(() => this.msgCopied = false, 2500);
+                                    }
+                                }">
                                     <div class="min-w-0 flex-1">
                                         @if($inv->email)
                                             <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ $inv->email }}</p>
@@ -321,7 +341,7 @@ new class extends Component
                                     </div>
                                     <div class="flex items-center gap-2 shrink-0">
                                         <button type="button"
-                                                x-on:click="navigator.clipboard.writeText({{ json_encode($inviteMsg) }}); msgCopied = true; setTimeout(() => msgCopied = false, 2500)"
+                                                x-on:click="copyText({{ json_encode($inviteMsg) }})"
                                                 class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium flex items-center gap-1 cursor-pointer">
                                             <span x-show="!msgCopied">Salin Pesan Undangan</span>
                                             <span x-show="msgCopied" class="text-emerald-600 dark:text-emerald-400 font-bold">Pesan Tersalin!</span>
