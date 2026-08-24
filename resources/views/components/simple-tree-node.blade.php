@@ -59,16 +59,26 @@
                 @foreach($spouses as $spouse)
                     @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
                     @if($spouseChildren->isNotEmpty())
-                        @foreach($spouseChildren as $child)
-                            <x-simple-tree-node :member="$child" :all-members="$allMembers" />
-                        @endforeach
+                        <li class="wife-group">
+                            <span class="wife-group-label">{{ $spouse->first_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif</span>
+                            <ul>
+                                @foreach($spouseChildren as $child)
+                                    <x-simple-tree-node :member="$child" :all-members="$allMembers" />
+                                @endforeach
+                            </ul>
+                        </li>
                     @endif
                 @endforeach
                 @php $unassignedChildren = $grouped->get(null, collect())->merge($grouped->filter(fn($v, $k) => $k && !$spouses->pluck('id')->contains($k))->flatten(1)); @endphp
                 @if($unassignedChildren->isNotEmpty())
-                    @foreach($unassignedChildren as $child)
-                        <x-simple-tree-node :member="$child" :all-members="$allMembers" />
-                    @endforeach
+                    <li class="wife-group">
+                        <span class="wife-group-label">Lainnya</span>
+                        <ul>
+                            @foreach($unassignedChildren as $child)
+                                <x-simple-tree-node :member="$child" :all-members="$allMembers" />
+                            @endforeach
+                        </ul>
+                    </li>
                 @endif
             </ul>
         @else
