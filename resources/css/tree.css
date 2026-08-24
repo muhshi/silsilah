@@ -163,6 +163,68 @@
     box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #818cf8;
 }
 
+/* ========== GENDER ACCENT DISTINCTION ========== */
+
+/* Male (Laki-laki) Card - Teal / Emerald Theme */
+.tree ul li a.gender-male {
+    border-top: 3px solid #0d9488;
+    background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 40%);
+}
+.dark .tree ul li a.gender-male {
+    border-top-color: #14b8a6;
+    background: linear-gradient(180deg, #134e4a2e 0%, #27272a 40%);
+}
+.tree a.gender-male .pt-thumb {
+    border-color: #0d9488;
+}
+.dark .tree a.gender-male .pt-thumb {
+    border-color: #14b8a6;
+}
+.tree a.gender-male strong {
+    color: #0f766e;
+}
+.dark .tree a.gender-male strong {
+    color: #2dd4bf;
+}
+.tree a.gender-male:not([href]):hover,
+.tree a.gender-male.show-options {
+    box-shadow: 0 0 0 2px #ccfbf1, 0 0 0 4px #0d9488;
+}
+.dark .tree a.gender-male:not([href]):hover,
+.dark .tree a.gender-male.show-options {
+    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #14b8a6;
+}
+
+/* Female (Perempuan) Card - Rose / Pink Theme */
+.tree ul li a.gender-female {
+    border-top: 3px solid #e11d48;
+    background: linear-gradient(180deg, #fff1f2 0%, #ffffff 40%);
+}
+.dark .tree ul li a.gender-female {
+    border-top-color: #f43f5e;
+    background: linear-gradient(180deg, #8813372e 0%, #27272a 40%);
+}
+.tree a.gender-female .pt-thumb {
+    border-color: #e11d48;
+}
+.dark .tree a.gender-female .pt-thumb {
+    border-color: #f43f5e;
+}
+.tree a.gender-female strong {
+    color: #be123c;
+}
+.dark .tree a.gender-female strong {
+    color: #fb7185;
+}
+.tree a.gender-female:not([href]):hover,
+.tree a.gender-female.show-options {
+    box-shadow: 0 0 0 2px #ffe4e6, 0 0 0 4px #e11d48;
+}
+.dark .tree a.gender-female:not([href]):hover,
+.dark .tree a.gender-female.show-options {
+    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #f43f5e;
+}
+
 /* ========== AVATAR / THUMB ========== */
 
 .tree a .pt-thumb {

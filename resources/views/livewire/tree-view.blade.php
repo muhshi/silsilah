@@ -103,22 +103,28 @@ new class extends Component
                 <flux:button size="sm" icon="list-bullet" href="{{ route('tree.vertical', $tree->id) }}" wire:navigate class="!bg-amber-50 !text-amber-700 hover:!bg-amber-100 dark:!bg-amber-900/30 dark:!text-amber-400 dark:hover:!bg-amber-900/50">Vertikal</flux:button>
                 <flux:button size="sm" icon="document-text" href="{{ route('tree.simple', $tree->id) }}" wire:navigate class="!bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100 dark:!bg-indigo-900/30 dark:!text-indigo-400 dark:hover:!bg-indigo-900/50">Simple View</flux:button>
                 @if($tree->slug)
+                    @php
+                        $shareUrl = url('/public/tree/' . $tree->slug);
+                        $shareMsg = "Halo! Yuk lihat diagram silsilah keluarga \"{$tree->name}\" di Silsilah:\n\n{$shareUrl}";
+                    @endphp
                     <flux:button size="sm" icon="share" x-data="{ shared: false, async share() {
-                        const url = '{{ url('/public/tree/' . $tree->slug) }}';
+                        const text = {{ json_encode($shareMsg) }};
                         let ok = false;
-                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                        if (navigator.clipboard && window.isSecureContext) {
                             try {
-                                await navigator.clipboard.writeText(url);
+                                await navigator.clipboard.writeText(text);
                                 ok = true;
                             } catch(e) {}
                         }
                         if (!ok) {
                             try {
                                 const el = document.createElement('textarea');
-                                el.value = url;
+                                el.value = text;
                                 el.style.position = 'fixed';
-                                el.style.opacity = '0';
+                                el.style.left = '-999999px';
+                                el.style.top = '-999999px';
                                 document.body.appendChild(el);
+                                el.focus();
                                 el.select();
                                 document.execCommand('copy');
                                 document.body.removeChild(el);
@@ -127,13 +133,13 @@ new class extends Component
                         }
                         if (ok) {
                             this.shared = true;
-                            setTimeout(() => this.shared = false, 2000);
+                            setTimeout(() => this.shared = false, 2500);
                         }
                     } }"
                         x-on:click="share()"
                         class="!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100 dark:!bg-emerald-900/30 dark:!text-emerald-400 dark:hover:!bg-emerald-900/50">
                         <span x-show="!shared">Share</span>
-                        <span x-show="shared" class="text-emerald-600 dark:text-emerald-400">Tersalin!</span>
+                        <span x-show="shared" class="text-emerald-600 dark:text-emerald-400 font-bold">Pesan Tersalin!</span>
                     </flux:button>
                 @endif
                 @can('update', $tree)
