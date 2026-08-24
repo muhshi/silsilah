@@ -138,14 +138,26 @@ new class extends Component
         $breadcrumbs = collect();
         if ($focusMember) {
             $current = $focusMember;
-            while ($current) {
+            $visited = collect();
+            while ($current && !$visited->contains($current->id)) {
+                $visited->push($current->id);
                 $breadcrumbs->prepend($current);
                 $parentId = $current->father_id ?? $current->mother_id;
                 $current = $parentId ? $allMembers->firstWhere('id', $parentId) : null;
             }
         }
 
-        return compact('tree', 'allMembers', 'rootMembers', 'focusMember', 'getAvatar', 'getSpouses', 'getChildren', 'countDescendants', 'breadcrumbs');
+        return [
+            'tree' => $this->tree,
+            'allMembers' => $allMembers,
+            'rootMembers' => $rootMembers,
+            'focusMember' => $focusMember,
+            'getAvatar' => $getAvatar,
+            'getSpouses' => $getSpouses,
+            'getChildren' => $getChildren,
+            'countDescendants' => $countDescendants,
+            'breadcrumbs' => $breadcrumbs,
+        ];
     }
 };
 ?>

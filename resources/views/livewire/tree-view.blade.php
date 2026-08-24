@@ -78,6 +78,7 @@ new class extends Component
         $rootMembers = $allMembers->whereNotIn('id', $nonRootIds->unique());
 
         return [
+            'tree' => $this->tree,
             'rootMembers' => $rootMembers,
             'allMembers' => $allMembers,
         ];
