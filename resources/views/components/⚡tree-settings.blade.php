@@ -242,14 +242,23 @@ new class extends Component
                     @if($invitations->count() > 0)
                     <div>
                         <h4 class="font-bold text-sm text-on-surface mb-2">Undangan Menunggu</h4>
-                        <ul class="space-y-2 border border-outline-variant/30 rounded-lg divide-y divide-outline-variant/30">
+                        <ul class="space-y-2 border border-zinc-200 dark:border-zinc-700/60 rounded-xl divide-y divide-zinc-100 dark:divide-zinc-800">
                             @foreach($invitations as $inv)
-                            <li class="p-3 flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium">{{ $inv->email }}</p>
-                                    <p class="text-[10px] text-primary/70 break-all select-all">Link: {{ url('/invitations/accept/' . $inv->token) }}</p>
+                            <li class="p-3 flex items-center justify-between gap-3" x-data="{ copied: false }">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ $inv->email }}</p>
+                                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400 break-all select-all font-mono mt-0.5">{{ url('/invitations/accept/' . $inv->token) }}</p>
                                 </div>
-                                <button wire:click="cancelInvite({{ $inv->id }})" class="text-xs text-red-500 hover:underline">Batal</button>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button type="button"
+                                            x-on:click="navigator.clipboard.writeText('{{ url('/invitations/accept/' . $inv->token) }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                            class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
+                                        <span x-show="!copied">Salin Link</span>
+                                        <span x-show="copied" class="text-emerald-600 dark:text-emerald-400 font-bold">Tersalin!</span>
+                                    </button>
+                                    <span class="text-zinc-300 dark:text-zinc-700">•</span>
+                                    <button wire:click="cancelInvite({{ $inv->id }})" class="text-xs text-red-500 hover:underline">Batal</button>
+                                </div>
                             </li>
                             @endforeach
                         </ul>
