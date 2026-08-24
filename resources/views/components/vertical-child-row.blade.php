@@ -39,6 +39,9 @@
                             @if($childSpouses->count() > 1)
                                 <span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-[10px] font-bold px-1.5 rounded-full">#{{ $loop->iteration }}</span>
                             @endif
+                            @if(isset($sp->is_current_marriage) && !$sp->is_current_marriage)
+                                <span class="text-xs bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-medium">Cerai</span>
+                            @endif
                             @if(!$sp->is_living)
                                 <span class="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded font-medium">Wafat</span>
                             @endif

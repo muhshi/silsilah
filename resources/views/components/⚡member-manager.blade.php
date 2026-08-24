@@ -610,6 +610,28 @@ new class extends Component
                         <span class="dark:text-white">{{ $vm->bio }}</span>
                     </div>
                 @endif
+                @php
+                    $vmSpouses = $vm->gender === 'male' 
+                        ? $vm->marriagesAsHusband->map(fn($m) => ['spouse' => $m->wife, 'is_current' => $m->is_current, 'date' => $m->marriage_date])
+                        : $vm->marriagesAsWife->map(fn($m) => ['spouse' => $m->husband, 'is_current' => $m->is_current, 'date' => $m->marriage_date]);
+                @endphp
+                @if($vmSpouses->filter(fn($s) => $s['spouse'])->isNotEmpty())
+                    <div class="py-2 border-b border-gray-100 dark:border-zinc-700">
+                        <span class="text-gray-500 block mb-1">Pasangan</span>
+                        <div class="space-y-1.5">
+                            @foreach($vmSpouses as $spInfo)
+                                @if($spInfo['spouse'])
+                                    <div class="flex items-center justify-between">
+                                        <span class="dark:text-white">{{ $spInfo['spouse']->first_name }} {{ $spInfo['spouse']->last_name }}</span>
+                                        @if(!$spInfo['is_current'])
+                                            <span class="text-xs bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-medium">Cerai</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">

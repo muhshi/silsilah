@@ -4,11 +4,23 @@
     // Get spouses from marriage relationships
     $spouses = collect();
     if ($member->gender === 'male' && $member->relationLoaded('marriagesAsHusband')) {
-        $spouseIds = $member->marriagesAsHusband->pluck('wife_id');
-        $spouses = $allMembers->whereIn('id', $spouseIds);
+        $spouses = $member->marriagesAsHusband->map(function($m) use ($allMembers) {
+            $wife = $allMembers->firstWhere('id', $m->wife_id);
+            if ($wife) {
+                $wife = clone $wife;
+                $wife->is_current_marriage = $m->is_current;
+            }
+            return $wife;
+        })->filter();
     } elseif ($member->gender === 'female' && $member->relationLoaded('marriagesAsWife')) {
-        $spouseIds = $member->marriagesAsWife->pluck('husband_id');
-        $spouses = $allMembers->whereIn('id', $spouseIds);
+        $spouses = $member->marriagesAsWife->map(function($m) use ($allMembers) {
+            $husband = $allMembers->firstWhere('id', $m->husband_id);
+            if ($husband) {
+                $husband = clone $husband;
+                $husband->is_current_marriage = $m->is_current;
+            }
+            return $husband;
+        })->filter();
     }
 
     // Get ALL children sorted
@@ -28,6 +40,9 @@
                 <span class="text-[9px] font-bold bg-amber-500 text-white px-1 rounded-full mr-1">#{{ $loop->iteration }}</span>
             @endif
             <strong>{{ $spouse->first_name }}</strong>
+            @if(isset($spouse->is_current_marriage) && !$spouse->is_current_marriage)
+                <span class="text-[9px] bg-slate-500 text-white px-1 rounded ml-1">Cerai</span>
+            @endif
             @if(!$spouse->is_living)
                 <span class="text-[9px] bg-red-500 text-white px-1 rounded ml-1">Wafat</span>
             @endif
@@ -60,7 +75,7 @@
                     @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
                     @if($spouseChildren->isNotEmpty())
                         <li class="wife-group">
-                            <span class="wife-group-label">{{ $spouse->first_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif</span>
+                            <span class="wife-group-label">{{ $spouse->first_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif @if(isset($spouse->is_current_marriage) && !$spouse->is_current_marriage) (Cerai) @endif</span>
                             <ul>
                                 @foreach($spouseChildren as $child)
                                     <x-simple-tree-node :member="$child" :all-members="$allMembers" />

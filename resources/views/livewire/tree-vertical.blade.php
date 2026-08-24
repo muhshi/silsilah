@@ -78,9 +78,25 @@ new class extends Component
         // Get spouses for a member
         $getSpouses = function($member) use ($allMembers) {
             if ($member->gender === 'male' && $member->relationLoaded('marriagesAsHusband')) {
-                return $allMembers->whereIn('id', $member->marriagesAsHusband->pluck('wife_id'));
+                return $member->marriagesAsHusband->map(function($m) use ($allMembers) {
+                    $wife = $allMembers->firstWhere('id', $m->wife_id);
+                    if ($wife) {
+                        $wife = clone $wife;
+                        $wife->is_current_marriage = $m->is_current;
+                        $wife->marriage_date = $m->marriage_date;
+                    }
+                    return $wife;
+                })->filter();
             } elseif ($member->gender === 'female' && $member->relationLoaded('marriagesAsWife')) {
-                return $allMembers->whereIn('id', $member->marriagesAsWife->pluck('husband_id'));
+                return $member->marriagesAsWife->map(function($m) use ($allMembers) {
+                    $husband = $allMembers->firstWhere('id', $m->husband_id);
+                    if ($husband) {
+                        $husband = clone $husband;
+                        $husband->is_current_marriage = $m->is_current;
+                        $husband->marriage_date = $m->marriage_date;
+                    }
+                    return $husband;
+                })->filter();
             }
             return collect();
         };
@@ -268,6 +284,9 @@ new class extends Component
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <strong class="text-base {{ $spouse->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400' }}">{{ $spouse->first_name }} {{ $spouse->last_name }}</strong>
+                                    @if(isset($spouse->is_current_marriage) && !$spouse->is_current_marriage)
+                                        <span class="text-xs bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-medium">Cerai</span>
+                                    @endif
                                     @if(!$spouse->is_living)
                                         <span class="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded font-medium">Wafat</span>
                                     @endif
@@ -289,7 +308,7 @@ new class extends Component
                     @foreach($spouses as $spouse)
                         @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
                         @if($spouseChildren->isNotEmpty())
-                            <p class="text-xs font-semibold text-indigo-500 uppercase tracking-wider mt-4 ml-1">Anak dari {{ $spouse->first_name }} {{ $spouse->last_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif</p>
+                            <p class="text-xs font-semibold text-indigo-500 uppercase tracking-wider mt-4 ml-1">Anak dari {{ $spouse->first_name }} {{ $spouse->last_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif @if(isset($spouse->is_current_marriage) && !$spouse->is_current_marriage) (Cerai) @endif</p>
                             <div class="space-y-2 mt-1">
                                 @foreach($spouseChildren as $child)
                                     @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants])

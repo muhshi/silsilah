@@ -37,12 +37,19 @@
 <li class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }}">
     {{-- Spouse(s) — smaller, only edit/delete --}}
     @foreach($spouses as $spouse)
+        @php
+            $marriage = $marriages->first(fn($m) => $member->gender === 'male' ? $m->wife_id === $spouse->id : $m->husband_id === $spouse->id);
+            $isCurrent = $marriage ? $marriage->is_current : true;
+        @endphp
         <a class="partner gender-{{ $spouse->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })">
             @if($spouses->count() > 1)
                 <span class="pt-spouse-num">#{{ $loop->iteration }}</span>
             @endif
             @if(!$spouse->is_living)
                 <span class="pt-dead">Wafat</span>
+            @endif
+            @if(!$isCurrent)
+                <span class="pt-divorced {{ !$spouse->is_living ? 'has-dead' : '' }}">Cerai</span>
             @endif
             <div class="pt-thumb">
                 <img src="{{ $getAvatar($spouse) }}" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
@@ -98,10 +105,12 @@
             <ul>
                 @foreach($spouses as $spouse)
                     @php $spouseChildren = $grouped->get($spouse->id, collect()); @endphp
-                    @if($spouseChildren->isNotEmpty())
-                        {{-- Wrapper li for each spouse's children group --}}
+                        @php
+                            $spMarriage = $marriages->first(fn($m) => $member->gender === 'male' ? $m->wife_id === $spouse->id : $m->husband_id === $spouse->id);
+                            $spIsCurrent = $spMarriage ? $spMarriage->is_current : true;
+                        @endphp
                         <li class="wife-group">
-                            <span class="wife-group-label">{{ $spouse->first_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif</span>
+                            <span class="wife-group-label">{{ $spouse->first_name }} @if($spouses->count() > 1) (#{{ $loop->iteration }}) @endif @if(!$spIsCurrent) (Cerai) @endif</span>
                             <ul>
                                 @foreach($spouseChildren as $child)
                                     <x-tree-node :member="$child" :all-members="$allMembers" />
