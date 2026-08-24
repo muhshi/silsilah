@@ -1,6 +1,7 @@
 <?php
 
 use App\Mail\TreeInvitationMail;
+use App\Models\ActivityLog;
 use App\Models\FamilyTree;
 use App\Models\TreeInvitation;
 use App\Models\User;
@@ -97,4 +98,24 @@ it('allows owner to cancel pending invitation', function () {
         ->assertHasNoErrors();
 
     expect(TreeInvitation::find($invitation->id))->toBeNull();
+});
+
+it('records activity log when members are added and edited', function () {
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡member-manager', ['treeId' => $tree->id])
+        ->set('first_name', 'Budi')
+        ->set('last_name', 'Santoso')
+        ->set('gender', 'male')
+        ->call('save');
+
+    $log = ActivityLog::where('family_tree_id', $tree->id)->first();
+    expect($log)->not->toBeNull()
+        ->and($log->action)->toBe('member_created')
+        ->and($log->user_id)->toBe($owner->id)
+        ->and($log->description)->toContain('Budi Santoso');
 });

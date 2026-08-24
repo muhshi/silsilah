@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\TreeInvitation;
-use App\Notifications\CollaboratorJoinedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -45,11 +45,12 @@ class InvitationController extends Controller
         // Update invitation status
         $invitation->update(['status' => 'accepted']);
 
-        // Notify Tree Owner
-        $owner = $tree->users()->wherePivot('role', 'owner')->first();
-        if ($owner && $owner->id !== $user->id) {
-            $owner->notify(new CollaboratorJoinedNotification($user, $tree));
-        }
+        // Log activity
+        ActivityLog::log(
+            $tree->id,
+            'collaborator_joined',
+            "{$user->name} bergabung sebagai kolaborator (Editor)"
+        );
 
         return redirect()->route('tree.show', $tree->id)->with('success', 'Berhasil bergabung sebagai kolaborator!');
     }

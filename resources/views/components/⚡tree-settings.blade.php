@@ -74,6 +74,12 @@ new class extends Component
         $this->tree->update($data);
         $this->loadTreeData();
 
+        \App\Models\ActivityLog::log(
+            $this->treeId,
+            'settings_updated',
+            "Memperbarui pengaturan umum pohon silsilah"
+        );
+
         session()->flash('success_general', 'Pengaturan pohon berhasil disimpan.');
         $this->dispatch('refresh-tree');
     }
@@ -113,6 +119,12 @@ new class extends Component
             'token' => $token,
         ]);
 
+        \App\Models\ActivityLog::log(
+            $this->treeId,
+            'invitation_sent',
+            "Mengirim undangan kolaborasi ke '{$this->inviteEmail}'"
+        );
+
         \Illuminate\Support\Facades\Mail::to($this->inviteEmail)->send(new \App\Mail\TreeInvitationMail($invitation, $this->tree));
 
         $this->inviteEmail = '';
@@ -129,7 +141,16 @@ new class extends Component
     public function removeEditor($userId)
     {
         \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
+        $user = \App\Models\User::find($userId);
+        $name = $user ? $user->name : 'Kolaborator';
         $this->tree->users()->detach($userId);
+
+        \App\Models\ActivityLog::log(
+            $this->treeId,
+            'collaborator_removed',
+            "Menghapus kolaborator '{$name}'"
+        );
+
         session()->flash('success', 'Kolaborator dihapus.');
     }
 
@@ -138,25 +159,31 @@ new class extends Component
         return [
             'invitations' => TreeInvitation::where('family_tree_id', $this->treeId)->where('status', 'pending')->get(),
             'editors' => $this->tree->users()->where('role', 'editor')->get(),
+            'logs' => \App\Models\ActivityLog::with('user')
+                ->where('family_tree_id', $this->treeId)
+                ->latest()
+                ->take(50)
+                ->get(),
         ];
     }
 };
 ?>
 
 <div>
-    <flux:modal wire:model="showModal" class="md:w-[40rem]">
+    <flux:modal wire:model="showModal" class="md:w-[42rem]">
         <div class="space-y-6">
             <flux:heading size="lg">Pengaturan Pohon Silsilah</flux:heading>
 
             <div class="flex border-b border-outline-variant/50">
-                <button wire:click="$set('activeTab', 'general')" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors {{ $activeTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant' }}">
+                <button wire:click="$set('activeTab', 'general')" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors {{ $activeTab === 'general' ? 'border-primary text-primary font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
                     Umum
                 </button>
-                <button wire:click="$set('activeTab', 'collab')" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors flex items-center gap-1 {{ $activeTab === 'collab' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant' }}">
+                <button wire:click="$set('activeTab', 'collab')" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors flex items-center gap-1 {{ $activeTab === 'collab' ? 'border-primary text-primary font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
                     Kolaborasi
-                    @if($tree->is_premium)
-                        <span class="material-symbols-outlined text-[14px] {{ $activeTab === 'collab' ? 'text-primary' : 'text-tertiary' }}">workspace_premium</span>
-                    @endif
+                </button>
+                <button wire:click="$set('activeTab', 'logs')" class="px-4 py-2 border-b-2 font-medium text-sm transition-colors flex items-center gap-1.5 {{ $activeTab === 'logs' ? 'border-primary text-primary font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
+                    <span>Riwayat Aktivitas</span>
+                    <span class="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded-full font-mono">{{ $logs->count() }}</span>
                 </button>
             </div>
 
@@ -284,6 +311,42 @@ new class extends Component
                             @endforeach
                         </ul>
                     </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($activeTab === 'logs')
+                <div class="space-y-4 pt-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Riwayat Perubahan Silsilah</h4>
+                        <span class="text-xs text-zinc-500 dark:text-zinc-400">50 Aktivitas Terakhir</span>
+                    </div>
+
+                    @if($logs->isEmpty())
+                        <div class="text-center py-10 text-zinc-400 dark:text-zinc-500 text-xs border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
+                            Belum ada catatan aktivitas di pohon silsilah ini.
+                        </div>
+                    @else
+                        <div class="space-y-2.5 max-h-[22rem] overflow-y-auto pr-1">
+                            @foreach($logs as $log)
+                                <div class="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/60 dark:border-zinc-700/50 flex items-start gap-3 text-xs">
+                                    <img src="{{ $log->user->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($log->user->name ?? 'System') }}" class="w-8 h-8 rounded-full shrink-0 mt-0.5 border border-zinc-200 dark:border-zinc-700">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <p class="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                                {{ $log->user->name ?? 'Sistem' }}
+                                            </p>
+                                            <span class="text-[10px] text-zinc-400 dark:text-zinc-500 whitespace-nowrap" title="{{ $log->created_at->format('d M Y H:i:s') }}">
+                                                {{ $log->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                        <p class="text-zinc-600 dark:text-zinc-300 mt-0.5 leading-snug">
+                                            {{ $log->description }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
             @endif

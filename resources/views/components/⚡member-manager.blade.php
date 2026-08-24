@@ -246,8 +246,18 @@ new class extends Component
         if ($this->memberId) {
             $member = Member::findOrFail($this->memberId);
             $member->update($data);
+            \App\Models\ActivityLog::log(
+                $this->treeId,
+                'member_updated',
+                "Mengubah data anggota '{$member->first_name} {$member->last_name}'"
+            );
         } else {
             $member = Member::create($data);
+            \App\Models\ActivityLog::log(
+                $this->treeId,
+                'member_created',
+                "Menambahkan anggota baru '{$member->first_name} {$member->last_name}'"
+            );
             
             // Parent Of - set member as parent of target
             if ($this->relType === 'parent_of' && $this->targetMemberId) {
@@ -288,8 +298,17 @@ new class extends Component
     {
         \Illuminate\Support\Facades\Gate::authorize('editMembers', FamilyTree::findOrFail($this->treeId));
         if ($this->memberId) {
-            Marriage::where('husband_id', $this->memberId)->orWhere('wife_id', $this->memberId)->delete();
-            Member::findOrFail($this->memberId)->delete();
+            $member = Member::find($this->memberId);
+            if ($member) {
+                $name = "{$member->first_name} {$member->last_name}";
+                Marriage::where('husband_id', $this->memberId)->orWhere('wife_id', $this->memberId)->delete();
+                $member->delete();
+                \App\Models\ActivityLog::log(
+                    $this->treeId,
+                    'member_deleted',
+                    "Menghapus anggota '{$name}'"
+                );
+            }
             Flux::modal('member-modal')->close();
             $this->dispatch('refresh-tree');
         }
@@ -306,8 +325,17 @@ new class extends Component
     public function confirmDeleteMember($id)
     {
         $this->memberId = $id;
-        Marriage::where('husband_id', $id)->orWhere('wife_id', $id)->delete();
-        Member::findOrFail($id)->delete();
+        $member = Member::find($id);
+        if ($member) {
+            $name = "{$member->first_name} {$member->last_name}";
+            Marriage::where('husband_id', $id)->orWhere('wife_id', $id)->delete();
+            $member->delete();
+            \App\Models\ActivityLog::log(
+                $this->treeId,
+                'member_deleted',
+                "Menghapus anggota '{$name}'"
+            );
+        }
         $this->dispatch('refresh-tree');
     }
 
