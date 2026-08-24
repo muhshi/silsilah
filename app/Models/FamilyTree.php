@@ -23,6 +23,17 @@ class FamilyTree extends Model
         'view_password',
     ];
 
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_public' => 'boolean',
+            'is_premium' => 'boolean',
+        ];
+    }
+
     protected static function booted(): void
     {
         static::creating(function (FamilyTree $tree) {

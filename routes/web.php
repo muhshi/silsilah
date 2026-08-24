@@ -60,6 +60,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('public/tree/{slug}', function ($slug) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
 
+    if (! $tree->is_public) {
+        abort(404);
+    }
+
     if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.password', $tree->slug);
     }
@@ -69,6 +73,10 @@ Route::get('public/tree/{slug}', function ($slug) {
 
 Route::get('public/tree/{slug}/vertical', function ($slug) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
+
+    if (! $tree->is_public) {
+        abort(404);
+    }
 
     if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.password', $tree->slug);
@@ -80,6 +88,10 @@ Route::get('public/tree/{slug}/vertical', function ($slug) {
 Route::get('public/tree/{slug}/simple', function ($slug) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
 
+    if (! $tree->is_public) {
+        abort(404);
+    }
+
     if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.password', $tree->slug);
     }
@@ -90,6 +102,10 @@ Route::get('public/tree/{slug}/simple', function ($slug) {
 // Password form for protected public trees
 Route::get('public/tree/{slug}/password', function ($slug) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
+
+    if (! $tree->is_public) {
+        abort(404);
+    }
 
     if (! $tree->view_password || session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.public', $tree->slug);

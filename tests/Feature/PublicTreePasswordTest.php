@@ -16,7 +16,7 @@ it('shows public tree without password directly', function () {
 
 it('redirects to password form when tree has a password', function () {
     $tree = FamilyTree::factory()->create([
-        'is_public' => false,
+        'is_public' => true,
         'view_password' => Hash::make('secret123'),
     ]);
 
@@ -24,8 +24,18 @@ it('redirects to password form when tree has a password', function () {
         ->assertRedirect(route('tree.password', $tree->slug));
 });
 
+it('aborts 404 when private tree is accessed via public route', function () {
+    $tree = FamilyTree::factory()->create([
+        'is_public' => false,
+    ]);
+
+    $this->get(route('tree.public', $tree->slug))
+        ->assertNotFound();
+});
+
 it('shows password form page', function () {
     $tree = FamilyTree::factory()->create([
+        'is_public' => true,
         'view_password' => Hash::make('secret123'),
     ]);
 
@@ -36,6 +46,7 @@ it('shows password form page', function () {
 
 it('redirects from password form when no password set', function () {
     $tree = FamilyTree::factory()->create([
+        'is_public' => true,
         'view_password' => null,
     ]);
 

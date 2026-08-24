@@ -5,11 +5,17 @@ use Livewire\Attributes\On;
 use App\Models\FamilyTree;
 use App\Models\TreeInvitation;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
     public $treeId;
     public $tree;
+    public $name = '';
+    public $description = '';
+    public $is_public = true;
+    public $has_password = false;
+    public $new_password = '';
     public $inviteEmail = '';
     public $activeTab = 'general';
     public $showModal = false;
@@ -17,13 +23,59 @@ new class extends Component
     public function mount($treeId)
     {
         $this->treeId = $treeId;
-        $this->tree = FamilyTree::findOrFail($treeId);
+        $this->loadTreeData();
+    }
+
+    public function loadTreeData()
+    {
+        $this->tree = FamilyTree::findOrFail($this->treeId);
+        $this->name = $this->tree->name;
+        $this->description = $this->tree->description ?? '';
+        $this->is_public = (bool) $this->tree->is_public;
+        $this->has_password = !empty($this->tree->view_password);
+        $this->new_password = '';
     }
 
     #[On('open-tree-settings')]
     public function openSettings()
     {
+        $this->loadTreeData();
         $this->showModal = true;
+    }
+
+    public function saveGeneralSettings()
+    {
+        \Illuminate\Support\Facades\Gate::authorize('update', $this->tree);
+
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_public' => 'boolean',
+            'has_password' => 'boolean',
+            'new_password' => 'nullable|string|min:4',
+        ]);
+
+        $data = [
+            'name' => $this->name,
+            'description' => $this->description,
+            'is_public' => $this->is_public,
+        ];
+
+        if ($this->is_public && $this->has_password) {
+            if (!empty($this->new_password)) {
+                $data['view_password'] = Hash::make($this->new_password);
+            }
+        } else {
+            $data['view_password'] = null;
+            $this->has_password = false;
+            $this->new_password = '';
+        }
+
+        $this->tree->update($data);
+        $this->loadTreeData();
+
+        session()->flash('success_general', 'Pengaturan pohon berhasil disimpan.');
+        $this->dispatch('refresh-tree');
     }
 
     public function deleteTree()
@@ -69,8 +121,6 @@ new class extends Component
 
         $this->inviteEmail = '';
         session()->flash('success', 'Undangan berhasil dikirim.');
-        
-        // Refresh tree relation if needed, or simply re-fetch
     }
 
     public function cancelInvite($id)
@@ -115,13 +165,53 @@ new class extends Component
             </div>
 
             @if($activeTab === 'general')
-                <div class="space-y-4 pt-4">
-                    <p class="text-sm text-on-surface-variant">
-                        Untuk sementara, pengaturan umum seperti nama dan visibilitas dikelola saat pembuatan pohon.
-                        Anda dapat memperbaruinya di masa mendatang.
-                    </p>
+                <div class="space-y-6 pt-4">
+                    <form wire:submit="saveGeneralSettings" class="space-y-4">
+                        <flux:input wire:model="name" label="Nama Pohon Silsilah *" placeholder="Contoh: Keluarga Trah Mangun" required />
+                        <flux:textarea wire:model="description" label="Deskripsi" placeholder="Keterangan singkat silsilah keluarga" rows="2" />
 
-                    <div class="mt-8 p-4 border border-red-200 bg-red-50 dark:border-red-900/30 dark:bg-red-900/10 rounded-xl">
+                        {{-- Visibilitas: Publik / Privat --}}
+                        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Akses Pohon Publik</h4>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Siapapun yang memiliki link dapat melihat pohon silsilah ini.</p>
+                                </div>
+                                <flux:switch wire:model.live="is_public" />
+                            </div>
+
+                            @if($is_public)
+                                <div class="pt-3 border-t border-zinc-200 dark:border-zinc-700/80 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold text-xs text-zinc-800 dark:text-zinc-200">Proteksi dengan Password</h4>
+                                            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Pengunjung publik wajib memasukkan password sebelum melihat diagram.</p>
+                                        </div>
+                                        <flux:switch wire:model.live="has_password" />
+                                    </div>
+
+                                    @if($has_password)
+                                        <div class="pt-1">
+                                            <flux:input type="password" wire:model="new_password" label="Password Akses Publik" placeholder="{{ $tree->view_password ? 'Isi jika ingin mengganti password' : 'Masukkan password baru' }}" viewable />
+                                            @if($tree->view_password && empty($new_password))
+                                                <p class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">✓ Password proteksi saat ini sudah aktif.</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+
+                        @if (session()->has('success_general'))
+                            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{{ session('success_general') }}</p>
+                        @endif
+
+                        <div class="flex justify-end pt-2">
+                            <flux:button type="submit" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-medium">Simpan Perubahan</flux:button>
+                        </div>
+                    </form>
+
+                    <div class="mt-6 p-4 border border-red-200 bg-red-50 dark:border-red-900/30 dark:bg-red-900/10 rounded-xl">
                         <h4 class="font-bold text-red-600 dark:text-red-400 mb-1">Zona Berbahaya</h4>
                         <p class="text-xs text-red-500 mb-3">Tindakan ini akan menghapus seluruh data pohon, anggota keluarga, dan foto-fotonya secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
                         <flux:modal.trigger name="confirm-delete-tree">

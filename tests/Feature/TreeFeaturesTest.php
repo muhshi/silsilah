@@ -77,3 +77,35 @@ it('allows selecting mother when creating a child for a father with multiple wiv
         ->and($child->father_id)->toBe($father->id)
         ->and($child->mother_id)->toBe($wife2->id);
 });
+
+it('can update tree settings like public status and view password', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['is_public' => true, 'view_password' => null]);
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $this->actingAs($user);
+
+    // Turn password protection ON
+    Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
+        ->set('name', 'Keluarga Terbaru')
+        ->set('is_public', true)
+        ->set('has_password', true)
+        ->set('new_password', 'rahasia123')
+        ->call('saveGeneralSettings')
+        ->assertHasNoErrors();
+
+    $tree->refresh();
+    expect($tree->name)->toBe('Keluarga Terbaru')
+        ->and($tree->is_public)->toBeTrue()
+        ->and(Hash::check('rahasia123', $tree->view_password))->toBeTrue();
+
+    // Turn tree to PRIVATE
+    Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
+        ->set('is_public', false)
+        ->call('saveGeneralSettings')
+        ->assertHasNoErrors();
+
+    $tree->refresh();
+    expect($tree->is_public)->toBeFalse()
+        ->and($tree->view_password)->toBeNull();
+});
