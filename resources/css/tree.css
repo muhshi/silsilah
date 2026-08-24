@@ -229,55 +229,86 @@
 
 .tree a .pt-options {
     position: absolute;
-    left: -25px;
+    left: -28px;
     top: 50%;
     transform: translateY(-50%);
     background: #f3f4f6;
-    border-radius: 4px 0 0 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 6px 0 0 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
     visibility: hidden;
     opacity: 0;
-    transition: all 0.3s;
-    z-index: 10;
+    transition: all 0.2s ease-in-out;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 .dark .tree a .pt-options {
     background: #3f3f46;
 }
 
-.tree a .pt-options b {
+/* Always visible on touchscreens / mobile screens */
+@media (hover: none), (max-width: 768px) {
+    .tree a .pt-options {
+        visibility: visible !important;
+        opacity: 1 !important;
+        left: -26px !important;
+    }
+}
+
+.tree a .pt-options b,
+.tree a .pt-options button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+    border: 0;
     border-bottom: 1px solid #ffffff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
     color: #6b7280;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
-.dark .tree a .pt-options b {
+.dark .tree a .pt-options b,
+.dark .tree a .pt-options button {
     border-bottom-color: #52525b;
     color: #a1a1aa;
 }
 
-.tree a .pt-options b:first-of-type {
-    border-radius: 4px 0 0 0;
+.tree a .pt-options b:first-of-type,
+.tree a .pt-options button:first-of-type {
+    border-radius: 6px 0 0 0;
 }
-.tree a .pt-options b:last-of-type {
+.tree a .pt-options b:last-of-type,
+.tree a .pt-options button:last-of-type {
     border-bottom: 0;
-    border-radius: 0 0 0 4px;
+    border-radius: 0 0 0 6px;
 }
 
 /* Edit = green, Delete = red, Add = yellow */
-.tree a .pt-options b.tree-edit:hover { background: #2ecc71; color: #fff; }
-.tree a .pt-options b.tree-delete:hover { background: #e84118; color: #fff; }
-.tree a .pt-options b.tree-add:hover { background: #fbc531; color: #fff; }
+.tree a .pt-options b.tree-edit:hover,
+.tree a .pt-options button.tree-edit:hover,
+.tree a .pt-options button.tree-edit:active { background: #2ecc71; color: #fff; }
+
+.tree a .pt-options b.tree-delete:hover,
+.tree a .pt-options button.tree-delete:hover,
+.tree a .pt-options button.tree-delete:active { background: #e84118; color: #fff; }
+
+.tree a .pt-options b.tree-add:hover,
+.tree a .pt-options button.tree-add:hover,
+.tree a .pt-options button.tree-add:active { background: #fbc531; color: #fff; }
 
 .tree a:hover .pt-options {
     visibility: visible;
     opacity: 1;
-    left: -22px;
+    left: -26px;
 }
 
 /* ========== SPOUSE (PARTNER) ========== */
