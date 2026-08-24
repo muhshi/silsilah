@@ -41,7 +41,19 @@
             $marriage = $marriages->first(fn($m) => $member->gender === 'male' ? $m->wife_id === $spouse->id : $m->husband_id === $spouse->id);
             $isCurrent = $marriage ? $marriage->is_current : true;
         @endphp
-        <a class="partner gender-{{ $spouse->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })">
+        <a class="partner gender-{{ $spouse->gender }}"
+           x-data="{ open: false }"
+           x-on:click.outside="open = false"
+           :class="{ 'show-options': open }"
+           x-on:click="
+               if (window.matchMedia('(hover: none)').matches) {
+                   if (!open) {
+                       open = true;
+                       return;
+                   }
+               }
+               $dispatch('show-member', { id: {{ $spouse->id }} });
+           ">
             @if($spouses->count() > 1)
                 <span class="pt-spouse-num">#{{ $loop->iteration }}</span>
             @endif
@@ -67,7 +79,19 @@
     @endforeach
 
     {{-- Main Member --}}
-    <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} gender-{{ $member->gender }}" wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })">
+    <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} gender-{{ $member->gender }}"
+       x-data="{ open: false }"
+       x-on:click.outside="open = false"
+       :class="{ 'show-options': open }"
+       x-on:click="
+           if (window.matchMedia('(hover: none)').matches) {
+               if (!open) {
+                   open = true;
+                   return;
+               }
+           }
+           $dispatch('show-member', { id: {{ $member->id }} });
+       ">
         @if(!$member->is_living)
             <span class="pt-dead">Wafat</span>
         @endif

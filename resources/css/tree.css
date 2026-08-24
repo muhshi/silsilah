@@ -247,13 +247,12 @@
     background: #3f3f46;
 }
 
-/* Always visible on touchscreens / mobile screens */
-@media (hover: none), (max-width: 768px) {
-    .tree a .pt-options {
-        visibility: visible !important;
-        opacity: 1 !important;
-        left: -26px !important;
-    }
+/* Show options on hover (desktop) or when show-options class is active (mobile tap) */
+.tree a:hover .pt-options,
+.tree a.show-options .pt-options {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: -26px !important;
 }
 
 .tree a .pt-options b,
