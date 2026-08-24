@@ -545,7 +545,7 @@ new class extends Component
                     <flux:modal.close>
                         <flux:button variant="ghost">Tutup</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                    <flux:button type="submit" wire:loading.attr="disabled" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 font-medium">
                         <span wire:loading.remove wire:target="save">Simpan</span>
                         <span wire:loading wire:target="save" class="inline-flex items-center gap-1.5">
                             <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
