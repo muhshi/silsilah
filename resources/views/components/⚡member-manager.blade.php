@@ -27,7 +27,7 @@ new class extends Component
     public $death_date = '';
     public $birth_place = '';
     public $marriage_date = '';
-    public $member_notes = '';
+    public $address = '';
     public $profession = '';
     public $bio = '';
     
@@ -129,7 +129,7 @@ new class extends Component
         $this->father_id = $member->father_id;
         $this->mother_id = $member->mother_id;
         $this->avatar_id = $member->avatar_id;
-        $this->member_notes = $member->member_notes ?? '';
+        $this->address = $member->address ?? '';
         
         // If photo is a URL, put it in photo_url field
         if ($member->photo && str_starts_with($member->photo, 'http')) {
@@ -194,6 +194,7 @@ new class extends Component
             'birth_date' => $this->birth_date ?: null,
             'death_date' => $this->death_date ?: null,
             'birth_place' => $this->birth_place,
+            'address' => $this->address,
             'profession' => $this->profession,
             'bio' => $this->bio,
             'father_id' => $this->father_id ?: null,
@@ -390,9 +391,9 @@ new class extends Component
     {
         $this->reset([
             'memberId', 'first_name', 'last_name', 'gender', 'is_living',
-            'birth_date', 'death_date', 'birth_place', 'profession', 'bio',
+            'birth_date', 'death_date', 'birth_place', 'address', 'profession', 'bio',
             'photo', 'photo_url', 'avatar_id', 'father_id', 'mother_id', 'other_parent_id', 'relType', 'targetMemberId',
-            'marriage_date', 'member_notes'
+            'marriage_date'
         ]);
     }
 };
@@ -462,7 +463,7 @@ new class extends Component
                     <flux:input type="date" wire:model="death_date" label="Tgl Wafat" x-bind:disabled="$wire.is_living" />
                 </div>
 
-                <flux:input wire:model="member_notes" label="Keterangan" placeholder="Info tambahan, tampil di diagram" />
+                <flux:input wire:model="address" label="Alamat" placeholder="Isi alamat tempat tinggal" />
 
                 {{-- Photo: Upload or URL --}}
                 <div class="grid grid-cols-2 gap-4">
@@ -591,6 +592,12 @@ new class extends Component
             </div>
 
             <div class="mt-5 space-y-3 text-sm">
+                @if($vm->address)
+                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-zinc-700">
+                        <span class="text-gray-500">Alamat</span>
+                        <span class="font-medium dark:text-white text-right">{{ $vm->address }}</span>
+                    </div>
+                @endif
                 @if($vm->profession)
                     <div class="flex justify-between py-2 border-b border-gray-100 dark:border-zinc-700">
                         <span class="text-gray-500">Profesi</span>
