@@ -230,16 +230,20 @@
 .tree a .pt-thumb {
     width: 80px;
     height: 80px;
-    margin: 0 auto;
+    margin: -44px auto 0;
     overflow: hidden;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
     border: 3px solid #ffffff;
-    margin-top: -44px;
     position: relative;
     z-index: 2;
     background: #fff;
-    transition: all 0.4s;
+    transition: all 0.3s ease-in-out;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 .dark .tree a .pt-thumb {
     border-color: #3f3f46;
@@ -249,7 +253,12 @@
 .tree a .pt-thumb img {
     width: 100%;
     height: 100%;
+    min-height: unset;
     object-fit: cover;
+    object-position: center;
+    border-radius: 50%;
+    display: block;
+    box-sizing: border-box;
 }
 
 .tree a:not([href]):hover .pt-thumb {
@@ -389,7 +398,11 @@
     height: 64px;
 }
 .tree a.partner .pt-thumb img {
-    min-height: 64px;
+    width: 100%;
+    height: 100%;
+    min-height: unset;
+    object-fit: cover;
+    object-position: center;
 }
 
 /* Hidden partner placeholder (for layout) */
