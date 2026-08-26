@@ -148,6 +148,9 @@ new class extends Component
                     <flux:menu.item icon="document-arrow-down" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'pdf', 'view' => 'simple']) }}">
                         Export Dokumen (PDF)
                     </flux:menu.item>
+                    <flux:menu.item icon="sparkles" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'prompt']) }}">
+                        Export Prompt AI (.md)
+                    </flux:menu.item>
                     <flux:menu.item icon="code-bracket" href="{{ route('tree.export', ['id' => $tree->id, 'format' => 'json']) }}">
                         Export Data (JSON)
                     </flux:menu.item>

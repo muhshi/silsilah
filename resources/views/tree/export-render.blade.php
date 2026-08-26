@@ -17,14 +17,16 @@
 
     <style>
         /* Use system fonts for export — avoids fetching Google Fonts */
-        body {
+        html, body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             background: #ffffff !important;
             margin: 0;
             padding: 0;
-            min-width: 1920px;
-            min-height: 1080px;
-            display: block;
+            display: inline-block !important;
+            width: max-content !important;
+            height: max-content !important;
+            min-width: 100vw;
+            min-height: 100vh;
         }
         .pt-sm {
             overflow: visible !important;
@@ -44,7 +46,7 @@
     </style>
 </head>
 <body>
-    <div style="display: inline-block; padding: 40px; min-width: 100%; min-height: 100%;">
+    <div id="export-canvas" style="display: inline-block; padding: 40px; width: max-content; height: max-content;">
         @if(($viewType ?? 'horizontal') === 'simple')
             <div class="tree simple-tree" id="simpleTree">
                 <ul>
@@ -63,5 +65,22 @@
             </div>
         @endif
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('export-canvas');
+            if (canvas) {
+                const width = Math.max(canvas.scrollWidth + 80, 1920);
+                const height = Math.max(canvas.scrollHeight + 80, 1080);
+
+                const style = document.createElement('style');
+                style.innerHTML = `@page { size: ${width}px ${height}px; margin: 0; }`;
+                document.head.appendChild(style);
+
+                document.body.style.width = width + 'px';
+                document.body.style.height = height + 'px';
+            }
+        });
+    </script>
 </body>
 </html>

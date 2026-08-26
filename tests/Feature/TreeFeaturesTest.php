@@ -35,6 +35,52 @@ it('can export family tree as JSON', function () {
     ]);
 });
 
+it('can export family tree as Prompt AI markdown', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Keluarga Utama']);
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $father = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Budi',
+        'last_name' => 'Santoso',
+        'gender' => 'male',
+    ]);
+
+    $mother = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Siti',
+        'last_name' => 'Aminah',
+        'gender' => 'female',
+    ]);
+
+    Marriage::create([
+        'husband_id' => $father->id,
+        'wife_id' => $mother->id,
+    ]);
+
+    $child = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Andi',
+        'last_name' => 'Santoso',
+        'gender' => 'male',
+        'father_id' => $father->id,
+        'mother_id' => $mother->id,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('tree.export', ['id' => $tree->id, 'format' => 'prompt']));
+
+    $response->assertSuccessful();
+    $response->assertHeader('content-type', 'text/markdown; charset=UTF-8');
+    expect($response->getContent())
+        ->toContain('Prompt AI: Diagram & Visual Silsilah Keluarga "Keluarga Utama"')
+        ->toContain('Budi Santoso')
+        ->toContain('Siti Aminah')
+        ->toContain('Andi Santoso')
+        ->toContain('Hubungan Orang Tua & Anak');
+});
+
 it('auto detects opposite gender when creating a spouse', function () {
     $user = User::factory()->create();
     $tree = FamilyTree::factory()->create();

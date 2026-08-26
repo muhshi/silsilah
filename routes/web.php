@@ -150,10 +150,10 @@ Route::get('tree/{id}/export-render', function (int $id) {
     ]);
 })->name('tree.export.render');
 
-// Export trigger — generates PNG, PDF, or JSON
+// Export trigger — generates PNG, PDF, JSON, or Prompt AI (.md)
 Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
     set_time_limit(120);
-    abort_unless(in_array($format, ['png', 'pdf', 'json']), 400);
+    abort_unless(in_array($format, ['png', 'pdf', 'json', 'prompt']), 400);
 
     $tree = FamilyTree::with([
         'members',
@@ -163,6 +163,134 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
 
     $filename = Str::slug($tree->name).'-Silsilah';
     $allMembers = $tree->members;
+
+    if ($format === 'prompt') {
+        $marriages = Marriage::whereIn('husband_id', $allMembers->pluck('id'))
+            ->orWhereIn('wife_id', $allMembers->pluck('id'))
+            ->get();
+
+        $markdown = "# Prompt AI: Diagram & Visual Silsilah Keluarga \"{$tree->name}\"\n\n";
+        $markdown .= "> **Panduan Penggunaan**:\n";
+        $markdown .= "> Upload atau salin teks dalam file ini langsung ke **ChatGPT**, **Gemini**, atau **Claude**.\n";
+        $markdown .= "> Minta AI untuk membuatkan diagram Mermaid.js, Graphviz, atau prompt visual artwork silsilah keluarga lengkap.\n\n";
+
+        $markdown .= "## 🤖 Instruksi untuk AI (System Prompt)\n";
+        $markdown .= "Anda adalah seorang Visual Designer & Information Architect berpengalaman.\n";
+        $markdown .= "Tugas Anda adalah memvisualisasikan seluruh silsilah keluarga **\"{$tree->name}\"** di bawah ini secara utuh, jelas, dan rapi dalam satu gambaran besar tanpa ada anggota keluarga yang terlewat.\n\n";
+        $markdown .= "### Pilihan Format Output yang Bisa Anda Hasilkan:\n";
+        $markdown .= "1. **Diagram Mermaid.js (`graph TD` atau `graph LR`)**: Agar bisa di-render langsung menjadi diagram vektor interaktif atau gambar SVG/PNG.\n";
+        $markdown .= "2. **Kode Graphviz DOT / PlantUML**: Untuk di-render menjadi diagram struktur kerapatan tinggi.\n";
+        $markdown .= "3. **Prompt Deskriptif Gambar (Visual Art Prompt)**: Untuk di-generate via DALL-E 3, Midjourney, atau Imagen menjadi poster karya seni lukisan/pohon silsilah keluarga klasik.\n\n";
+
+        $markdown .= "---\n\n";
+        $markdown .= "## 📊 Ringkasan Data Silsilah\n";
+        $markdown .= "- **Nama Pohon**: {$tree->name}\n";
+        if ($tree->description) {
+            $markdown .= "- **Deskripsi**: {$tree->description}\n";
+        }
+        $markdown .= "- **Total Anggota**: {$allMembers->count()} orang\n";
+        $markdown .= "- **Total Pernikahan**: {$marriages->count()} pasangan\n\n";
+
+        $markdown .= "---\n\n";
+        $markdown .= "## 👥 Daftar Anggota Keluarga & Rincian\n\n";
+
+        foreach ($allMembers as $idx => $m) {
+            $num = $idx + 1;
+            $fullName = trim("{$m->first_name} {$m->last_name}");
+            $gender = $m->gender === 'male' ? 'Laki-laki (Male)' : 'Perempuan (Female)';
+            $status = $m->is_living ? 'Masih Hidup' : 'Wafat';
+
+            $birth = $m->birth_date ? Carbon::parse($m->birth_date)->format('d M Y') : null;
+            $death = $m->death_date ? Carbon::parse($m->death_date)->format('d M Y') : null;
+            $years = '';
+            if ($birth || $death) {
+                $years = ' ('.($birth ?? '?').' - '.($death ?? ($m->is_living ? 'sekarang' : '?')).')';
+            }
+
+            $father = $allMembers->firstWhere('id', $m->father_id);
+            $mother = $allMembers->firstWhere('id', $m->mother_id);
+
+            $fatherName = $father ? trim("{$father->first_name} {$father->last_name}") : '-';
+            $motherName = $mother ? trim("{$mother->first_name} {$mother->last_name}") : '-';
+
+            $spouses = collect();
+            if ($m->gender === 'male') {
+                foreach ($m->marriagesAsHusband as $mr) {
+                    $w = $allMembers->firstWhere('id', $mr->wife_id);
+                    if ($w) {
+                        $spouses->push(trim("{$w->first_name} {$w->last_name}"));
+                    }
+                }
+            } else {
+                foreach ($m->marriagesAsWife as $mr) {
+                    $h = $allMembers->firstWhere('id', $mr->husband_id);
+                    if ($h) {
+                        $spouses->push(trim("{$h->first_name} {$h->last_name}"));
+                    }
+                }
+            }
+            $spouseStr = $spouses->count() > 0 ? $spouses->implode(', ') : '-';
+
+            $childrenFilter = $m->gender === 'male' ? 'father_id' : 'mother_id';
+            $children = $allMembers->where($childrenFilter, $m->id)->map(fn ($c) => trim("{$c->first_name} {$c->last_name}"));
+            $childrenStr = $children->count() > 0 ? $children->implode(', ') : '-';
+
+            $markdown .= "### {$num}. {$fullName}{$years}\n";
+            $markdown .= "- **ID**: #M{$m->id}\n";
+            $markdown .= "- **Jenis Kelamin**: {$gender}\n";
+            $markdown .= "- **Status**: {$status}\n";
+            if ($m->profession) {
+                $markdown .= "- **Pekerjaan**: {$m->profession}\n";
+            }
+            if ($m->address) {
+                $markdown .= "- **Alamat/Lokasi**: {$m->address}\n";
+            }
+            if ($m->bio) {
+                $markdown .= "- **Catatan/Bio**: {$m->bio}\n";
+            }
+            $markdown .= "- **Ayah**: {$fatherName}\n";
+            $markdown .= "- **Ibu**: {$motherName}\n";
+            $markdown .= "- **Pasangan**: {$spouseStr}\n";
+            $markdown .= "- **Anak-anak**: {$childrenStr}\n\n";
+        }
+
+        $markdown .= "---\n\n";
+        $markdown .= "## 🔗 Pemetaan Hubungan (Relationship Mapping)\n\n";
+        $markdown .= "### A. Hubungan Orang Tua & Anak:\n";
+        foreach ($allMembers as $m) {
+            $childName = trim("{$m->first_name} {$m->last_name}");
+            if ($m->father_id) {
+                $father = $allMembers->firstWhere('id', $m->father_id);
+                if ($father) {
+                    $fatherName = trim("{$father->first_name} {$father->last_name}");
+                    $markdown .= "- `{$fatherName}` ➔ `{$childName}` (Ayah ➔ Anak)\n";
+                }
+            }
+            if ($m->mother_id) {
+                $mother = $allMembers->firstWhere('id', $m->mother_id);
+                if ($mother) {
+                    $motherName = trim("{$mother->first_name} {$mother->last_name}");
+                    $markdown .= "- `{$motherName}` ➔ `{$childName}` (Ibu ➔ Anak)\n";
+                }
+            }
+        }
+
+        $markdown .= "\n### B. Hubungan Perkawinan (Pernikahan):\n";
+        foreach ($marriages as $mr) {
+            $h = $allMembers->firstWhere('id', $mr->husband_id);
+            $w = $allMembers->firstWhere('id', $mr->wife_id);
+            if ($h && $w) {
+                $hName = trim("{$h->first_name} {$h->last_name}");
+                $wName = trim("{$w->first_name} {$w->last_name}");
+                $mDate = $mr->marriage_date ? ' (Tgl: '.Carbon::parse($mr->marriage_date)->format('d M Y').')' : '';
+                $markdown .= "- `{$hName}` 💍 `{$wName}`{$mDate}\n";
+            }
+        }
+
+        return response($markdown)
+            ->header('Content-Type', 'text/markdown; charset=UTF-8')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}-Prompt-AI.md\"");
+    }
 
     if ($format === 'json') {
         $marriages = Marriage::whereIn('husband_id', $allMembers->pluck('id'))
@@ -315,9 +443,6 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
 
     if ($format === 'pdf') {
         $pdfContent = $browsershot
-            ->paperSize(594, 420) // A2 landscape in mm
-            ->landscape()
-            ->margins(10, 10, 10, 10)
             ->pdf();
 
         return response($pdfContent)
