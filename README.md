@@ -55,7 +55,18 @@ Aplikasi ini berjalan di atas teknologi mutakhir dari ekosistem Laravel:
 ## 📝 Changelog
 *Catat setiap perubahan teknis di bagian ini mengikuti standar [Keep a Changelog](https://keepachangelog.com/).*
 
-### [Unreleased]
+### [v1.2.0] - 2026-08-29
+- **Added:** Mode Pohon Ringkas / High-Density Simple Tree Mode (`/tree/{slug}/simple`) dengan pill badge gender-coded dan hierarki kompak (24px) untuk cetak & ekspor skala besar.
+- **Added:** Konversi gambar profil dan avatar disk lokal (`public_path()`) langsung menjadi Base64 Data URI saat ekspor PNG/PDF untuk mencegah foto kosong pada Puppeteer/Browsershot.
+- **Added:** Material Design 3 Segmented Action Bar (`[ 🌳 Bagan | 🧭 Fokus | 📄 Simple ]`), grup utilitas Bagikan/Ekspor, dan overflow menu dropdown.
+- **Added:** Redesain Glassmorphic Top Navbar (`backdrop-blur-xl`) dengan active pill indicator dan menu profil modern.
+- **Added:** Dashboard Redesign dengan 3 Hero Metric Cards (Total Silsilah, Total Anggota, Pohon Premium), live search instan, dan Filter Chips dengan hitungan badge.
+- **Added:** Grid Ikon Karakter Avatar yang proporsional dan kompak (8–9 ikon per baris) lengkap dengan tombol Reset Pilihan.
+- **Changed:** Penanda kematian universal & religion-neutral (format tanggal `(1945 - 2012)` dan tag `Wafat`).
+- **Changed:** Reposisi field formulir anggota: Tempat Lahir & Profesi diposisikan tepat di atas Alamat pada form dan modal detail profil.
+- **Changed:** Optimasi UX canvas dengan kontrol pan, zoom, dan auto-fit untuk layar HP dan desktop.
+
+### [v1.1.0] - 2026-08-29
 - **Added:** Integrasi Google SSO (Laravel Socialite) untuk proses login dan registrasi satu klik.
 - **Added:** Layout auth baru bergaya split-panel elegan yang sesuai dengan design system utama (earth tokens).
 - **Changed:** Penonaktifan pendaftaran manual (email/password) dan pengalihan seluruh rute pendaftaran ke Google SSO.
