@@ -52,7 +52,7 @@ it('allows user to accept invitation and become editor', function () {
     $response = $this->actingAs($editorUser)
         ->get(route('invitation.accept.process', 'test-token-123'));
 
-    $response->assertRedirect(route('tree.show', $tree->id));
+    $response->assertRedirect(route('tree.show', $tree));
 
     $invitation->refresh();
     expect($invitation->status)->toBe('accepted');

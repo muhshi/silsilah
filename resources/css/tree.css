@@ -1,30 +1,40 @@
 /* ============================================
-   Silsilah - Horizontal Tree CSS
-   Adapted from Pohon Keluarga / Sketsaweb
+   Silsilah - Modern Material Design 3 Tree CSS
    ============================================ */
 
 /* Tree wrapper (panzoom container) */
 .pt-tree {
     position: relative;
+    width: 100%;
 }
 
 .pt-sm {
     overflow: hidden;
     position: relative;
-    min-height: 600px;
+    min-height: 640px;
+    height: calc(100vh - 180px);
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
-    border-radius: 0.75rem;
-    border: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-radius: 1.25rem;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    background-image: radial-gradient(#cbd5e1 1.25px, transparent 1.25px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: background-color 0.3s ease;
 }
+
 .pt-sm:active {
     cursor: grabbing;
 }
+
 .dark .pt-sm {
-    background: #18181b;
-    border-color: #3f3f46;
+    background-color: #090d16;
+    background-image: radial-gradient(#1e293b 1.25px, transparent 1.25px);
+    border-color: #1e293b;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* The inner element that gets transformed */
@@ -34,6 +44,7 @@
     transition: none;
     padding: 60px 40px;
     min-width: 100%;
+    will-change: transform;
 }
 
 /* ========== TREE STRUCTURE ========== */
@@ -46,7 +57,7 @@
 .tree ul {
     padding: 40px 0 0;
     position: relative;
-    transition: all 0.4s;
+    transition: all 0.3s ease-out;
     display: flex;
     justify-content: center;
 }
@@ -55,9 +66,9 @@
     text-align: center;
     list-style-type: none;
     position: relative;
-    padding: 40px 5px 0 5px;
+    padding: 40px 8px 0 8px;
     white-space: nowrap;
-    transition: all 0.4s;
+    transition: all 0.3s ease-out;
 }
 
 /* Root element (first li of the first ul) */
@@ -65,7 +76,7 @@
     padding-bottom: 50px;
 }
 
-/* ========== CONNECTORS ========== */
+/* ========== CONNECTORS (MATERIAL 3 SMOOTH CURVES) ========== */
 
 .tree ul li::before,
 .tree ul li::after {
@@ -73,18 +84,20 @@
     position: absolute;
     top: 0;
     right: 50%;
-    border-top: 2px solid #cbd5e1;
+    border-top: 2px solid #94a3b8;
     width: 50%;
     height: 40px;
 }
+
 .tree ul li::after {
     right: auto;
     left: 50%;
-    border-left: 2px solid #cbd5e1;
+    border-left: 2px solid #94a3b8;
 }
+
 .dark .tree ul li::before,
 .dark .tree ul li::after {
-    border-color: #52525b;
+    border-color: #475569;
 }
 
 /* No connectors for only-child */
@@ -92,6 +105,7 @@
 .tree ul li:only-child::before {
     display: none;
 }
+
 .tree ul li:only-child {
     padding-top: 0;
     margin: auto;
@@ -102,15 +116,18 @@
 .tree ul li:last-child::after {
     border: 0 none;
 }
+
 .tree ul li:last-child::before {
-    border-right: 2px solid #cbd5e1;
-    border-radius: 0 5px 0 0;
+    border-right: 2px solid #94a3b8;
+    border-radius: 0 8px 0 0;
 }
+
 .tree ul li:first-child::after {
-    border-radius: 5px 0 0 0;
+    border-radius: 8px 0 0 0;
 }
+
 .dark .tree ul li:last-child::before {
-    border-right-color: #52525b;
+    border-right-color: #475569;
 }
 
 /* Downward connector from parent to children */
@@ -119,153 +136,147 @@
     position: absolute;
     top: 0;
     left: 50%;
-    border-left: 2px solid #cbd5e1;
+    border-left: 2px solid #94a3b8;
     width: 0;
     height: 40px;
 }
+
 .dark .tree ul ul::before {
-    border-left-color: #52525b;
+    border-left-color: #475569;
 }
 
-/* ========== MEMBER NODE CARD ========== */
+/* ========== MEMBER NODE CARD (MATERIAL 3 SURFACE & ELEVATION) ========== */
 
 .tree ul li a {
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     background: #ffffff;
-    padding: 5px 10px;
+    padding: 8px 12px 10px;
     text-decoration: none;
-    color: #374151;
+    color: #1e293b;
     font-family: inherit;
     font-size: 12px;
     display: inline-block;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    border-radius: 5px;
-    transition: all 0.4s;
+    box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.07), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
+    border-radius: 16px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 2;
     position: relative;
     margin-top: 36px;
     cursor: pointer;
-    max-width: 120px;
+    min-width: 110px;
+    max-width: 130px;
     white-space: normal;
 }
+
 .dark .tree ul li a {
-    background: #27272a;
-    border-color: #3f3f46;
-    color: #e4e4e7;
+    background: #181f2e;
+    border-color: #334155;
+    color: #f1f5f9;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.3);
 }
 
 .tree ul li a:not([href]):hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 2px #f0fdf4, 0 0 0 4px #6366f1;
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 0 0 2px #10b981;
     z-index: 10;
 }
+
 .dark .tree ul li a:not([href]):hover {
-    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #818cf8;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 2px #34d399;
 }
 
 /* ========== GENDER ACCENT DISTINCTION ========== */
 
-/* Male (Laki-laki) Card - Teal / Emerald Theme */
+/* Male (Laki-laki) Card - Teal Theme */
 .tree ul li a.gender-male {
-    border-top: 3px solid #0d9488;
-    background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 40%);
+    border-top: 3.5px solid #0d9488;
+    background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 45%);
 }
+
 .dark .tree ul li a.gender-male {
     border-top-color: #14b8a6;
-    background: linear-gradient(180deg, #134e4a2e 0%, #27272a 40%);
+    background: linear-gradient(180deg, rgba(13, 148, 136, 0.18) 0%, #181f2e 45%);
 }
+
 .tree a.gender-male .pt-thumb {
     border-color: #0d9488;
 }
+
 .dark .tree a.gender-male .pt-thumb {
     border-color: #14b8a6;
 }
+
 .tree a.gender-male strong {
     color: #0f766e;
 }
+
 .dark .tree a.gender-male strong {
     color: #2dd4bf;
 }
-.tree a.gender-male:not([href]):hover,
-.tree a.gender-male.show-options {
-    box-shadow: 0 0 0 2px #ccfbf1, 0 0 0 4px #0d9488;
-}
-.dark .tree a.gender-male:not([href]):hover,
-.dark .tree a.gender-male.show-options {
-    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #14b8a6;
+
+/* Female (Perempuan) Card - Rose Theme */
+.tree ul li a.gender-female {
+    border-top: 3.5px solid #db2777;
+    background: linear-gradient(180deg, #fdf2f8 0%, #ffffff 45%);
 }
 
-/* Female (Perempuan) Card - Rose / Pink Theme */
-.tree ul li a.gender-female {
-    border-top: 3px solid #e11d48;
-    background: linear-gradient(180deg, #fff1f2 0%, #ffffff 40%);
-}
 .dark .tree ul li a.gender-female {
     border-top-color: #f43f5e;
-    background: linear-gradient(180deg, #8813372e 0%, #27272a 40%);
+    background: linear-gradient(180deg, rgba(219, 39, 119, 0.18) 0%, #181f2e 45%);
 }
+
 .tree a.gender-female .pt-thumb {
-    border-color: #e11d48;
+    border-color: #db2777;
 }
+
 .dark .tree a.gender-female .pt-thumb {
     border-color: #f43f5e;
 }
+
 .tree a.gender-female strong {
-    color: #be123c;
+    color: #be185d;
 }
+
 .dark .tree a.gender-female strong {
     color: #fb7185;
 }
-.tree a.gender-female:not([href]):hover,
-.tree a.gender-female.show-options {
-    box-shadow: 0 0 0 2px #ffe4e6, 0 0 0 4px #e11d48;
-}
-.dark .tree a.gender-female:not([href]):hover,
-.dark .tree a.gender-female.show-options {
-    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #f43f5e;
-}
 
-/* ========== AVATAR / THUMB ========== */
+/* ========== AVATAR / THUMBNAIL ========== */
 
 .tree a .pt-thumb {
-    width: 80px;
-    height: 80px;
-    margin: -44px auto 0;
+    width: 72px;
+    height: 72px;
+    margin: -42px auto 4px;
     overflow: hidden;
     border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     border: 3px solid #ffffff;
     position: relative;
     z-index: 2;
-    background: #fff;
-    transition: all 0.3s ease-in-out;
+    background: #f1f5f9;
+    transition: transform 0.25s ease;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
 }
+
 .dark .tree a .pt-thumb {
-    border-color: #3f3f46;
-    background: #27272a;
+    border-color: #1e293b;
+    background: #111827;
 }
 
 .tree a .pt-thumb img {
     width: 100%;
     height: 100%;
-    min-height: unset;
     object-fit: cover;
     object-position: center;
     border-radius: 50%;
     display: block;
-    box-sizing: border-box;
 }
 
 .tree a:not([href]):hover .pt-thumb {
-    box-shadow: 0 0 0 2px #f0fdf4, 0 0 0 4px #6366f1;
-}
-.dark .tree a:not([href]):hover .pt-thumb {
-    box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #818cf8;
+    transform: scale(1.06);
 }
 
 .tree a strong {
@@ -275,438 +286,397 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    border-top: 1px solid #f3f4f6;
-    margin-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    margin-top: 6px;
     padding-top: 4px;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 1.3;
-    max-height: 2.8em;
+    font-weight: 700;
+    font-size: 11.5px;
+    line-height: 1.25;
     word-break: break-word;
 }
+
 .dark .tree a strong {
-    border-top-color: #3f3f46;
+    border-top-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Info text (tahun lahir, dll) */
+/* Info text */
 .tree a .pt-info {
     font-size: 10px;
-    color: #9ca3af;
+    color: #64748b;
     display: block;
     margin-top: 2px;
 }
 
-/* ========== OPTIONS (Edit/Delete/Add) ========== */
+/* ========== OPTIONS FLOATING STRIP (Edit / Add / Delete) ========== */
 
 .tree a .pt-options {
     position: absolute;
-    left: -28px;
+    left: -32px;
     top: 50%;
     transform: translateY(-50%);
-    background: #f3f4f6;
-    border-radius: 6px 0 0 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+    border-radius: 12px 0 0 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
+    border-right: none;
     visibility: hidden;
     opacity: 0;
-    transition: all 0.2s ease-in-out;
-    z-index: 20;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 25;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
+
 .dark .tree a .pt-options {
-    background: #3f3f46;
+    background: #1e293b;
+    border-color: #334155;
 }
 
-/* Show options on hover (desktop) or when show-options class is active (mobile tap) */
+/* Show options on hover or mobile tap */
 .tree a:hover .pt-options,
 .tree a.show-options .pt-options {
     visibility: visible !important;
     opacity: 1 !important;
-    left: -26px !important;
+    left: -30px !important;
 }
 
-.tree a .pt-options b,
 .tree a .pt-options button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
     font-size: 12px;
     border: 0;
-    border-bottom: 1px solid #ffffff;
+    border-bottom: 1px solid #f1f5f9;
     cursor: pointer;
-    transition: all 0.2s;
-    color: #6b7280;
+    transition: all 0.15s;
+    color: #64748b;
     background: transparent;
     padding: 0;
     margin: 0;
     outline: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-}
-.dark .tree a .pt-options b,
-.dark .tree a .pt-options button {
-    border-bottom-color: #52525b;
-    color: #a1a1aa;
 }
 
-.tree a .pt-options b:first-of-type,
-.tree a .pt-options button:first-of-type {
-    border-radius: 6px 0 0 0;
+.dark .tree a .pt-options button {
+    border-bottom-color: #334155;
+    color: #94a3b8;
 }
-.tree a .pt-options b:last-of-type,
+
 .tree a .pt-options button:last-of-type {
     border-bottom: 0;
-    border-radius: 0 0 0 6px;
 }
 
-/* Edit = green, Delete = red, Add = yellow */
-.tree a .pt-options b.tree-edit:hover,
-.tree a .pt-options button.tree-edit:hover,
-.tree a .pt-options button.tree-edit:active { background: #2ecc71; color: #fff; }
-
-.tree a .pt-options b.tree-delete:hover,
-.tree a .pt-options button.tree-delete:hover,
-.tree a .pt-options button.tree-delete:active { background: #e84118; color: #fff; }
-
-.tree a .pt-options b.tree-add:hover,
-.tree a .pt-options button.tree-add:hover,
-.tree a .pt-options button.tree-add:active { background: #fbc531; color: #fff; }
-
-.tree a:hover .pt-options {
-    visibility: visible;
-    opacity: 1;
-    left: -26px;
-}
+/* Options button states */
+.tree a .pt-options button.tree-edit:hover { background: #059669; color: #fff; }
+.tree a .pt-options button.tree-add:hover { background: #0284c7; color: #fff; }
+.tree a .pt-options button.tree-spouse:hover { background: #db2777; color: #fff; }
+.tree a .pt-options button.tree-parent:hover { background: #7c3aed; color: #fff; }
+.tree a .pt-options button.tree-delete:hover { background: #dc2626; color: #fff; }
 
 /* ========== SPOUSE (PARTNER) ========== */
 
 .tree a.partner {
-    margin: 0 3px;
-    background: #f9fafb;
+    margin: 0 4px;
+    background: #f8fafc;
     position: relative;
-    margin-right: 0px;
 }
+
 .dark .tree a.partner {
-    background: #1f1f23;
+    background: #1e293b;
 }
 
 .tree a.partner .pt-thumb {
-    width: 64px;
-    height: 64px;
-}
-.tree a.partner .pt-thumb img {
-    width: 100%;
-    height: 100%;
-    min-height: unset;
-    object-fit: cover;
-    object-position: center;
+    width: 60px;
+    height: 60px;
+    margin: -36px auto 4px;
 }
 
-/* Hidden partner placeholder (for layout) */
+/* Hidden partner placeholder */
 .tree a.partner.hid {
     visibility: hidden;
     min-width: 80px;
 }
 
-/* ========== DEAD BADGE ========== */
+/* ========== STATUS BADGES (MATERIAL TONAL PILLS) ========== */
 
 .tree a .pt-dead {
     position: absolute;
-    background: #e23636;
-    border-radius: 30px;
-    color: #fff;
-    padding: 0 6px;
-    font-size: 8px;
-    height: 14px;
-    line-height: 14px;
-    left: 8px;
-    top: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 9999px;
+    padding: 1px 6px;
+    font-size: 8.5px;
+    font-weight: 700;
+    left: 6px;
+    top: 6px;
     z-index: 3;
-    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.dark .tree a .pt-dead {
+    background: #450a0a;
+    color: #fca5a5;
+    border-color: #7f1d1d;
 }
 
 .tree a .pt-divorced {
     position: absolute;
-    background: #64748b;
-    border-radius: 30px;
-    color: #fff;
-    padding: 0 6px;
-    font-size: 8px;
-    height: 14px;
-    line-height: 14px;
-    left: 8px;
-    top: 8px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 1px 6px;
+    font-size: 8.5px;
+    font-weight: 700;
+    left: 6px;
+    top: 6px;
     z-index: 3;
-    font-weight: 600;
+}
+
+.dark .tree a .pt-divorced {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
 }
 
 .tree a .pt-dead + .pt-divorced,
 .tree a .pt-divorced.has-dead {
-    top: 24px;
+    top: 22px;
 }
 
 .tree a .pt-spouse-num {
     position: absolute;
-    background: #f59e0b;
-    border-radius: 30px;
-    color: #fff;
-    padding: 0 5px;
-    font-size: 8px;
-    height: 14px;
-    line-height: 14px;
-    right: 8px;
-    top: 8px;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    border-radius: 9999px;
+    padding: 1px 5px;
+    font-size: 8.5px;
+    font-weight: 800;
+    right: 6px;
+    top: 6px;
     z-index: 3;
+}
+
+.dark .tree a .pt-spouse-num {
+    background: #451a03;
+    color: #fcd34d;
+    border-color: #78350f;
+}
+
+/* ========== WIFE GROUP / MULTI-SPOUSE LABELS ========== */
+
+.tree li.wife-group {
+    padding-top: 36px;
+}
+
+.tree .wife-group-label {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 9999px;
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+    font-size: 10.5px;
     font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 8px;
 }
 
-/* ========== CONNECTOR DOT ========== */
-
-.pt-emm {
-    position: absolute;
-    background: #6366f1;
-    top: -63px;
-    left: 45%;
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-    z-index: 15;
-    font-style: normal;
-}
-.dark .pt-emm {
-    background: #818cf8;
+.dark .tree .wife-group-label {
+    background: #1e1b4b;
+    color: #a5b4fc;
+    border-color: #3730a3;
 }
 
-/* ========== ZOOM CONTROLS ========== */
-
-.pt-zoom-controls {
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    display: flex;
-    gap: 6px;
-    background: #ffffff;
-    padding: 6px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border: 1px solid #e5e7eb;
-    z-index: 50;
-    touch-action: auto;
-}
-.dark .pt-zoom-controls {
-    background: #27272a;
-    border-color: #3f3f46;
-}
-
-.pt-zoom-controls button {
-    width: 38px;
-    height: 38px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4b5563;
-    font-size: 16px;
-    transition: all 0.2s;
-    touch-action: manipulation;
-}
-.dark .pt-zoom-controls button {
-    color: #d4d4d8;
-}
-.pt-zoom-controls button:hover,
-.pt-zoom-controls button:active {
-    background: #f3f4f6;
-    color: #111827;
-}
-.dark .pt-zoom-controls button:hover,
-.dark .pt-zoom-controls button:active {
-    background: #3f3f46;
-    color: #ffffff;
-}
-
-/* ========== AVATAR PICKER (form-avatar) ========== */
-
-.form-avatar .form-inline {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.form-avatar .form-group {
-    margin: 0;
-}
-
-.form-avatar input.choice.image {
-    display: none;
-}
-
-.form-avatar input.choice.image + label {
-    cursor: pointer;
-    display: block;
-}
-
-.form-avatar input.choice.image + label b {
-    display: block;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid transparent;
-    transition: all 0.3s;
-}
-
-.form-avatar input.choice.image + label b img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.form-avatar input.choice.image:checked + label b {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px #c7d2fe;
-}
-
-/* ========== SIMPLE TREE (dedicated page) ========== */
+/* ============================================
+   HIGH-DENSITY SIMPLE VIEW / PRINT MODE (.simple-tree)
+   ============================================ */
 
 .simple-tree ul {
-    padding: 15px 0 0;
+    padding: 24px 0 0;
 }
 
 .simple-tree li {
-    padding: 15px 2px 0 2px;
+    padding: 24px 4px 0 4px;
 }
 
-/* Root element */
 .simple-tree ul:first-child > li:first-child {
-    padding-bottom: 10px;
+    padding-bottom: 24px;
 }
 
-/* Connectors - tighter */
+/* Connectors for simple tree */
 .simple-tree ul li::before,
 .simple-tree ul li::after {
-    height: 15px;
+    height: 24px;
+    border-top: 1.5px solid #64748b;
+    border-radius: 0;
 }
+
+.simple-tree ul li::after {
+    border-left: 1.5px solid #64748b;
+}
+
+.simple-tree ul li:last-child::before {
+    border-right: 1.5px solid #64748b;
+    border-radius: 0 6px 0 0;
+}
+
+.simple-tree ul li:first-child::after {
+    border-radius: 6px 0 0 0;
+}
+
 .simple-tree ul ul::before {
-    height: 15px;
+    height: 24px;
+    border-left: 1.5px solid #64748b;
 }
 
-/* Card - super compact */
+.dark .simple-tree ul li::before,
+.dark .simple-tree ul li::after,
+.dark .simple-tree ul li:last-child::before,
+.dark .simple-tree ul ul::before {
+    border-color: #475569;
+}
+
+/* Compact Pill Node */
 .simple-tree ul li a {
-    padding: 3px 6px;
-    margin-top: 12px;
-    max-width: 100px;
-    min-width: 60px;
-    border-radius: 3px;
-    font-size: 9px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.simple-tree ul li a strong {
-    border-top: none;
     margin-top: 0;
-    padding-top: 0;
-    font-size: 9px;
-    font-weight: 600;
+    min-width: unset;
+    max-width: 180px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
     line-height: 1.2;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    max-height: 2.4em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
 }
 
-/* Gender colors — Male = Blue */
-.simple-tree a.st-male {
-    background: #dbeafe;
-    border: 1.5px solid #60a5fa;
-    color: #1e40af;
-}
-.dark .simple-tree a.st-male {
-    background: #1e3a5f;
-    border-color: #3b82f6;
-    color: #93c5fd;
+.simple-tree ul li a:hover {
+    transform: scale(1.05);
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-/* Gender colors — Female = Pink */
-.simple-tree a.st-female {
-    background: #fce7f3;
-    border: 1.5px solid #f472b6;
-    color: #9d174d;
-}
-.dark .simple-tree a.st-female {
-    background: #4a1942;
-    border-color: #ec4899;
-    color: #f9a8d4;
+/* Gender Tonal Styles */
+.simple-tree ul li a.st-male {
+    border-color: #0d9488;
+    background: #f0fdfa;
+    color: #0f766e;
 }
 
-/* Partner — slightly smaller */
-.simple-tree a.partner {
-    margin: 0 1px;
-    margin-right: 0;
+.dark .simple-tree ul li a.st-male {
+    border-color: #14b8a6;
+    background: #134e4a3d;
+    color: #2dd4bf;
 }
 
-/* Hidden partner placeholder */
-.simple-tree a.partner.hid {
-    visibility: hidden;
-    min-width: 50px;
+.simple-tree ul li a.st-female {
+    border-color: #db2777;
+    background: #fdf2f8;
+    color: #be185d;
 }
 
-/* No hover effects in simple tree (it's for export) */
-.simple-tree a:hover {
-    transform: none;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+.dark .simple-tree ul li a.st-female {
+    border-color: #f43f5e;
+    background: #8813373d;
+    color: #fb7185;
 }
 
-/* Only-child — less padding */
-.simple-tree ul li:only-child {
-    padding-top: 0;
+.simple-tree .st-name {
+    font-weight: 700;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 0;
+    margin: 0;
+    padding: 0;
 }
 
-/* ========== WIFE GROUP (multiple wives children) ========== */
-
-.tree li.wife-group {
-    padding-top: 10px;
+.simple-tree .st-icon {
+    font-size: 11px;
+    line-height: 1;
 }
 
-.tree li.wife-group > .wife-group-label {
-    display: inline-block;
-    background: #eef2ff;
-    color: #6366f1;
+.simple-tree .st-year {
+    font-size: 9.5px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.dark .simple-tree .st-year {
+    color: #94a3b8;
+}
+
+.simple-tree .st-num {
+    font-size: 8px;
+    font-weight: 800;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    border-radius: 9999px;
+    padding: 0 4px;
+}
+
+.dark .simple-tree .st-num {
+    background: #451a03;
+    color: #fcd34d;
+    border-color: #78350f;
+}
+
+.simple-tree .st-tag {
+    font-size: 8px;
+    font-weight: 700;
+    border-radius: 9999px;
+    padding: 0 4px;
+}
+
+.simple-tree .st-tag-dead {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.dark .simple-tree .st-tag-dead {
+    background: #450a0a;
+    color: #fca5a5;
+    border-color: #7f1d1d;
+}
+
+.simple-tree .st-tag-divorce {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.dark .simple-tree .st-tag-divorce {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+}
+
+.simple-tree .wife-group-label {
+    padding: 1px 8px;
     font-size: 9px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 10px;
+    font-weight: 700;
+    border-radius: 9999px;
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
     margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
-.dark .tree li.wife-group > .wife-group-label {
-    background: #312e81;
+
+.dark .simple-tree .wife-group-label {
+    background: #1e1b4b;
     color: #a5b4fc;
-}
-
-/* Remove connector lines for wife-group wrapper */
-.tree li.wife-group::before,
-.tree li.wife-group::after {
-    border-top-color: #cbd5e1;
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .tree-inner {
-        padding: 40px 20px;
-    }
-    .tree a .pt-thumb {
-        width: 60px;
-        height: 60px;
-        margin-top: -34px;
-    }
-    .tree a.partner .pt-thumb {
-        width: 48px;
-        height: 48px;
-    }
+    border-color: #3730a3;
 }

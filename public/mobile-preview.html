@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Silsilah - Mobile Friendly UI/UX Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-light: #ecfdf5;
+            --primary-hover: #047857;
+            --primary-dark: #064e3b;
+            --male-color: #0d9488;
+            --male-bg: #f0fdfa;
+            --male-border: #99f6e4;
+            --female-color: #db2777;
+            --female-bg: #fdf2f8;
+            --female-border: #fbcfe8;
+            --bg-main: #f8fafc;
+            --surface: #ffffff;
+            --surface-subtle: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-subtle: #94a3b8;
+            --border: #e2e8f0;
+            --border-focus: #059669;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+            --shadow-bottom-sheet: 0 -10px 25px -5px rgba(0, 0, 0, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+            --app-max-w: 430px;
+        }
+
+        .dark {
+            --bg-main: #090d16;
+            --surface: #111827;
+            --surface-subtle: #1f2937;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-subtle: #64748b;
+            --border: #1e293b;
+            --male-bg: #042f2e;
+            --male-border: #115e59;
+            --female-bg: #4a0429;
+            --female-border: #831843;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        /* Desktop Wrapper / Device Frame */
+        .preview-container {
+            display: flex;
+            gap: 24px;
+            max-width: 1100px;
+            width: 100%;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .info-panel {
+            background: #ffffff;
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 440px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-panel h2 {
+            font-size: 1.35rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ecfdf5;
+            color: #059669;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .feature-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .feature-card strong {
+            color: #0f172a;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .device-wrapper {
+            width: 100%;
+            max-width: var(--app-max-w);
+            height: 844px;
+            background: var(--surface);
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 10px #1e293b;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Mobile Screen Inside Frame */
+        .mobile-screen {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Mobile Top App Bar */
+        .mobile-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 20;
+            flex-shrink: 0;
+        }
+
+        .tree-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .tree-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            flex-shrink: 0;
+        }
+
+        .tree-title-text h1 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-title-text p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .icon-btn:hover {
+            background: var(--border);
+        }
+
+        /* View Mode Segmented Control */
+        .mode-switcher-bar {
+            background: var(--surface);
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 6px;
+            z-index: 15;
+            flex-shrink: 0;
+        }
+
+        .segment-btn {
+            flex: 1;
+            padding: 6px 4px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .segment-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+        }
+
+        /* Main Scrollable Viewport */
+        .mobile-viewport {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 80px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* TAB 1: EXPLORER / FOCUS VIEW */
+        .explorer-container {
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Lineage Breadcrumb */
+        .lineage-breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 4px 2px;
+            scrollbar-width: none;
+        }
+        .lineage-breadcrumbs::-webkit-scrollbar { display: none; }
+
+        .crumb-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .crumb-item.current {
+            background: #ecfdf5;
+            color: #059669;
+            border-color: #a7f3d0;
+        }
+        .crumb-separator {
+            font-size: 0.65rem;
+            color: var(--text-subtle);
+        }
+
+        /* Section Container */
+        .pedigree-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+
+        .section-badge-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            padding: 0 4px;
+        }
+
+        .section-badge-label .action-link {
+            color: var(--primary);
+            font-size: 0.72rem;
+            text-transform: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* Cards Grid */
+        .parents-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Member Card (Mobile Optimized) */
+        .m-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+        }
+
+        .m-card:active {
+            transform: scale(0.98);
+        }
+
+        .m-card.male {
+            border-left: 4px solid var(--male-color);
+        }
+
+        .m-card.female {
+            border-left: 4px solid var(--female-color);
+        }
+
+        .m-card.focus-hero {
+            background: linear-gradient(135deg, var(--surface), var(--primary-light));
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.2);
+            padding: 14px;
+        }
+
+        .m-avatar-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .m-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: var(--shadow-sm);
+            background: #e2e8f0;
+        }
+
+        .focus-hero .m-avatar {
+            width: 56px;
+            height: 56px;
+            border: 3px solid #fff;
+            box-shadow: var(--shadow-md);
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background: #10b981;
+        }
+
+        .status-dot.deceased {
+            background: #64748b;
+        }
+
+        .m-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .m-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .focus-hero .m-name {
+            font-size: 1.05rem;
+        }
+
+        .m-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .tag-pill.spouse {
+            background: #fdf2f8;
+            color: #db2777;
+        }
+        .tag-pill.generation {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* Action Buttons on Focus Card */
+        .focus-action-bar {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(5, 150, 105, 0.25);
+        }
+
+        .focus-btn {
+            flex: 1;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+            font-size: 0.72rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .focus-btn.primary {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* Connector Visual Lines */
+        .vertical-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 16px;
+            color: var(--text-subtle);
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 100%;
+            background: #cbd5e1;
+        }
+
+        /* Children List */
+        .children-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* TAB 2: CANVAS VIEW (MOCKUP WITH GESTURE UI) */
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            background: #f1f5f9;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 16px 16px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .canvas-node-preview {
+            background: var(--surface);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: absolute;
+        }
+
+        .floating-controls {
+            position: absolute;
+            bottom: 84px;
+            right: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .fab-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-full);
+            background: var(--surface);
+            color: var(--text-main);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .fab-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* TAB 3: DIRECTORY / SEARCH VIEW */
+        .directory-container {
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .search-box {
+            position: sticky;
+            top: 0;
+            background: var(--bg-main);
+            padding-bottom: 4px;
+            z-index: 5;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 6px 0;
+            scrollbar-width: none;
+        }
+        .filter-pill {
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .filter-pill.active {
+            background: #0f172a;
+            color: #fff;
+            border-color: #0f172a;
+        }
+
+        .generation-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .generation-header {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* BOTTOM SHEET DRAWER */
+        .bottom-sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(3px);
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .bottom-sheet-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .bottom-sheet {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 85%;
+            background: var(--surface);
+            border-radius: 24px 24px 0 0;
+            box-shadow: var(--shadow-bottom-sheet);
+            z-index: 51;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+
+        .sheet-handle-bar {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0 4px 0;
+            cursor: grab;
+            flex-shrink: 0;
+        }
+
+        .sheet-handle {
+            width: 38px;
+            height: 4px;
+            border-radius: var(--radius-full);
+            background: #cbd5e1;
+        }
+
+        .sheet-content {
+            padding: 12px 18px 24px 18px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sheet-header-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sheet-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sheet-title h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .sheet-title p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.82rem;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .detail-val {
+            color: var(--text-main);
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        /* Quick Action Grid in Sheet */
+        .sheet-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .sheet-action-item {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .sheet-action-item:active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .sheet-action-icon {
+            font-size: 1.2rem;
+        }
+
+        /* BOTTOM STICKY NAVIGATION BAR */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+            z-index: 40;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active svg {
+            stroke: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.15s;
+        }
+
+        /* Form Modal Inside Sheet (Add Parent Demo) */
+        .form-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+            font-size: 0.82rem;
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+        }
+
+        .form-radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .form-radio-btn {
+            border: 1.5px solid var(--border);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .form-radio-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #0f172a;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive on small screen */
+        @media (max-width: 900px) {
+            .preview-container {
+                flex-direction: column-reverse;
+                align-items: center;
+            }
+            .info-panel {
+                width: 100%;
+                max-width: var(--app-max-w);
+            }
+            .device-wrapper {
+                height: 780px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="preview-container">
+    <!-- Info / Control Panel on Desktop -->
+    <div class="info-panel">
+        <div class="info-badge">✨ Live Interactive Mockup</div>
+        <h2>Desain Mobile Silsilah</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            Silakan coba berinteraksi langsung dengan simulasi HP di samping! Klik kartu untuk memindahkan fokus silsilah, buka detail, atau coba tambahkan orang tua.
+        </p>
+
+        <div class="feature-card">
+            <strong>🧭 1. Mobile Explorer (Focus/Pedigree Mode)</strong>
+            Menampilkan hubungan vertikal yang natural: Orang Tua di atas, Anggota aktif & Pasangan di tengah, Anak di bawah. Tap kartu siapa saja untuk berpindah fokus!
+        </div>
+
+        <div class="feature-card">
+            <strong>📱 2. Bottom Sheet Drawer (Detail & Form)</strong>
+            Klik tombol <em>"Lihat Profil"</em> atau tap kartu untuk membuka panel drawer dari bawah layar tanpa popup yang merusak viewport HP.
+        </div>
+
+        <div class="feature-card">
+            <strong>🔍 3. Tab Direktori Generasi & Search</strong>
+            Pencarian instan keluarga dengan pengelompokan generasi yang rapi dan mudah di-scroll dengan satu tangan.
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button onclick="toggleTheme()" class="icon-btn" style="width: auto; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; gap: 6px;">
+                🌓 Ganti Dark/Light
+            </button>
+            <button onclick="resetToRoot()" class="icon-btn" style="width: auto; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; gap: 6px; color: #059669;">
+                🔄 Reset ke Root
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Device Simulator -->
+    <div class="device-wrapper">
+        <div class="mobile-screen">
+            
+            <!-- Toast Notification -->
+            <div id="toast" class="toast-notification">
+                <span>✅</span> <span id="toast-text">Fokus berpindah ke Raden Soekamto</span>
+            </div>
+
+            <!-- Top App Bar -->
+            <header class="mobile-header">
+                <div class="tree-title-group">
+                    <div class="tree-logo">🌳</div>
+                    <div class="tree-title-text">
+                        <h1>Bani H. Abdullah</h1>
+                        <p>18 Anggota • 4 Generasi</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" title="Bagikan" onclick="showToast('Link silsilah disalin!')">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    </button>
+                    <button class="icon-btn" title="Tambah" onclick="openAddMemberSheet()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- View Switcher -->
+            <div class="mode-switcher-bar">
+                <button class="segment-btn active" id="btn-tab-explorer" onclick="switchView('explorer')">
+                    🧭 Fokus Explorer
+                </button>
+                <button class="segment-btn" id="btn-tab-directory" onclick="switchView('directory')">
+                    👥 Direktori Silsilah
+                </button>
+                <button class="segment-btn" id="btn-tab-canvas" onclick="switchView('canvas')">
+                    🌳 Bagan Canvas
+                </button>
+            </div>
+
+            <!-- Scrollable Viewport -->
+            <main class="mobile-viewport" id="viewport">
+                
+                <!-- VIEW 1: EXPLORER / FOCUS VIEW -->
+                <div id="view-explorer" class="explorer-container">
+                    
+                    <!-- Lineage Breadcrumbs -->
+                    <div class="lineage-breadcrumbs" id="breadcrumbs">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- 1. PARENTS SECTION (LELUHUR) -->
+                    <div class="pedigree-section">
+                        <div class="section-badge-label">
+                            <span>⬆️ Orang Tua (Leluhur)</span>
+                            <span class="action-link" onclick="openAddRelationSheet('parent')">➕ Tambah Orang Tua</span>
+                        </div>
+                        <div class="parents-grid" id="parents-slot">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <div class="vertical-connector">
+                        <div class="connector-line"></div>
+                    </div>
+
+                    <!-- 2. FOCUS MEMBER & SPOUSES SECTION -->
+                    <div class="pedigree-section">
+                        <div class="section-badge-label">
+                            <span>⭐ Anggota Aktif & Pasangan</span>
+                            <span class="action-link" onclick="openAddRelationSheet('spouse')">➕ Tambah Pasangan</span>
+                        </div>
+                        <div id="focus-slot">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <div class="vertical-connector">
+                        <div class="connector-line"></div>
+                    </div>
+
+                    <!-- 3. CHILDREN SECTION (KETURUNAN) -->
+                    <div class="pedigree-section">
+                        <div class="section-badge-label">
+                            <span id="children-count-label">⬇️ Keturunan (Anak-Anak)</span>
+                            <span class="action-link" onclick="openAddRelationSheet('child')">➕ Tambah Anak</span>
+                        </div>
+                        <div class="children-container" id="children-slot">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- VIEW 2: DIRECTORY / SEARCH VIEW -->
+                <div id="view-directory" class="directory-container" style="display: none;">
+                    <div class="search-box">
+                        <div class="search-input-wrapper">
+                            <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" class="search-input" id="directory-search" placeholder="Cari nama, kota, atau profesi..." oninput="filterDirectory(this.value)">
+                        </div>
+                        <div class="filter-pills">
+                            <div class="filter-pill active" onclick="setDirectoryFilter(this, 'all')">Semua (18)</div>
+                            <div class="filter-pill" onclick="setDirectoryFilter(this, 'living')">Masih Hidup (14)</div>
+                            <div class="filter-pill" onclick="setDirectoryFilter(this, 'deceased')">Wafat (4)</div>
+                            <div class="filter-pill" onclick="setDirectoryFilter(this, 'male')">Laki-Laki (10)</div>
+                            <div class="filter-pill" onclick="setDirectoryFilter(this, 'female')">Perempuan (8)</div>
+                        </div>
+                    </div>
+
+                    <div id="directory-list">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- VIEW 3: CANVAS TOUCH OPTIMIZED -->
+                <div id="view-canvas" class="canvas-container" style="display: none;">
+                    <div class="canvas-node-preview" style="top: 25%; left: 30%;">
+                        <img src="images/avatar/kakek peci putih.png" onerror="this.src='apple-touch-icon.png'" style="width: 32px; height: 32px; border-radius: 50%;">
+                        <div>
+                            <div style="font-size: 0.75rem; font-weight: 700;">H. Abdullah</div>
+                            <div style="font-size: 0.65rem; color: #64748b;">Generasi 1</div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-node-preview" style="top: 50%; left: 15%; border-left: 3px solid #0d9488;">
+                        <img src="images/avatar/bapak peci hitam.png" onerror="this.src='apple-touch-icon.png'" style="width: 32px; height: 32px; border-radius: 50%;">
+                        <div>
+                            <div style="font-size: 0.75rem; font-weight: 700;">Ahmad Dahlan</div>
+                            <div style="font-size: 0.65rem; color: #64748b;">Generasi 2</div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-node-preview" style="top: 50%; left: 55%; border-left: 3px solid #0d9488;">
+                        <img src="images/avatar/dewasa laki.png" onerror="this.src='apple-touch-icon.png'" style="width: 32px; height: 32px; border-radius: 50%;">
+                        <div>
+                            <div style="font-size: 0.75rem; font-weight: 700;">Lukman Hakim</div>
+                            <div style="font-size: 0.65rem; color: #64748b;">Generasi 2</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; color: var(--text-muted); font-size: 0.75rem; pointer-events: none; margin-top: 180px;">
+                        👆 <em>Drag untuk menggeser canvas • Pinch untuk zoom</em>
+                    </div>
+
+                    <!-- Floating Zoom Controls for One-Hand Usage -->
+                    <div class="floating-controls">
+                        <button class="fab-btn" onclick="showToast('Zoom In')" title="Perbesar">➕</button>
+                        <button class="fab-btn" onclick="showToast('Zoom Out')" title="Perkecil">➖</button>
+                        <button class="fab-btn" onclick="showToast('Reset Tengah / Fit to Screen')" title="Pusatkan">🎯</button>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- BOTTOM SHEET (DRAWER) -->
+            <div class="bottom-sheet-backdrop" id="sheet-backdrop" onclick="closeSheet()"></div>
+            <div class="bottom-sheet" id="bottom-sheet">
+                <div class="sheet-handle-bar" onclick="closeSheet()">
+                    <div class="sheet-handle"></div>
+                </div>
+                
+                <div class="sheet-content" id="sheet-body">
+                    <!-- Rendered by JS based on mode (Profile / Add Relation) -->
+                </div>
+            </div>
+
+            <!-- STICKY BOTTOM NAVIGATION -->
+            <nav class="bottom-nav">
+                <button class="nav-item active" id="nav-explorer" onclick="switchView('explorer')">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+                    <span>Fokus</span>
+                </button>
+                <button class="nav-item" id="nav-directory" onclick="switchView('directory')">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Direktori</span>
+                </button>
+                <button class="nav-item" id="nav-canvas" onclick="switchView('canvas')">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    <span>Bagan</span>
+                </button>
+                <button class="nav-item" onclick="openAddMemberSheet()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    <span>Tambah</span>
+                </button>
+            </nav>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sample Rich Family Data
+    const membersData = [
+        // Gen 1
+        { id: 1, first_name: "H. Abdullah", last_name: "Al-Habsyi", gender: "male", is_living: false, birth_date: "1935-04-12", death_date: "2010-08-15", birth_place: "Surabaya", profession: "Ulama & Pedagang", avatar: "kakek peci putih.png", bio: "Pendiri silsilah keluarga besar Bani Abdullah.", father_id: null, mother_id: null, spouses: [2] },
+        { id: 2, first_name: "Hj. Fatimah", last_name: "Azzahra", gender: "female", is_living: false, birth_date: "1940-06-20", death_date: "2015-11-03", birth_place: "Gresik", profession: "Guru Mengaji", avatar: "nenek hijab.png", bio: "Istri tercinta H. Abdullah.", father_id: null, mother_id: null, spouses: [1] },
+
+        // Gen 2
+        { id: 3, first_name: "Ahmad", last_name: "Dahlan", gender: "male", is_living: true, birth_date: "1965-02-14", death_date: null, birth_place: "Surabaya", profession: "Dosen & Wiraswasta", avatar: "bapak peci hitam.png", bio: "Putra sulung H. Abdullah.", father_id: 1, mother_id: 2, spouses: [4] },
+        { id: 4, first_name: "Siti", last_name: "Aminah", gender: "female", is_living: true, birth_date: "1968-09-08", death_date: null, birth_place: "Malang", profession: "Dokter Gigi", avatar: "ibu hijab kacamata.png", bio: "Istri Ahmad Dahlan.", father_id: null, mother_id: null, spouses: [3] },
+        
+        { id: 5, first_name: "Lukman", last_name: "Hakim", gender: "male", is_living: true, birth_date: "1970-11-25", death_date: null, birth_place: "Surabaya", profession: "PNS Kemenag", avatar: "dewasa laki.png", bio: "Putra kedua H. Abdullah.", father_id: 1, mother_id: 2, spouses: [6] },
+        { id: 6, first_name: "Nurul", last_name: "Hidayah", gender: "female", is_living: true, birth_date: "1974-03-30", death_date: null, birth_place: "Sidoarjo", profession: "Pengusaha Katering", avatar: "hijab.png", bio: "Istri Lukman Hakim.", father_id: null, mother_id: null, spouses: [5] },
+
+        { id: 7, first_name: "Khadijah", last_name: "Abdullah", gender: "female", is_living: true, birth_date: "1976-08-19", death_date: null, birth_place: "Surabaya", profession: "Arsitek", avatar: "dewasa perempuan.png", bio: "Putri bungsu H. Abdullah.", father_id: 1, mother_id: 2, spouses: [] },
+
+        // Gen 3 (Children of Ahmad Dahlan - ID 3)
+        { id: 8, first_name: "Faris", last_name: "Dahlan", gender: "male", is_living: true, birth_date: "1994-05-10", death_date: null, birth_place: "Surabaya", profession: "Software Engineer", avatar: "pemuda.png", bio: "Cucu tertua, aktif di komunitas tech.", father_id: 3, mother_id: 4, spouses: [9] },
+        { id: 9, first_name: "Aisyah", last_name: "Putri", gender: "female", is_living: true, birth_date: "1996-12-01", death_date: null, birth_place: "Bandung", profession: "Product Designer", avatar: "remaja perempuan hijab.png", bio: "Istri Faris Dahlan.", father_id: null, mother_id: null, spouses: [8] },
+        
+        { id: 10, first_name: "Nabila", last_name: "Dahlan", gender: "female", is_living: true, birth_date: "1998-07-22", death_date: null, birth_place: "Surabaya", profession: "Apoteker", avatar: "remaja.png", bio: "Putri kedua Ahmad Dahlan.", father_id: 3, mother_id: 4, spouses: [] },
+        { id: 11, first_name: "Zaidan", last_name: "Dahlan", gender: "male", is_living: true, birth_date: "2005-01-15", death_date: null, birth_place: "Surabaya", profession: "Mahasiswa ITS", avatar: "remaja 1.png", bio: "Putra bungsu Ahmad Dahlan.", father_id: 3, mother_id: 4, spouses: [] },
+
+        // Gen 3 (Children of Lukman Hakim - ID 5)
+        { id: 12, first_name: "Hafiz", last_name: "Hakim", gender: "male", is_living: true, birth_date: "2000-03-10", death_date: null, birth_place: "Sidoarjo", profession: "Akuntan", avatar: "remaja timur.png", bio: "Putra Lukman Hakim.", father_id: 5, mother_id: 6, spouses: [] },
+        { id: 13, first_name: "Salma", last_name: "Hakim", gender: "female", is_living: true, birth_date: "2003-10-18", death_date: null, birth_place: "Sidoarjo", profession: "Mahasiswi Kedokteran", avatar: "anak perempuan.png", bio: "Putri Lukman Hakim.", father_id: 5, mother_id: 6, spouses: [] },
+
+        // Gen 4 (Children of Faris Dahlan - ID 8)
+        { id: 14, first_name: "Rayyan", last_name: "Al-Faris", gender: "male", is_living: true, birth_date: "2023-04-05", death_date: null, birth_place: "Jakarta", profession: "Balita", avatar: "bayi 1.png", bio: "Cicit pertama Bani Abdullah.", father_id: 8, mother_id: 9, spouses: [] },
+        { id: 15, first_name: "Yasmin", last_name: "Al-Faris", gender: "female", is_living: true, birth_date: "2025-08-12", death_date: null, birth_place: "Jakarta", profession: "Bayi", avatar: "anak perempuan.png", bio: "Putri kedua Faris.", father_id: 8, mother_id: 9, spouses: [] }
+    ];
+
+    let currentFocusId = 3; // Default Ahmad Dahlan (Gen 2)
+    let currentTab = 'explorer';
+
+    function getAvatarUrl(avatar) {
+        if (!avatar) return 'images/no_profile_pic.jpg';
+        return `images/avatar/${avatar}`;
+    }
+
+    // Switch View Tabs
+    function switchView(tab) {
+        currentTab = tab;
+        document.getElementById('view-explorer').style.display = tab === 'explorer' ? 'flex' : 'none';
+        document.getElementById('view-directory').style.display = tab === 'directory' ? 'flex' : 'none';
+        document.getElementById('view-canvas').style.display = tab === 'canvas' ? 'flex' : 'none';
+
+        document.getElementById('btn-tab-explorer').classList.toggle('active', tab === 'explorer');
+        document.getElementById('btn-tab-directory').classList.toggle('active', tab === 'directory');
+        document.getElementById('btn-tab-canvas').classList.toggle('active', tab === 'canvas');
+
+        document.getElementById('nav-explorer').classList.toggle('active', tab === 'explorer');
+        document.getElementById('nav-directory').classList.toggle('active', tab === 'directory');
+        document.getElementById('nav-canvas').classList.toggle('active', tab === 'canvas');
+
+        if (tab === 'directory') {
+            renderDirectory(membersData);
+        }
+    }
+
+    // Set Focus Member and Render Explorer
+    function setFocus(memberId) {
+        currentFocusId = memberId;
+        const member = membersData.find(m => m.id === memberId);
+        if (member) {
+            showToast(`Fokus silsilah: ${member.first_name} ${member.last_name}`);
+        }
+        renderExplorer();
+        document.getElementById('viewport').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetToRoot() {
+        setFocus(1);
+    }
+
+    // Render Explorer View
+    function renderExplorer() {
+        const focus = membersData.find(m => m.id === currentFocusId) || membersData[0];
+        
+        // 1. Breadcrumbs / Ancestor Trail
+        const breadcrumbs = [];
+        let cur = focus;
+        while (cur) {
+            breadcrumbs.unshift(cur);
+            cur = cur.father_id ? membersData.find(m => m.id === cur.father_id) : (cur.mother_id ? membersData.find(m => m.id === cur.mother_id) : null);
+        }
+
+        const breadcrumbsEl = document.getElementById('breadcrumbs');
+        breadcrumbsEl.innerHTML = breadcrumbs.map((b, idx) => `
+            <div class="crumb-item ${b.id === focus.id ? 'current' : ''}" onclick="setFocus(${b.id})">
+                <span>${b.first_name}</span>
+            </div>
+            ${idx < breadcrumbs.length - 1 ? '<span class="crumb-separator">➔</span>' : ''}
+        `).join('');
+
+        // 2. Parents Slot
+        const father = focus.father_id ? membersData.find(m => m.id === focus.father_id) : null;
+        const mother = focus.mother_id ? membersData.find(m => m.id === focus.mother_id) : null;
+        const parentsEl = document.getElementById('parents-slot');
+        
+        let parentsHtml = '';
+        if (father) {
+            parentsHtml += createMiniCard(father, 'Ayah');
+        } else {
+            parentsHtml += `
+                <div class="m-card" style="border-style: dashed; justify-content: center; color: var(--text-muted);" onclick="openAddRelationSheet('parent')">
+                    <span style="font-size: 0.75rem; font-weight: 600;">➕ Tambah Ayah</span>
+                </div>
+            `;
+        }
+
+        if (mother) {
+            parentsHtml += createMiniCard(mother, 'Ibu');
+        } else {
+            parentsHtml += `
+                <div class="m-card" style="border-style: dashed; justify-content: center; color: var(--text-muted);" onclick="openAddRelationSheet('parent')">
+                    <span style="font-size: 0.75rem; font-weight: 600;">➕ Tambah Ibu</span>
+                </div>
+            `;
+        }
+        parentsEl.innerHTML = parentsHtml;
+
+        // 3. Focus & Spouses Slot
+        const focusEl = document.getElementById('focus-slot');
+        const spouses = (focus.spouses || []).map(spId => membersData.find(m => m.id === spId)).filter(Boolean);
+        
+        let focusHtml = `
+            <div class="m-card focus-hero ${focus.gender}" onclick="openProfileSheet(${focus.id})">
+                <div class="m-avatar-wrapper">
+                    <img class="m-avatar" src="${getAvatarUrl(focus.avatar)}" onerror="this.src='apple-touch-icon.png'" alt="${focus.first_name}">
+                    <div class="status-dot ${focus.is_living ? '' : 'deceased'}"></div>
+                </div>
+                <div class="m-info">
+                    <div class="m-name">${focus.first_name} ${focus.last_name}</div>
+                    <div class="m-meta">
+                        <span>${focus.profession || 'Keluarga'}</span> •
+                        <span>${focus.birth_place ? focus.birth_place + ', ' : ''}${focus.birth_date ? focus.birth_date.substring(0,4) : ''}</span>
+                        ${!focus.is_living ? '<span style="color: #ef4444; font-weight:700;">(Wafat)</span>' : ''}
+                    </div>
+                    <div style="margin-top: 6px;">
+                        <span class="tag-pill generation">⭐ Generasi Terfokus</span>
+                    </div>
+                </div>
+            </div>
+            <div class="focus-action-bar">
+                <button class="focus-btn primary" onclick="openProfileSheet(${focus.id})">👤 Lihat Profil</button>
+                <button class="focus-btn" onclick="openAddRelationSheet('child')">➕ Anak</button>
+                <button class="focus-btn" onclick="openAddRelationSheet('spouse')">➕ Pasangan</button>
+                <button class="focus-btn" onclick="openAddRelationSheet('parent')">➕ Ortu</button>
+            </div>
+        `;
+
+        // Render Spouses if any
+        if (spouses.length > 0) {
+            focusHtml += `<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">`;
+            spouses.forEach(sp => {
+                focusHtml += createMiniCard(sp, 'Pasangan / Istri');
+            });
+            focusHtml += `</div>`;
+        }
+        focusEl.innerHTML = focusHtml;
+
+        // 4. Children Slot
+        const children = membersData.filter(m => m.father_id === focus.id || m.mother_id === focus.id);
+        const childrenEl = document.getElementById('children-slot');
+        document.getElementById('children-count-label').innerHTML = `⬇️ Keturunan (${children.length} Anak)`;
+
+        if (children.length > 0) {
+            childrenEl.innerHTML = children.map(c => createMiniCard(c, 'Anak')).join('');
+        } else {
+            childrenEl.innerHTML = `
+                <div class="m-card" style="border-style: dashed; justify-content: center; padding: 16px; color: var(--text-muted);" onclick="openAddRelationSheet('child')">
+                    <span style="font-size: 0.8rem; font-weight: 600;">➕ Belum ada data anak. Klik untuk tambah.</span>
+                </div>
+            `;
+        }
+    }
+
+    // Mini Card Helper
+    function createMiniCard(m, badgeText) {
+        return `
+            <div class="m-card ${m.gender}" onclick="handleCardClick(event, ${m.id})">
+                <div class="m-avatar-wrapper">
+                    <img class="m-avatar" src="${getAvatarUrl(m.avatar)}" onerror="this.src='apple-touch-icon.png'" alt="${m.first_name}">
+                    <div class="status-dot ${m.is_living ? '' : 'deceased'}"></div>
+                </div>
+                <div class="m-info">
+                    <div class="m-name">${m.first_name} ${m.last_name}</div>
+                    <div class="m-meta">
+                        <span class="tag-pill ${badgeText.toLowerCase().includes('pasangan') ? 'spouse' : 'generation'}">${badgeText}</span>
+                        <span>${m.profession ? '• ' + m.profession : ''}</span>
+                    </div>
+                </div>
+                <button class="icon-btn" style="width: 28px; height: 28px; border-radius: 50%;" title="Fokus ke ${m.first_name}" onclick="event.stopPropagation(); setFocus(${m.id});">
+                    ➔
+                </button>
+            </div>
+        `;
+    }
+
+    function handleCardClick(event, memberId) {
+        // Open Profile on tap
+        openProfileSheet(memberId);
+    }
+
+    // Bottom Sheet Functions
+    function openProfileSheet(memberId) {
+        const m = membersData.find(x => x.id === memberId);
+        if (!m) return;
+
+        const father = m.father_id ? membersData.find(x => x.id === m.father_id) : null;
+        const mother = m.mother_id ? membersData.find(x => x.id === m.mother_id) : null;
+        const children = membersData.filter(x => x.father_id === m.id || x.mother_id === m.id);
+
+        const body = document.getElementById('sheet-body');
+        body.innerHTML = `
+            <div class="sheet-header-profile">
+                <img class="sheet-avatar" src="${getAvatarUrl(m.avatar)}" onerror="this.src='apple-touch-icon.png'" alt="${m.first_name}">
+                <div class="sheet-title">
+                    <h3>${m.first_name} ${m.last_name}</h3>
+                    <p>${m.gender === 'male' ? 'Laki-Laki' : 'Perempuan'} • ${m.is_living ? 'Masih Hidup' : 'Wafat'}</p>
+                </div>
+            </div>
+
+            <div class="sheet-actions-grid">
+                <div class="sheet-action-item" onclick="closeSheet(); setFocus(${m.id});">
+                    <span class="sheet-action-icon">🧭</span>
+                    <span>Jadikan Fokus</span>
+                </div>
+                <div class="sheet-action-item" onclick="openAddRelationSheet('parent', ${m.id})">
+                    <span class="sheet-action-icon">👨‍👩‍👧</span>
+                    <span>+ Orang Tua</span>
+                </div>
+                <div class="sheet-action-item" onclick="openAddRelationSheet('child', ${m.id})">
+                    <span class="sheet-action-icon">👶</span>
+                    <span>+ Anak</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="detail-row">
+                    <span class="detail-label">Tempat, Tgl Lahir</span>
+                    <span class="detail-val">${m.birth_place || '-'}, ${m.birth_date || '-'}</span>
+                </div>
+                ${!m.is_living ? `
+                <div class="detail-row">
+                    <span class="detail-label">Tgl Wafat</span>
+                    <span class="detail-val" style="color: #ef4444;">${m.death_date || '-'}</span>
+                </div>` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Profesi / Jabatan</span>
+                    <span class="detail-val">${m.profession || '-'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Ayah</span>
+                    <span class="detail-val">${father ? father.first_name + ' ' + father.last_name : '-'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Ibu</span>
+                    <span class="detail-val">${mother ? mother.first_name + ' ' + mother.last_name : '-'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Jumlah Anak</span>
+                    <span class="detail-val">${children.length} Anak</span>
+                </div>
+                ${m.bio ? `
+                <div style="margin-top: 10px; font-size: 0.8rem; background: var(--surface-subtle); padding: 10px; border-radius: var(--radius-sm); color: var(--text-muted);">
+                    <strong>Bio:</strong> ${m.bio}
+                </div>` : ''}
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="focus-btn" style="flex: 1; padding: 10px;" onclick="closeSheet()">Tutup</button>
+                <button class="focus-btn primary" style="flex: 1; padding: 10px;" onclick="showToast('Edit data disimpan!'); closeSheet();">✏️ Edit Data</button>
+            </div>
+        `;
+
+        document.getElementById('sheet-backdrop').classList.add('open');
+        document.getElementById('bottom-sheet').classList.add('open');
+    }
+
+    function openAddRelationSheet(relType, targetId = null) {
+        const target = membersData.find(x => x.id === (targetId || currentFocusId));
+        const relLabel = relType === 'parent' ? 'Orang Tua' : (relType === 'child' ? 'Anak' : 'Pasangan');
+
+        const body = document.getElementById('sheet-body');
+        body.innerHTML = `
+            <div style="padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+                <h3 style="font-size: 1.05rem; font-weight: 700;">Tambah ${relLabel} Baru</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Menghubungkan relasi untuk <strong>${target.first_name} ${target.last_name}</strong></p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); saveNewRelation('${relType}', ${target.id});" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+                <div class="form-group">
+                    <label>Nama Depan *</label>
+                    <input type="text" id="form-fn" class="form-input" placeholder="Contoh: Raden" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label>Nama Belakang</label>
+                    <input type="text" id="form-ln" class="form-input" placeholder="Contoh: Soemitro">
+                </div>
+
+                <div class="form-group">
+                    <label>Jenis Kelamin</label>
+                    <div class="form-radio-group">
+                        <div class="form-radio-btn active" id="btn-male" onclick="setGenderRadio('male')">👨 Pria ${relType === 'parent' ? '(Ayah)' : ''}</div>
+                        <div class="form-radio-btn" id="btn-female" onclick="setGenderRadio('female')">👩 Wanita ${relType === 'parent' ? '(Ibu)' : ''}</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div class="form-group">
+                        <label>Tgl Lahir</label>
+                        <input type="date" id="form-bd" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Profesi</label>
+                        <input type="text" id="form-prof" class="form-input" placeholder="Pekerjaan">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="focus-btn" style="flex: 1; padding: 10px;" onclick="closeSheet()">Batal</button>
+                    <button type="submit" class="focus-btn primary" style="flex: 1; padding: 10px;">Simpan & Hubungkan</button>
+                </div>
+            </form>
+        `;
+
+        document.getElementById('sheet-backdrop').classList.add('open');
+        document.getElementById('bottom-sheet').classList.add('open');
+    }
+
+    let selectedFormGender = 'male';
+    function setGenderRadio(g) {
+        selectedFormGender = g;
+        document.getElementById('btn-male').classList.toggle('active', g === 'male');
+        document.getElementById('btn-female').classList.toggle('active', g === 'female');
+    }
+
+    function openAddMemberSheet() {
+        openAddRelationSheet('child', currentFocusId);
+    }
+
+    function saveNewRelation(relType, targetId) {
+        const fn = document.getElementById('form-fn').value;
+        const ln = document.getElementById('form-ln').value;
+        const prof = document.getElementById('form-prof').value;
+
+        const newId = membersData.length + 1;
+        const target = membersData.find(x => x.id === targetId);
+
+        const newMember = {
+            id: newId,
+            first_name: fn,
+            last_name: ln,
+            gender: selectedFormGender,
+            is_living: true,
+            birth_date: document.getElementById('form-bd').value || null,
+            death_date: null,
+            birth_place: "Surabaya",
+            profession: prof || "Keluarga",
+            avatar: selectedFormGender === 'male' ? 'dewasa laki.png' : 'dewasa perempuan.png',
+            bio: "Anggota baru yang baru saja ditambahkan via form mobile.",
+            father_id: null,
+            mother_id: null,
+            spouses: []
+        };
+
+        if (relType === 'parent') {
+            if (selectedFormGender === 'male') {
+                target.father_id = newId;
+            } else {
+                target.mother_id = newId;
+            }
+        } else if (relType === 'child') {
+            if (target.gender === 'male') {
+                newMember.father_id = target.id;
+            } else {
+                newMember.mother_id = target.id;
+            }
+        } else if (relType === 'spouse') {
+            target.spouses = target.spouses || [];
+            target.spouses.push(newId);
+            newMember.spouses.push(target.id);
+        }
+
+        membersData.push(newMember);
+        closeSheet();
+        renderExplorer();
+        showToast(`Berhasil menambahkan ${fn} ${ln}!`);
+    }
+
+    function closeSheet() {
+        document.getElementById('sheet-backdrop').classList.remove('open');
+        document.getElementById('bottom-sheet').classList.remove('open');
+    }
+
+    // Directory Rendering & Search
+    function renderDirectory(list) {
+        const dirEl = document.getElementById('directory-list');
+        if (list.length === 0) {
+            dirEl.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.85rem;">Tidak ada anggota yang cocok dengan pencarian.</div>`;
+            return;
+        }
+
+        dirEl.innerHTML = list.map(m => `
+            <div class="m-card ${m.gender}" style="margin-bottom: 6px;" onclick="setFocus(${m.id}); switchView('explorer');">
+                <div class="m-avatar-wrapper">
+                    <img class="m-avatar" src="${getAvatarUrl(m.avatar)}" onerror="this.src='apple-touch-icon.png'" alt="${m.first_name}">
+                    <div class="status-dot ${m.is_living ? '' : 'deceased'}"></div>
+                </div>
+                <div class="m-info">
+                    <div class="m-name">${m.first_name} ${m.last_name}</div>
+                    <div class="m-meta">
+                        <span>${m.profession || 'Keluarga'}</span> •
+                        <span>${m.birth_place || 'Kota'}</span>
+                    </div>
+                </div>
+                <button class="icon-btn" style="width: 28px; height: 28px; border-radius: 50%;" title="Buka di Explorer">
+                    🧭
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function filterDirectory(query) {
+        const q = query.toLowerCase().trim();
+        const filtered = membersData.filter(m => 
+            (m.first_name + ' ' + m.last_name).toLowerCase().includes(q) ||
+            (m.profession || '').toLowerCase().includes(q) ||
+            (m.birth_place || '').toLowerCase().includes(q)
+        );
+        renderDirectory(filtered);
+    }
+
+    function setDirectoryFilter(el, filter) {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+
+        let filtered = membersData;
+        if (filter === 'living') filtered = membersData.filter(m => m.is_living);
+        if (filter === 'deceased') filtered = membersData.filter(m => !m.is_living);
+        if (filter === 'male') filtered = membersData.filter(m => m.gender === 'male');
+        if (filter === 'female') filtered = membersData.filter(m => m.gender === 'female');
+
+        renderDirectory(filtered);
+    }
+
+    // Toast Function
+    function showToast(text) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-text').innerText = text;
+        t.classList.add('show');
+        setTimeout(() => {
+            t.classList.remove('show');
+        }, 2600);
+    }
+
+    // Theme Toggle
+    function toggleTheme() {
+        document.documentElement.classList.toggle('dark');
+    }
+
+    // Init on Load
+    renderExplorer();
+</script>
+
+</body>
+</html>

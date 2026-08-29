@@ -49,6 +49,11 @@ class FamilyTree extends Model
         });
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     /**
      * @return BelongsToMany<User>
      */

@@ -74,6 +74,6 @@ class InvitationController extends Controller
             "{$user->name} bergabung sebagai kolaborator (Editor)"
         );
 
-        return redirect()->route('tree.show', $tree->id)->with('success', 'Berhasil bergabung sebagai kolaborator!');
+        return redirect()->route('tree.show', $tree)->with('success', 'Berhasil bergabung sebagai kolaborator!');
     }
 }

@@ -24,7 +24,7 @@ it('can export family tree as JSON', function () {
     ]);
 
     $response = $this->actingAs($user)
-        ->get(route('tree.export', ['id' => $tree->id, 'format' => 'json']));
+        ->get(route('tree.export', ['tree' => $tree, 'format' => 'json']));
 
     $response->assertSuccessful();
     $response->assertHeader('content-type', 'application/json');
@@ -69,7 +69,7 @@ it('can export family tree as Prompt AI markdown', function () {
     ]);
 
     $response = $this->actingAs($user)
-        ->get(route('tree.export', ['id' => $tree->id, 'format' => 'prompt']));
+        ->get(route('tree.export', ['tree' => $tree, 'format' => 'prompt']));
 
     $response->assertSuccessful();
     $response->assertHeader('content-type', 'text/markdown; charset=UTF-8');

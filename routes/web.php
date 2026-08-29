@@ -44,16 +44,28 @@ Route::get('api/image-proxy', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    Route::get('tree/{id}', function ($id) {
-        return view('tree.show', compact('id'));
+    Route::get('tree/{tree}', function ($tree) {
+        $treeModel = is_numeric($tree)
+            ? FamilyTree::where('id', $tree)->first() ?? FamilyTree::where('slug', $tree)->firstOrFail()
+            : FamilyTree::where('slug', $tree)->first() ?? FamilyTree::where('id', $tree)->firstOrFail();
+
+        return view('tree.show', ['id' => $treeModel->id, 'tree' => $treeModel]);
     })->name('tree.show');
 
-    Route::get('tree/{id}/vertical', function ($id) {
-        return view('tree.vertical', compact('id'));
+    Route::get('tree/{tree}/vertical', function ($tree) {
+        $treeModel = is_numeric($tree)
+            ? FamilyTree::where('id', $tree)->first() ?? FamilyTree::where('slug', $tree)->firstOrFail()
+            : FamilyTree::where('slug', $tree)->first() ?? FamilyTree::where('id', $tree)->firstOrFail();
+
+        return view('tree.vertical', ['id' => $treeModel->id, 'tree' => $treeModel]);
     })->name('tree.vertical');
 
-    Route::get('tree/{id}/simple', function ($id) {
-        return view('tree.simple', compact('id'));
+    Route::get('tree/{tree}/simple', function ($tree) {
+        $treeModel = is_numeric($tree)
+            ? FamilyTree::where('id', $tree)->first() ?? FamilyTree::where('slug', $tree)->firstOrFail()
+            : FamilyTree::where('slug', $tree)->first() ?? FamilyTree::where('id', $tree)->firstOrFail();
+
+        return view('tree.simple', ['id' => $treeModel->id, 'tree' => $treeModel]);
     })->name('tree.simple');
 });
 
@@ -118,19 +130,33 @@ Route::get('public/tree/{slug}/password', function ($slug) {
 // ========== TREE EXPORT (Browsershot) ==========
 
 // Render route — for preview/debugging (signed URL, no auth)
-Route::get('tree/{id}/export-render', function (int $id) {
+Route::get('tree/{tree}/export-render', function ($tree) {
     if (! request()->hasValidSignature()) {
         abort(403);
     }
 
     $viewType = request()->query('view', 'horizontal');
-    $tree = FamilyTree::with([
-        'members',
-        'members.marriagesAsHusband.wife',
-        'members.marriagesAsWife.husband',
-    ])->findOrFail($id);
+    $treeModel = is_numeric($tree)
+        ? FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->find($tree) ?? FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->where('slug', $tree)->firstOrFail()
+        : FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->where('slug', $tree)->first() ?? FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->findOrFail($tree);
 
-    $allMembers = $tree->members;
+    $allMembers = $treeModel->members;
     $wifeIdsInMarriages = collect();
     foreach ($allMembers as $m) {
         if ($m->gender === 'male') {
@@ -143,7 +169,7 @@ Route::get('tree/{id}/export-render', function (int $id) {
     $rootMembers = $parentless->whereNotIn('id', $wifeIdsInMarriages->unique());
 
     return view('tree.export-render', [
-        'tree' => $tree,
+        'tree' => $treeModel,
         'rootMembers' => $rootMembers,
         'allMembers' => $allMembers,
         'viewType' => $viewType,
@@ -151,32 +177,46 @@ Route::get('tree/{id}/export-render', function (int $id) {
 })->name('tree.export.render');
 
 // Export trigger — generates PNG, PDF, JSON, or Prompt AI (.md)
-Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
+Route::get('tree/{tree}/export/{format}', function ($tree, string $format) {
     set_time_limit(120);
     abort_unless(in_array($format, ['png', 'pdf', 'json', 'prompt']), 400);
 
-    $tree = FamilyTree::with([
-        'members',
-        'members.marriagesAsHusband.wife',
-        'members.marriagesAsWife.husband',
-    ])->findOrFail($id);
+    $treeModel = is_numeric($tree)
+        ? FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->find($tree) ?? FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->where('slug', $tree)->firstOrFail()
+        : FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->where('slug', $tree)->first() ?? FamilyTree::with([
+            'members',
+            'members.marriagesAsHusband.wife',
+            'members.marriagesAsWife.husband',
+        ])->findOrFail($tree);
 
-    $filename = Str::slug($tree->name).'-Silsilah';
-    $allMembers = $tree->members;
+    $filename = Str::slug($treeModel->name).'-Silsilah';
+    $allMembers = $treeModel->members;
 
     if ($format === 'prompt') {
         $marriages = Marriage::whereIn('husband_id', $allMembers->pluck('id'))
             ->orWhereIn('wife_id', $allMembers->pluck('id'))
             ->get();
 
-        $markdown = "# Prompt AI: Diagram & Visual Silsilah Keluarga \"{$tree->name}\"\n\n";
+        $markdown = "# Prompt AI: Diagram & Visual Silsilah Keluarga \"{$treeModel->name}\"\n\n";
         $markdown .= "> **Panduan Penggunaan**:\n";
         $markdown .= "> Upload atau salin teks dalam file ini langsung ke **ChatGPT**, **Gemini**, atau **Claude**.\n";
         $markdown .= "> Minta AI untuk membuatkan diagram Mermaid.js, Graphviz, atau prompt visual artwork silsilah keluarga lengkap.\n\n";
 
         $markdown .= "## 🤖 Instruksi untuk AI (System Prompt)\n";
         $markdown .= "Anda adalah seorang Visual Designer & Information Architect berpengalaman.\n";
-        $markdown .= "Tugas Anda adalah memvisualisasikan seluruh silsilah keluarga **\"{$tree->name}\"** di bawah ini secara utuh, jelas, dan rapi dalam satu gambaran besar tanpa ada anggota keluarga yang terlewat.\n\n";
+        $markdown .= "Tugas Anda adalah memvisualisasikan seluruh silsilah keluarga **\"{$treeModel->name}\"** di bawah ini secara utuh, jelas, dan rapi dalam satu gambaran besar tanpa ada anggota keluarga yang terlewat.\n\n";
         $markdown .= "### Pilihan Format Output yang Bisa Anda Hasilkan:\n";
         $markdown .= "1. **Diagram Mermaid.js (`graph TD` atau `graph LR`)**: Agar bisa di-render langsung menjadi diagram vektor interaktif atau gambar SVG/PNG.\n";
         $markdown .= "2. **Kode Graphviz DOT / PlantUML**: Untuk di-render menjadi diagram struktur kerapatan tinggi.\n";
@@ -184,9 +224,9 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
 
         $markdown .= "---\n\n";
         $markdown .= "## 📊 Ringkasan Data Silsilah\n";
-        $markdown .= "- **Nama Pohon**: {$tree->name}\n";
-        if ($tree->description) {
-            $markdown .= "- **Deskripsi**: {$tree->description}\n";
+        $markdown .= "- **Nama Pohon**: {$treeModel->name}\n";
+        if ($treeModel->description) {
+            $markdown .= "- **Deskripsi**: {$treeModel->description}\n";
         }
         $markdown .= "- **Total Anggota**: {$allMembers->count()} orang\n";
         $markdown .= "- **Total Pernikahan**: {$marriages->count()} pasangan\n\n";
@@ -299,9 +339,9 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
 
         $jsonData = [
             'tree' => [
-                'id' => $tree->id,
-                'name' => $tree->name,
-                'description' => $tree->description,
+                'id' => $treeModel->id,
+                'name' => $treeModel->name,
+                'description' => $treeModel->description,
             ],
             'members' => $allMembers->map(fn ($m) => [
                 'id' => $m->id,
@@ -364,21 +404,41 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
 
     // Render HTML server-side (CSS already inlined by the view, no @vite)
     $html = view('tree.export-render', [
-        'tree' => $tree,
+        'tree' => $treeModel,
         'rootMembers' => $rootMembers,
         'allMembers' => $allMembers,
         'viewType' => $viewType,
     ])->render();
 
-    // ── Step 1: Inline local /storage/ images from disk ──
-    $html = preg_replace_callback(
-        '/src="(\/storage\/[^"]+)"/',
-        function ($matches) {
-            $filePath = public_path($matches[1]);
-            if (file_exists($filePath)) {
-                $mime = mime_content_type($filePath) ?: 'image/jpeg';
+    // ── Step 1: Base64 fallback image ──
+    $defaultAvatarFile = public_path('images/no_profile_pic.jpg');
+    $defaultAvatarBase64 = file_exists($defaultAvatarFile)
+        ? 'data:image/jpeg;base64,'.base64_encode(file_get_contents($defaultAvatarFile))
+        : '';
 
-                return 'src="data:'.$mime.';base64,'.base64_encode(file_get_contents($filePath)).'"';
+    // ── Step 2: Inline local images from disk (storage, images, avatar) ──
+    $html = preg_replace_callback(
+        '/src="([^"]+)"/',
+        function ($matches) use ($defaultAvatarBase64) {
+            $src = $matches[1];
+            if (str_starts_with($src, 'data:')) {
+                return $matches[0];
+            }
+
+            // Extract relative URL path
+            $urlPath = parse_url($src, PHP_URL_PATH);
+            if ($urlPath) {
+                $filePath = public_path(ltrim($urlPath, '/'));
+                if (file_exists($filePath) && is_file($filePath)) {
+                    $mime = mime_content_type($filePath) ?: 'image/jpeg';
+
+                    return 'src="data:'.$mime.';base64,'.base64_encode(file_get_contents($filePath)).'"';
+                }
+            }
+
+            // If it's a localhost URL that wasn't found, fallback to default avatar
+            if (str_contains($src, 'localhost') || str_starts_with($src, '/')) {
+                return $defaultAvatarBase64 ? 'src="'.$defaultAvatarBase64.'"' : $matches[0];
             }
 
             return $matches[0];
@@ -386,11 +446,11 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
         $html
     );
 
-    // ── Step 2: Collect all remaining external image URLs ──
+    // ── Step 3: Collect any remaining external image URLs (e.g. CDN/HTTPS) ──
     preg_match_all('/src="(https?:\/\/[^"]+)"/', $html, $urlMatches);
-    $externalUrls = array_unique($urlMatches[1] ?? []);
+    $externalUrls = array_filter(array_unique($urlMatches[1] ?? []), fn ($u) => ! str_contains($u, 'localhost'));
 
-    // ── Step 3: Fetch ALL external images in parallel (~3s total) ──
+    // ── Step 4: Fetch external images in parallel (~3s total) ──
     if (count($externalUrls) > 0) {
         $responses = Http::pool(fn ($pool) => collect($externalUrls)->map(
             fn ($url) => $pool->as(md5($url))->timeout(3)->get($url)
@@ -404,6 +464,8 @@ Route::get('tree/{id}/export/{format}', function (int $id, string $format) {
                 $mime = $responses[$key]->header('Content-Type') ?: 'image/jpeg';
                 $dataUri = 'data:'.$mime.';base64,'.base64_encode($responses[$key]->body());
                 $html = str_replace('src="'.$url.'"', 'src="'.$dataUri.'"', $html);
+            } elseif ($defaultAvatarBase64) {
+                $html = str_replace('src="'.$url.'"', 'src="'.$defaultAvatarBase64.'"', $html);
             }
         }
     }

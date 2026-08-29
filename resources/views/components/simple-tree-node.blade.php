@@ -30,31 +30,53 @@
             $bd = $child->birth_date ? strtotime($child->birth_date) : PHP_INT_MAX;
             return [$bd, $child->order ?? 999, $child->id];
         });
+
+    $getYears = function($m) {
+        $b = $m->birth_date ? \Carbon\Carbon::parse($m->birth_date)->format('Y') : null;
+        $d = $m->death_date ? \Carbon\Carbon::parse($m->death_date)->format('Y') : null;
+        if ($b && $d) return "{$b}-{$d}";
+        if ($b) return "{$b}";
+        if ($d) return "w. {$d}";
+        return null;
+    };
 @endphp
 
 <li class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }}">
     {{-- Spouse(s) --}}
     @foreach($spouses as $spouse)
-        <a class="partner st-{{ $spouse->gender }}">
+        @php $spouseYears = $getYears($spouse); @endphp
+        <a class="partner st-{{ $spouse->gender }} inline-flex items-center gap-1 cursor-pointer"
+           wire:click.prevent="$dispatch('show-member', { id: {{ $spouse->id }} })"
+           title="{{ trim($spouse->first_name . ' ' . $spouse->last_name) }}">
             @if($spouses->count() > 1)
-                <span class="text-[9px] font-bold bg-amber-500 text-white px-1 rounded-full mr-1">#{{ $loop->iteration }}</span>
+                <span class="st-num">#{{ $loop->iteration }}</span>
             @endif
-            <strong>{{ $spouse->first_name }}</strong>
+            <span class="st-icon">{{ $spouse->gender === 'female' ? '👩' : '👨' }}</span>
+            <strong class="st-name">{{ trim($spouse->first_name . ' ' . $spouse->last_name) }}</strong>
+            @if($spouseYears)
+                <span class="st-year">({{ $spouseYears }})</span>
+            @endif
             @if(isset($spouse->is_current_marriage) && !$spouse->is_current_marriage)
-                <span class="text-[9px] bg-slate-500 text-white px-1 rounded ml-1">Cerai</span>
+                <span class="st-tag st-tag-divorce">Cerai</span>
             @endif
             @if(!$spouse->is_living)
-                <span class="text-[9px] bg-red-500 text-white px-1 rounded ml-1">Wafat</span>
+                <span class="st-tag st-tag-dead">Wafat</span>
             @endif
         </a>
     @endforeach
 
     {{-- Main Member --}}
-    <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} st-{{ $member->gender }}"
-       wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })">
-        <strong>{{ $member->first_name }}</strong>
+    @php $memberYears = $getYears($member); @endphp
+    <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} st-{{ $member->gender }} inline-flex items-center gap-1 cursor-pointer"
+       wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })"
+       title="{{ trim($member->first_name . ' ' . $member->last_name) }}">
+        <span class="st-icon">{{ $member->gender === 'female' ? '👩' : '👨' }}</span>
+        <strong class="st-name">{{ trim($member->first_name . ' ' . $member->last_name) }}</strong>
+        @if($memberYears)
+            <span class="st-year">({{ $memberYears }})</span>
+        @endif
         @if(!$member->is_living)
-            <span class="text-[9px] bg-red-500 text-white px-1 rounded ml-1">Wafat</span>
+            <span class="st-tag st-tag-dead">Wafat</span>
         @endif
     </a>
 

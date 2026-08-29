@@ -491,6 +491,11 @@ new class extends Component
                     <flux:input type="date" wire:model="death_date" label="Tgl Wafat" x-bind:disabled="$wire.is_living" />
                 </div>
 
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input wire:model="birth_place" label="Tempat Lahir" placeholder="Isi tempat lahir" />
+                    <flux:input wire:model="profession" label="Profesi" placeholder="Isi profesi / pekerjaan" />
+                </div>
+
                 <flux:input wire:model="address" label="Alamat" placeholder="Isi alamat tempat tinggal" />
 
                 {{-- Photo: Upload or URL --}}
@@ -506,17 +511,26 @@ new class extends Component
                 </div>
 
                 {{-- Avatar picker --}}
-                <div class="form-avatar">
-                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300 block mb-2">Atau pilih ikon</label>
-                    <div class="form-inline flex flex-wrap gap-2">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold text-zinc-700 dark:text-zinc-300">Atau Pilih Ikon Karakter Avatar</label>
+                        @if($avatar_id)
+                            <button type="button" wire:click="$set('avatar_id', '')" class="text-[11px] font-semibold text-red-600 dark:text-red-400 hover:underline">
+                                ✕ Reset Pilihan
+                            </button>
+                        @endif
+                    </div>
+                    <div class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-9 gap-2 p-2.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60 max-h-44 overflow-y-auto">
                         @php
                         $allAvatars = ['anak laki.png', 'anak perempuan.png', 'anak.png', 'bapak peci hitam.png', 'bayi 1.png', 'dewasa laki.png', 'dewasa perempuan.png', 'hijab.png', 'ibu hijab kacamata.png', 'kakek peci putih.png', 'makasar.png', 'nenek hijab.png', 'nenek makasar.png', 'pemuda.png', 'pria sorban.png', 'remaja 1.png', 'remaja perempuan hijab.png', 'remaja timur.png', 'remaja.png'];
                         @endphp
                         @foreach($allAvatars as $avatarName)
-                            <div class="form-group">
-                                <input type="radio" name="avatar" wire:model="avatar_id" value="{{ $avatarName }}" id="sradioe_{{ Str::slug($avatarName) }}" class="choice image" />
-                                <label for="sradioe_{{ Str::slug($avatarName) }}"><b><img src="{{ asset('images/avatar/' . $avatarName) }}" alt="Avatar" /></b></label>
-                            </div>
+                            <label for="sradioe_{{ Str::slug($avatarName) }}"
+                                   class="cursor-pointer relative flex flex-col items-center justify-center p-1 rounded-xl transition-all {{ $avatar_id === $avatarName ? 'ring-2 ring-emerald-500 bg-emerald-100/80 dark:bg-emerald-950/80 scale-105 shadow-sm' : 'hover:bg-zinc-200/60 dark:hover:bg-zinc-700/50' }}"
+                                   title="{{ str_replace('.png', '', $avatarName) }}">
+                                <input type="radio" name="avatar" wire:model.live="avatar_id" value="{{ $avatarName }}" id="sradioe_{{ Str::slug($avatarName) }}" class="sr-only" />
+                                <img src="{{ asset('images/avatar/' . $avatarName) }}" class="w-10 h-10 object-contain rounded-lg pointer-events-none" alt="{{ $avatarName }}" />
+                            </label>
                         @endforeach
                     </div>
                 </div>
@@ -543,13 +557,9 @@ new class extends Component
                 </div>
             @endif
 
-            {{-- Biografi --}}
+            {{-- Biografi / Catatan --}}
             <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
-                <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="birth_place" label="Tempat Lahir" placeholder="Isi tempat lahir" />
-                    <flux:input wire:model="profession" label="Profesi" placeholder="Isi profesi" />
-                </div>
-                <flux:textarea wire:model="bio" label="Catatan Bio" rows="2" placeholder="Isi catatan bio" />
+                <flux:textarea wire:model="bio" label="Catatan Bio" rows="2" placeholder="Isi catatan biografi atau riwayat singkat" />
             </div>
 
             {{-- Footer --}}
@@ -619,21 +629,60 @@ new class extends Component
                 @endif
             </div>
 
-            <div class="mt-5 space-y-3 text-sm">
-                @if($vm->address)
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-zinc-700">
-                        <span class="text-gray-500">Alamat</span>
-                        <span class="font-medium dark:text-white text-right">{{ $vm->address }}</span>
-                    </div>
+            <div class="mt-4 grid grid-cols-3 gap-2">
+                <button type="button"
+                        wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'parent_of' })"
+                        class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
+                    <span class="text-base block">👨‍👩‍👧</span>
+                    <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Ortu</span>
+                </button>
+                <button type="button"
+                        wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'child_of' })"
+                        class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
+                    <span class="text-base block">👶</span>
+                    <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Anak</span>
+                </button>
+                <button type="button"
+                        wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'spouse_of' })"
+                        class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
+                    <span class="text-base block">💍</span>
+                    <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Pasangan</span>
+                </button>
+            </div>
+
+            <div class="mt-4 space-y-2.5 text-sm">
+                @if($vm->father_id)
+                    @php $vmFather = \App\Models\Member::find($vm->father_id); @endphp
+                    @if($vmFather)
+                        <div class="flex justify-between py-1.5 border-b border-gray-100 dark:border-zinc-700">
+                            <span class="text-gray-500">Ayah</span>
+                            <span class="font-medium text-teal-600 dark:text-teal-400">{{ $vmFather->first_name }} {{ $vmFather->last_name }}</span>
+                        </div>
+                    @endif
+                @endif
+                @if($vm->mother_id)
+                    @php $vmMother = \App\Models\Member::find($vm->mother_id); @endphp
+                    @if($vmMother)
+                        <div class="flex justify-between py-1.5 border-b border-gray-100 dark:border-zinc-700">
+                            <span class="text-gray-500">Ibu</span>
+                            <span class="font-medium text-pink-600 dark:text-pink-400">{{ $vmMother->first_name }} {{ $vmMother->last_name }}</span>
+                        </div>
+                    @endif
                 @endif
                 @if($vm->profession)
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-zinc-700">
+                    <div class="flex justify-between py-1.5 border-b border-gray-100 dark:border-zinc-700">
                         <span class="text-gray-500">Profesi</span>
                         <span class="font-medium dark:text-white">{{ $vm->profession }}</span>
                     </div>
                 @endif
+                @if($vm->address)
+                    <div class="flex justify-between py-1.5 border-b border-gray-100 dark:border-zinc-700">
+                        <span class="text-gray-500">Alamat</span>
+                        <span class="font-medium dark:text-white text-right">{{ $vm->address }}</span>
+                    </div>
+                @endif
                 @if($vm->bio)
-                    <div class="py-2 border-b border-gray-100 dark:border-zinc-700">
+                    <div class="py-1.5 border-b border-gray-100 dark:border-zinc-700">
                         <span class="text-gray-500 block mb-1">Bio</span>
                         <span class="dark:text-white">{{ $vm->bio }}</span>
                     </div>
@@ -644,7 +693,7 @@ new class extends Component
                         : $vm->marriagesAsWife->map(fn($m) => ['spouse' => $m->husband, 'is_current' => $m->is_current, 'date' => $m->marriage_date]);
                 @endphp
                 @if($vmSpouses->filter(fn($s) => $s['spouse'])->isNotEmpty())
-                    <div class="py-2 border-b border-gray-100 dark:border-zinc-700">
+                    <div class="py-1.5 border-b border-gray-100 dark:border-zinc-700">
                         <span class="text-gray-500 block mb-1">Pasangan</span>
                         <div class="space-y-1.5">
                             @foreach($vmSpouses as $spInfo)
@@ -662,14 +711,16 @@ new class extends Component
                 @endif
             </div>
 
-            <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
+            <div class="flex justify-between items-center mt-5 pt-4 border-t border-gray-100 dark:border-zinc-800">
                 <div class="flex gap-2">
                     <flux:button variant="danger" size="sm" wire:click="deleteFromDetail" wire:confirm="Apakah Anda yakin ingin menghapus anggota ini?">Hapus</flux:button>
                 </div>
                 <div class="flex gap-2">
-                    <flux:modal.close>
-                        <flux:button variant="ghost" size="sm">Tutup</flux:button>
-                    </flux:modal.close>
+                    <a href="{{ route('tree.vertical', ['id' => $treeId, 'member' => $vm->id]) }}"
+                       wire:navigate
+                       class="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-100 transition-colors">
+                        <span>🧭 Fokus Silsilah</span>
+                    </a>
                     <flux:button variant="primary" size="sm" wire:click="editFromDetail">Edit</flux:button>
                 </div>
             </div>
