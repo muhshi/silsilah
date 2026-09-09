@@ -4,7 +4,7 @@
 #  Penggunaan di server:
 #    bash deploy.sh             # Deploy normal (auto-detect perubahan)
 #    bash deploy.sh --build     # Paksa build ulang Docker image
-#    bash deploy.sh --force     # Paksa deploy meski tidak ada commit baru
+#    bash deploy.sh --force     # Paksa deploy meski sudah up-to-date
 # ==========================================================
 
 set -e  # Berhenti jika ada error fatal
@@ -15,6 +15,7 @@ CONTAINER_NAME=silsilah-franken
 WORKER_NAME=silsilah-worker
 SCHEDULER_NAME=silsilah-scheduler
 BRANCH=main
+TRACK_FILE=".last_deployed_commit"
 
 # Flags
 FORCE_BUILD=false
@@ -54,17 +55,21 @@ if [ -d "$APP_DIR" ]; then
 fi
 echo "📂 Direktori: $(pwd)"
 
-# 2. Ambil commit sebelum fetch
-PREV_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
+# 2. Ambil commit yang terakhir aktif dideploy
+LAST_DEPLOYED=$(cat "$TRACK_FILE" 2>/dev/null || echo "")
 
 # 3. Fetch & Pull dari GitHub
 echo ""
 echo "📥 [1/8] Memeriksa pembaruan dari GitHub (origin/$BRANCH)..."
 git fetch origin "$BRANCH"
-REMOTE_COMMIT=$(git rev-parse "origin/$BRANCH")
+git reset --hard "origin/$BRANCH"
+CURRENT_COMMIT=$(git rev-parse HEAD)
+echo "   ✅ Kode repository saat ini: $(git log -1 --oneline)"
 
-if [ "$PREV_COMMIT" = "$REMOTE_COMMIT" ] && [ "$FORCE_DEPLOY" = false ] && [ "$FORCE_BUILD" = false ]; then
-    echo "   ℹ️  Kode di server sudah versi terbaru: $(git log -1 --oneline)"
+# Jika commit ini sudah pernah dideploy dan container aktif berjalan
+if [ "$LAST_DEPLOYED" = "$CURRENT_COMMIT" ] && [ "$FORCE_DEPLOY" = false ] && [ "$FORCE_BUILD" = false ]; then
+    echo ""
+    echo "   ℹ️  Kode di server ($CURRENT_COMMIT) sudah aktif dideploy sebelumnya."
     echo "   ✨ Tidak ada perubahan baru. Deploy dilewati."
     echo "   💡 Tips: Gunakan 'bash deploy.sh --build' jika ingin memaksa build ulang image."
     echo "            Gunakan 'bash deploy.sh --force' jika ingin memaksa deploy ulang."
@@ -74,10 +79,6 @@ if [ "$PREV_COMMIT" = "$REMOTE_COMMIT" ] && [ "$FORCE_DEPLOY" = false ] && [ "$F
     exit 0
 fi
 
-git reset --hard "origin/$BRANCH"
-NEW_COMMIT=$(git rev-parse HEAD)
-echo "   ✅ Kode diperbarui ke commit: $(git log -1 --oneline)"
-
 # 4. Deteksi apakah perlu build ulang Docker image
 NEED_BUILD=false
 
@@ -85,18 +86,22 @@ if [ "$FORCE_BUILD" = true ]; then
     echo "   ⚙️  Flag --build aktif: Memaksa rebuild Docker image."
     NEED_BUILD=true
 elif ! docker image inspect silsilah:latest >/dev/null 2>&1; then
-    echo "   ⚙️  Image silsilah:latest belum ada di server: Memerlukan build awal."
+    echo "   ⚙️  Image silsilah:latest belum ada di server: Memerlukan build."
     NEED_BUILD=true
-elif [ -n "$PREV_COMMIT" ] && [ "$PREV_COMMIT" != "$NEW_COMMIT" ]; then
-    # Cek file-file yang memerlukan Docker image build
-    CHANGED_FILES=$(git diff --name-only "$PREV_COMMIT" "$NEW_COMMIT" 2>/dev/null || echo "")
+elif [ -z "$LAST_DEPLOYED" ]; then
+    # Belum ada catatan deploy sebelumnya (misal deploy pertama dengan script baru)
+    echo "   ⚙️  Pembaruan pertama dengan sistem deploy baru: Menjalankan build image."
+    NEED_BUILD=true
+else
+    # Cek file-file yang berubah antara commit yang sedang aktif dan commit baru
+    CHANGED_FILES=$(git diff --name-only "$LAST_DEPLOYED" "$CURRENT_COMMIT" 2>/dev/null || echo "")
     
     # Abaikan perubahan yang hanya dokumentasi/script deploy/gitignore
-    SIGNIFICANT_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '^(\.gitignore|\.github/|README\.md|PLANNING\.md|deploy\.sh|docs/)' || true)
+    SIGNIFICANT_CHANGES=$(echo "$CHANGED_FILES" | grep -v -E '^(\.gitignore|\.dockerignore|\.github/|README\.md|PLANNING\.md|deploy\.sh|docs/)' || true)
     
     if [ -n "$SIGNIFICANT_CHANGES" ]; then
         NEED_BUILD=true
-        echo "   🔍 Terdeteksi perubahan kode aplikasi / dependensi:"
+        echo "   🔍 Terdeteksi perubahan yang memerlukan build Docker:"
         echo "$SIGNIFICANT_CHANGES" | head -n 5 | sed 's/^/      - /'
         TOTAL_CHANGED=$(echo "$SIGNIFICANT_CHANGES" | wc -l | tr -d ' ')
         if [ "$TOTAL_CHANGED" -gt 5 ]; then
@@ -111,8 +116,8 @@ fi
 echo ""
 if [ "$NEED_BUILD" = true ]; then
     echo "🔨 [2/8] Rebuild Docker image (silsilah:latest)..."
-    # Hanya build service silsilah-franken yang mendefinisikan image silsilah:latest
-    # Worker dan scheduler otomatis menggunakan image yang sama tanpa build ganda!
+    # Hanya build silsilah-franken yang memproduksi silsilah:latest
+    # Worker dan scheduler otomatis memakai image yang sama tanpa build ganda!
     docker compose build silsilah-franken
     echo "   ✅ Image silsilah:latest berhasil di-build."
 else
@@ -155,7 +160,10 @@ echo "🧹 [7/8] Membersihkan image Docker lama yang tidak terpakai..."
 docker image prune -f
 echo "   ✅ Image lama dibersihkan."
 
-# 11. Verifikasi Status
+# 11. Simpan commit aktif yang berhasil dideploy
+echo "$CURRENT_COMMIT" > "$TRACK_FILE"
+
+# 12. Verifikasi Status
 echo ""
 echo "=========================================="
 echo "  ✅ Deploy Silsilah Selesai! (Port 8881)"

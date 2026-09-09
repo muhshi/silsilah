@@ -30,6 +30,8 @@ services:
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
     depends_on:
       - silsilah-franken
+    healthcheck:
+      disable: true
     env_file:
       - .env
     volumes:
@@ -46,6 +48,8 @@ services:
     command: php artisan schedule:work
     depends_on:
       - silsilah-franken
+    healthcheck:
+      disable: true
     env_file:
       - .env
     volumes:
