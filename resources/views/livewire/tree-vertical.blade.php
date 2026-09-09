@@ -808,8 +808,8 @@ new class extends Component
     </nav>
 
     {{-- Livewire Components --}}
+    <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
     @if(!$isPublic)
-        <livewire:member-manager :tree-id="$tree->id" />
         <livewire:import-members :tree-id="$tree->id" />
     @endif
 

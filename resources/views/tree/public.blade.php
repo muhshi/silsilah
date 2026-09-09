@@ -6,7 +6,19 @@
     <title>{{ $tree->name }} — Pohon Silsilah Keluarga</title>
     <meta name="description" content="Silsilah keluarga {{ $tree->name }}">
     <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta property="og:image" content="{{ asset('images/logo.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>
+        // Default to light mode for shared public tree link unless explicitly toggled to dark
+        if (!localStorage.getItem('flux.appearance') || localStorage.getItem('flux.appearance') === 'system') {
+            localStorage.setItem('flux.appearance', 'light');
+        }
+        if (localStorage.getItem('flux.appearance') !== 'dark') {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
     @fluxAppearance
     @livewireStyles
 </head>
@@ -18,8 +30,8 @@
             {{-- Brand & Tree Info --}}
             <div class="flex items-center gap-3 min-w-0">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 group shrink-0">
-                    <div class="size-8 rounded-lg bg-emerald-600 flex items-center justify-center shadow-sm text-white font-bold">
-                        <x-app-logo-icon class="size-4 fill-current text-white" />
+                    <div class="size-9 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-center shadow-xs hover:scale-105 transition-all p-1">
+                        <x-app-logo-icon class="size-full" />
                     </div>
                 </a>
                 <div class="h-6 w-px bg-zinc-200 dark:bg-zinc-700 hidden sm:block"></div>
@@ -48,6 +60,28 @@
                         Simple View
                     </a>
                 </div>
+
+                {{-- Theme Toggle --}}
+                <button type="button"
+                        x-data="{
+                            dark: document.documentElement.classList.contains('dark'),
+                            toggleTheme() {
+                                this.dark = !this.dark;
+                                if (this.dark) {
+                                    document.documentElement.classList.add('dark');
+                                    localStorage.setItem('flux.appearance', 'dark');
+                                } else {
+                                    document.documentElement.classList.remove('dark');
+                                    localStorage.setItem('flux.appearance', 'light');
+                                }
+                            }
+                        }"
+                        @click="toggleTheme()"
+                        class="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-xs flex items-center justify-center size-8"
+                        title="Ganti Tema (Terang / Gelap)">
+                    <span x-show="!dark" title="Mode Gelap">🌙</span>
+                    <span x-show="dark" title="Mode Terang">☀️</span>
+                </button>
 
                 @auth
                     <flux:button size="sm" icon="layout-grid" href="{{ route('dashboard') }}" class="!bg-emerald-600 !text-white hover:!bg-emerald-700">Dashboard</flux:button>

@@ -262,7 +262,7 @@ new class extends Component
                 <div class="tree" id="myTree">
                     <ul>
                         @foreach($rootMembers as $member)
-                            <x-tree-node :member="$member" :all-members="$allMembers" />
+                            <x-tree-node :member="$member" :all-members="$allMembers" :is-public="$isPublic" />
                         @endforeach
                     </ul>
                 </div>
@@ -318,8 +318,8 @@ new class extends Component
     </nav>
 
     {{-- Member Manager & Modals --}}
+    <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
     @if(!$isPublic)
-        <livewire:member-manager :tree-id="$tree->id" />
         <livewire:tree-settings :tree-id="$tree->id" />
         <livewire:import-members :tree-id="$tree->id" />
     @endif

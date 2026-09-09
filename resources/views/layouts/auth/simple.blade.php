@@ -13,8 +13,8 @@
 
                 {{-- Logo --}}
                 <a href="{{ route('home') }}" class="relative z-10 flex items-center gap-2.5" wire:navigate>
-                    <div class="size-9 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-                        <x-app-logo-icon class="size-4 fill-current text-on-primary" />
+                    <div class="size-9 rounded-xl bg-white flex items-center justify-center shadow-xs p-1">
+                        <x-app-logo-icon class="size-full" />
                     </div>
                     <span class="text-lg font-headline font-bold text-surface tracking-tight">
                         Pohon Silsilah
@@ -81,8 +81,8 @@
                 <div class="w-full max-w-sm flex flex-col gap-6">
                     {{-- Mobile logo --}}
                     <a href="{{ route('home') }}" class="flex flex-col items-center gap-2 lg:hidden" wire:navigate>
-                        <div class="size-10 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-                            <x-app-logo-icon class="size-5 fill-current text-on-primary" />
+                        <div class="size-12 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700 flex items-center justify-center shadow-xs p-1.5">
+                            <x-app-logo-icon class="size-full" />
                         </div>
                         <span class="font-headline font-bold text-on-surface text-lg">Pohon Silsilah</span>
                     </a>

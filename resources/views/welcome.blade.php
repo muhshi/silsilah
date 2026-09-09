@@ -6,6 +6,10 @@
     <title>Pohon Keluarga - Lestarikan Sejarah Keluargamu</title>
 
     <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta property="og:image" content="{{ asset('images/logo.png') }}">
+    <meta property="og:title" content="Pohon Silsilah - Lestarikan Sejarah Keluargamu">
 
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -18,8 +22,8 @@
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="flex justify-between items-center h-16">
                 <a href="/" class="flex items-center gap-2.5 group">
-                    <div class="size-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-                        <x-app-logo-icon class="size-4 fill-current text-on-primary" />
+                    <div class="size-9 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-xs group-hover:scale-105 transition-all p-1">
+                        <x-app-logo-icon class="size-full" />
                     </div>
                     <span class="text-lg font-headline font-bold text-on-surface tracking-tight">
                         Pohon Silsilah
@@ -210,8 +214,8 @@
             <div class="flex flex-col sm:flex-row justify-between items-start gap-8">
                 <div class="max-w-xs">
                     <div class="flex items-center gap-2.5 mb-3">
-                        <div class="size-7 rounded-md bg-primary flex items-center justify-center">
-                            <x-app-logo-icon class="size-3.5 fill-current text-on-primary" />
+                        <div class="size-8 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shadow-xs p-1">
+                            <x-app-logo-icon class="size-full" />
                         </div>
                         <span class="font-headline font-bold text-on-surface">Pohon Silsilah</span>
                     </div>

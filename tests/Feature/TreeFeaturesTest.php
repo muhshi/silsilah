@@ -155,3 +155,74 @@ it('can update tree settings like public status and view password', function () 
     expect($tree->is_public)->toBeFalse()
         ->and($tree->view_password)->toBeNull();
 });
+
+it('can show member details modal without error in authenticated mode', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $member = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Ahmad',
+        'last_name' => 'Dahlan',
+        'gender' => 'male',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test('⚡member-manager', ['treeId' => $tree->id])
+        ->dispatch('show-member', id: $member->id)
+        ->assertSet('viewMember.id', $member->id)
+        ->assertSee('Ahmad')
+        ->assertSee('Dahlan')
+        ->assertSee('Fokus Silsilah')
+        ->assertSee('Edit');
+});
+
+it('can show member details modal in public mode without edit or delete actions', function () {
+    $tree = FamilyTree::factory()->create(['is_public' => true, 'slug' => 'keluarga-ahmad']);
+
+    $member = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Fatimah',
+        'last_name' => 'Azzahra',
+        'gender' => 'female',
+    ]);
+
+    Livewire::test('⚡member-manager', [
+        'treeId' => $tree->id,
+        'isPublic' => true,
+        'treeSlug' => $tree->slug,
+    ])
+        ->dispatch('show-member', id: $member->id)
+        ->assertSet('viewMember.id', $member->id)
+        ->assertSee('Fatimah')
+        ->assertSee('Azzahra')
+        ->assertSee('Fokus Silsilah')
+        ->assertDontSee('Edit')
+        ->assertDontSee('+ Ortu')
+        ->assertDontSee('+ Anak')
+        ->assertDontSee('+ Pasangan');
+});
+
+it('renders public tree view with light mode defaults', function () {
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Keluarga Cemara',
+        'slug' => 'keluarga-cemara',
+        'is_public' => true,
+    ]);
+
+    Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Abah',
+        'gender' => 'male',
+    ]);
+
+    $response = $this->get(route('tree.public', $tree->slug));
+
+    $response->assertSuccessful();
+    $response->assertSee('Keluarga Cemara');
+    $response->assertSee('flux.appearance');
+    $response->assertSee('localStorage.setItem(\'flux.appearance\', \'light\')', false);
+    $response->assertSee('Abah');
+});

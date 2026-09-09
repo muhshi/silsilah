@@ -11,6 +11,11 @@
     <meta property="og:title" content="Undangan Kolaborasi Silsilah {{ $tree->name }}" />
     <meta property="og:description" content="Anda diundang untuk bergabung sebagai Editor untuk mengelola diagram pohon silsilah keluarga {{ $tree->name }} di Silsilah." />
     <meta property="og:site_name" content="Silsilah Keluarga" />
+    <meta property="og:image" content="{{ asset('images/logo.png') }}" />
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
     <!-- Google Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,10 +28,8 @@
     <div class="w-full max-w-md">
         <div class="bg-white dark:bg-zinc-800/90 rounded-2xl shadow-xl border border-slate-200 dark:border-zinc-700/80 p-8 space-y-6 text-center backdrop-blur-md">
             {{-- Icon Header --}}
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-1 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 mb-1 shadow-xs p-2">
+                <img src="{{ asset('images/logo-transparent.png') }}" class="w-full h-full object-contain" alt="Silsilah">
             </div>
 
             {{-- Info --}}

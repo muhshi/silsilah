@@ -12,8 +12,8 @@
 
         <!-- Logo & Brand -->
         <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-3 group">
-            <div class="w-9 h-9 bg-gradient-to-br from-emerald-600 to-teal-800 rounded-xl flex items-center justify-center shadow-md shadow-emerald-700/20 group-hover:scale-105 group-hover:shadow-emerald-700/30 transition-all">
-                <span class="text-white text-lg">🌳</span>
+            <div class="w-9 h-9 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-xs border border-zinc-200/80 dark:border-zinc-700/80 group-hover:scale-105 group-hover:shadow-md transition-all p-1">
+                <img src="{{ asset('images/logo-transparent.png') }}" class="w-full h-full object-contain" alt="Silsilah">
             </div>
             <div class="flex flex-col">
                 <span class="font-headline font-extrabold text-zinc-900 dark:text-white text-base tracking-tight leading-none group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Silsilah</span>
@@ -95,10 +95,8 @@
         class="lg:hidden border-e border-primary/10 bg-gradient-to-b from-[#F9F6F1] to-white dark:from-zinc-900 dark:to-zinc-900 dark:border-zinc-700 text-on-surface">
         <flux:sidebar.header>
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2.5">
-                <div
-                    class="w-8 h-8 bg-gradient-to-br from-primary to-[#86A789] rounded-lg flex items-center justify-center">
-                    <span class="material-symbols-outlined text-white text-base"
-                        style="font-variation-settings: 'FILL' 1;">park</span>
+                <div class="w-8 h-8 bg-white dark:bg-zinc-800 rounded-lg flex items-center justify-center p-1 border border-zinc-200 dark:border-zinc-700 shadow-xs">
+                    <img src="{{ asset('images/logo-transparent.png') }}" class="w-full h-full object-contain" alt="Silsilah">
                 </div>
                 <span class="font-headline font-bold text-on-surface">Pohon Silsilah</span>
             </a>

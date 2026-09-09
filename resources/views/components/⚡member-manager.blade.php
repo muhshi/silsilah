@@ -13,10 +13,19 @@ new class extends Component
     use WithFileUploads;
 
     public $treeId;
+    public $isPublic = false;
+    public $treeSlug = null;
     public $memberId;
     
     // Detail view
     public $viewMember = null;
+
+    public function mount($treeId, $isPublic = false, $treeSlug = null)
+    {
+        $this->treeId = $treeId;
+        $this->isPublic = $isPublic;
+        $this->treeSlug = $treeSlug;
+    }
     
     // Pribadi
     public $first_name = '';
@@ -629,26 +638,28 @@ new class extends Component
                 @endif
             </div>
 
-            <div class="mt-4 grid grid-cols-3 gap-2">
-                <button type="button"
-                        wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'parent_of' })"
-                        class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
-                    <span class="text-base block">👨‍👩‍👧</span>
-                    <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Ortu</span>
-                </button>
-                <button type="button"
-                        wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'child_of' })"
-                        class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
-                    <span class="text-base block">👶</span>
-                    <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Anak</span>
-                </button>
-                <button type="button"
-                        wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'spouse_of' })"
-                        class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
-                    <span class="text-base block">💍</span>
-                    <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Pasangan</span>
-                </button>
-            </div>
+            @if(!$this->isPublic)
+                <div class="mt-4 grid grid-cols-3 gap-2">
+                    <button type="button"
+                            wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'parent_of' })"
+                            class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
+                        <span class="text-base block">👨‍👩‍👧</span>
+                        <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Ortu</span>
+                    </button>
+                    <button type="button"
+                            wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'child_of' })"
+                            class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
+                        <span class="text-base block">👶</span>
+                        <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Anak</span>
+                    </button>
+                    <button type="button"
+                            wire:click="$dispatch('create-member', { targetId: {{ $vm->id }}, relType: 'spouse_of' })"
+                            class="p-2 bg-zinc-50 dark:bg-zinc-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-zinc-200 dark:border-zinc-700 rounded-xl text-center transition-colors">
+                        <span class="text-base block">💍</span>
+                        <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mt-0.5">+ Pasangan</span>
+                    </button>
+                </div>
+            @endif
 
             <div class="mt-4 space-y-2.5 text-sm">
                 @if($vm->father_id)
@@ -712,16 +723,29 @@ new class extends Component
             </div>
 
             <div class="flex justify-between items-center mt-5 pt-4 border-t border-gray-100 dark:border-zinc-800">
-                <div class="flex gap-2">
-                    <flux:button variant="danger" size="sm" wire:click="deleteFromDetail" wire:confirm="Apakah Anda yakin ingin menghapus anggota ini?">Hapus</flux:button>
+                <div>
+                    @if(!$this->isPublic)
+                        <flux:button variant="danger" size="sm" wire:click="deleteFromDetail" wire:confirm="Apakah Anda yakin ingin menghapus anggota ini?">Hapus</flux:button>
+                    @endif
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('tree.vertical', ['id' => $treeId, 'member' => $vm->id]) }}"
+                    @php
+                        $focusUrl = $this->isPublic
+                            ? ($this->treeSlug ? route('tree.public.vertical', ['slug' => $this->treeSlug, 'member' => $vm->id]) : '#')
+                            : route('tree.vertical', ['tree' => $this->treeId, 'member' => $vm->id]);
+                    @endphp
+                    <a href="{{ $focusUrl }}"
                        wire:navigate
                        class="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-100 transition-colors">
                         <span>🧭 Fokus Silsilah</span>
                     </a>
-                    <flux:button variant="primary" size="sm" wire:click="editFromDetail">Edit</flux:button>
+                    @if(!$this->isPublic)
+                        <flux:button variant="primary" size="sm" wire:click="editFromDetail">Edit</flux:button>
+                    @else
+                        <flux:modal.close>
+                            <flux:button variant="ghost" size="sm">Tutup</flux:button>
+                        </flux:modal.close>
+                    @endif
                 </div>
             </div>
         @endif

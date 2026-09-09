@@ -296,9 +296,7 @@ new class extends Component
         @endif
     </nav>
 
-    @if(!$isPublic)
-        <livewire:member-manager :tree-id="$tree->id" />
-    @endif
+    <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
 
     {{-- Floating Loading Indicator --}}
     <div wire:loading.flex class="fixed bottom-20 md:bottom-6 right-6 bg-zinc-900/90 text-white px-4 py-2.5 rounded-full shadow-2xl items-center gap-3 text-sm font-medium z-50 border border-zinc-700/50 backdrop-blur-md">
