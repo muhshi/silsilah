@@ -5,7 +5,7 @@ ENV SERVER_NAME=":80"
 WORKDIR /app
 
 # Install system dependencies & Chromium (for Spatie Browsershot PNG/PDF export)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev \
     libzip-dev \
     libpng-dev \

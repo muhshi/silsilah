@@ -2,6 +2,7 @@ services:
   silsilah-franken:
     container_name: silsilah-franken
     restart: unless-stopped
+    image: silsilah:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,10 +26,10 @@ services:
   silsilah-worker:
     container_name: silsilah-worker
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: silsilah:latest
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    depends_on:
+      - silsilah-franken
     env_file:
       - .env
     volumes:
@@ -41,10 +42,10 @@ services:
   silsilah-scheduler:
     container_name: silsilah-scheduler
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: silsilah:latest
     command: php artisan schedule:work
+    depends_on:
+      - silsilah-franken
     env_file:
       - .env
     volumes:
