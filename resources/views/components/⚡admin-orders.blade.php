@@ -84,6 +84,7 @@ new class extends Component
         DB::transaction(function () use ($order) {
             $order->update([
                 'status' => 'paid',
+                'paid_at' => now(),
             ]);
 
             $quotaToAdd = $order->quota_count ?? 1;
@@ -108,6 +109,8 @@ new class extends Component
                 'quota_added' => $quotaToAdd,
             ]);
         });
+
+        app(\App\Services\TelegramNotificationService::class)->sendOrderPaidNotification($order->fresh());
 
         session()->flash('success', "Pesanan {$order->order_id} berhasil diverifikasi manual. +{$order->quota_count} kuota pohon telah ditambahkan ke akun {$order->user->name}.");
     }

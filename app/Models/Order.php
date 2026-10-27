@@ -12,6 +12,7 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
+        'package_id',
         'order_id',
         'amount',
         'quota_count',
@@ -29,6 +30,7 @@ class Order extends Model
     protected function casts(): array
     {
         return [
+            'package_id' => 'integer',
             'amount' => 'integer',
             'quota_count' => 'integer',
             'paid_at' => 'datetime',
@@ -42,6 +44,14 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<PricingPackage, Order>
+     */
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(PricingPackage::class, 'package_id');
     }
 
     public function isPaid(): bool

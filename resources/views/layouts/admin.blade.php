@@ -61,6 +61,10 @@
                             {{ __('Transaksi Duitku') }}
                         </flux:sidebar.item>
 
+                        <flux:sidebar.item icon="tag" :href="route('admin.pricing')" :current="request()->routeIs('admin.pricing')" wire:navigate>
+                            {{ __('Paket & Harga') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.activities')" :current="request()->routeIs('admin.activities')" wire:navigate>
                             {{ __('Log Aktivitas') }}
                         </flux:sidebar.item>
@@ -162,6 +166,8 @@
                             Pengguna & Kuota
                         @elseif(request()->routeIs('admin.orders'))
                             Transaksi Duitku
+                        @elseif(request()->routeIs('admin.pricing'))
+                            Paket & Harga
                         @elseif(request()->routeIs('admin.activities'))
                             Log Aktivitas
                         @else

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\DuitkuService;
+use App\Services\TelegramNotificationService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -37,7 +38,8 @@ class DuitkuCallbackController extends Controller
 
         try {
             if ($resultCode === '00') {
-                $this->duitkuService->processSuccessfulPayment($merchantOrderId, $request->all());
+                $order = $this->duitkuService->processSuccessfulPayment($merchantOrderId, $request->all());
+                app(TelegramNotificationService::class)->sendOrderPaidNotification($order);
             } else {
                 Order::where('order_id', $merchantOrderId)
                     ->where('status', 'pending')

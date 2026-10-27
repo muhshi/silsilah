@@ -6,6 +6,27 @@
 </head>
 
 <body class="min-h-screen bg-background text-on-surface dark:bg-zinc-900 font-body">
+    <!-- Sticky Impersonation Warning Banner -->
+    @if(session()->has('impersonator_admin_id'))
+        <div class="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white px-4 py-2 shadow-md flex items-center justify-between sticky top-0 z-[60] text-xs">
+            <div class="flex items-center gap-2 max-w-4xl truncate">
+                <span class="material-symbols-outlined text-base text-amber-100 shrink-0 animate-pulse">supervised_user_circle</span>
+                <div class="truncate">
+                    <span class="font-black uppercase tracking-wider bg-black/20 px-1.5 py-0.5 rounded text-[9px] mr-1">Mode Bantuan</span>
+                    <span>Anda sedang login sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }}).</span>
+                    <span class="hidden md:inline text-amber-100/90 text-[11px] ml-1">Aksi yang Anda lakukan akan langsung mengubah data akun ini.</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('admin.leave-impersonation') }}" class="shrink-0 ml-3">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-1.5 bg-zinc-950/85 hover:bg-zinc-950 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">exit_to_app</span>
+                    <span>Kembali ke Superadmin</span>
+                </button>
+            </form>
+        </div>
+    @endif
+
     <flux:header container
         class="border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl sticky top-0 z-50 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 dark:bg-zinc-900/80 dark:border-zinc-800 transition-all">
         <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminBackupController;
+use App\Http\Controllers\AdminImpersonationController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DuitkuCallbackController;
 use App\Http\Controllers\DuitkuCheckoutController;
@@ -64,8 +66,15 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::view('/', 'admin.dashboard')->name('dashboard');
     Route::view('users', 'admin.users')->name('users');
     Route::view('orders', 'admin.orders')->name('orders');
+    Route::view('pricing', 'admin.pricing')->name('pricing');
     Route::view('activities', 'admin.activities')->name('activities');
+    Route::get('backup/download', [AdminBackupController::class, 'download'])->name('backup.download');
+    Route::post('impersonate/{user}', [AdminImpersonationController::class, 'impersonate'])->name('impersonate');
 });
+
+Route::post('admin/leave-impersonation', [AdminImpersonationController::class, 'leave'])
+    ->middleware(['auth'])
+    ->name('admin.leave-impersonation');
 
 // Public tree view (no auth required) - Default is Horizontal
 Route::get('public/tree/{slug}', function ($slug) {

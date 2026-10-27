@@ -95,6 +95,8 @@ new class extends Component
                 ->first();
         }
 
+        $pricingPackages = \App\Models\PricingPackage::active()->get();
+
         return [
             'trees' => $trees,
             'totalMembers' => $totalMembers,
@@ -107,6 +109,7 @@ new class extends Component
             'remainingQuota' => $remainingQuota,
             'hasAvailableQuota' => $hasAvailableQuota,
             'recentOrder' => $recentOrder,
+            'pricingPackages' => $pricingPackages,
         ];
     }
 
@@ -206,9 +209,9 @@ new class extends Component
             </button>
 
             <flux:modal.trigger name="buy-quota-modal">
-                <button class="flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-5 py-3.5 rounded-2xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all w-full sm:w-auto text-sm shadow-xs">
+                <button class="flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-5 py-3.5 rounded-2xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all w-full sm:w-auto text-sm shadow-xs cursor-pointer">
                     <span class="material-symbols-outlined text-lg">shopping_bag</span>
-                    Beli Kuota (Rp10rb)
+                    Beli Kuota Pohon
                 </button>
             </flux:modal.trigger>
         </div>
@@ -411,53 +414,145 @@ new class extends Component
         </form>
     </flux:modal>
 
-    <!-- Modal Beli Kuota (Duitku QRIS) -->
-    <flux:modal name="buy-quota-modal" class="md:w-[30rem]">
-        <div class="space-y-6">
+    <!-- Modal Beli Kuota (Duitku QRIS Multi-Paket) -->
+    <flux:modal name="buy-quota-modal" class="md:w-[42rem]">
+        @php
+            $defaultPackage = $pricingPackages->first(fn($p) => $p->canUserPurchase(auth()->user())) ?? $pricingPackages->first();
+            $defaultId = $defaultPackage?->id ?? 0;
+            $defaultPriceFormatted = $defaultPackage ? number_format($defaultPackage->price, 0, ',', '.') : '10.000';
+        @endphp
+
+        <div x-data="{
+                selectedId: {{ $defaultId }},
+                selectedPrice: '{{ $defaultPriceFormatted }}',
+                selectPackage(id, price) {
+                    this.selectedId = id;
+                    this.selectedPrice = price;
+                }
+             }"
+             class="space-y-6">
+
             <div class="text-center">
                 <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-3xl shadow-inner mb-3">
                     🌳
                 </div>
-                <flux:heading size="lg">Tambah Kuota Pohon Silsilah</flux:heading>
+                <flux:heading size="lg">Pilih Paket Kuota Pohon</flux:heading>
                 <flux:subheading class="mt-1">
-                    Setiap akun mendapatkan 1 Pohon Silsilah gratis. Untuk menambah pohon silsilah baru, Anda dapat membeli kuota digital seharga Rp10.000.
+                    Setiap akun mendapatkan 1 Pohon Silsilah gratis. Pilih paket kuota tambahan sesuai kebutuhan keluarga besar Anda.
                 </flux:subheading>
             </div>
 
-            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 text-xs space-y-2 text-zinc-700 dark:text-zinc-300">
-                <div class="flex items-center justify-between font-bold text-sm text-zinc-900 dark:text-white pb-2 border-b border-emerald-200/60 dark:border-emerald-800/60">
-                    <span>1x Kuota Pohon Keluarga</span>
-                    <span class="text-emerald-700 dark:text-emerald-400 text-base">Rp 10.000</span>
+            <!-- Package Selection Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                @foreach($pricingPackages as $package)
+                    @php
+                        $isEligible = $package->canUserPurchase(auth()->user());
+                        $priceFormatted = number_format($package->price, 0, ',', '.');
+                        $origPriceFormatted = $package->original_price ? number_format($package->original_price, 0, ',', '.') : null;
+                    @endphp
+
+                    <div @if($isEligible) @click="selectPackage({{ $package->id }}, '{{ $priceFormatted }}')" @endif
+                         class="relative rounded-2xl p-4 border transition-all text-left select-none
+                                @if(!$isEligible)
+                                    opacity-50 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 cursor-not-allowed
+                                @else
+                                    cursor-pointer hover:shadow-md
+                                @endif"
+                         :class="{
+                            'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/30 dark:bg-emerald-950/40 dark:border-emerald-500': selectedId === {{ $package->id }} && {{ $isEligible ? 'true' : 'false' }},
+                            'bg-white dark:bg-zinc-900 border-zinc-200/90 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700': selectedId !== {{ $package->id }} && {{ $isEligible ? 'true' : 'false' }}
+                         }">
+
+                        <!-- Badge if present -->
+                        @if($package->badge)
+                            <div class="absolute -top-2.5 right-3">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-xs
+                                    {{ $package->slug === 'promo-idul-fitri'
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                                        : 'bg-emerald-600 text-white' }}">
+                                    {{ $package->badge }}
+                                </span>
+                            </div>
+                        @elseif(!$isEligible)
+                            <div class="absolute -top-2.5 right-3">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                                    Sudah Digunakan
+                                </span>
+                            </div>
+                        @endif
+
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-lg">🌳</span>
+                                    <span class="font-bold text-sm text-zinc-900 dark:text-white">{{ $package->name }}</span>
+                                </div>
+                                <div class="mt-1 flex items-baseline gap-2">
+                                    <span class="text-xl font-extrabold text-emerald-700 dark:text-emerald-400">
+                                        Rp {{ $priceFormatted }}
+                                    </span>
+                                    @if($origPriceFormatted)
+                                        <span class="text-xs text-zinc-400 line-through">
+                                            Rp {{ $origPriceFormatted }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Radio indicator -->
+                            <div class="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5"
+                                 :class="selectedId === {{ $package->id }} ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-300 dark:border-zinc-700'">
+                                <div class="w-2 h-2 rounded-full bg-white" x-show="selectedId === {{ $package->id }}"></div>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
+                            {{ $package->description }}
+                        </p>
+
+                        <div class="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-semibold">
+                            <span class="text-zinc-600 dark:text-zinc-400">Kuota Diperoleh:</span>
+                            <span class="text-emerald-700 dark:text-emerald-300 font-bold">+{{ $package->tree_quota }} Pohon Silsilah</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Features Included List -->
+            <div class="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-3.5 text-xs grid grid-cols-2 gap-2 text-zinc-600 dark:text-zinc-400">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-emerald-600 font-bold">✓</span>
+                    <span>Pohon permanen selamanya</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-600">✓</span>
-                    <span>Akses pembuatan 1 pohon keluarga baru selamanya</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-emerald-600 font-bold">✓</span>
+                    <span>Anggota keluarga tanpa batas</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-600">✓</span>
-                    <span>Anggota dan relasi kekerabatan tanpa batas</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-emerald-600 font-bold">✓</span>
+                    <span>Ekspor PDF, PNG & Prompt AI</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-600">✓</span>
-                    <span>Fitur ekspor lengkap (PDF, PNG, JSON, Prompt AI)</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-emerald-600">✓</span>
-                    <span>Pembayaran instan dan otomatis via QRIS</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-emerald-600 font-bold">✓</span>
+                    <span>Verifikasi instan via QRIS</span>
                 </div>
             </div>
 
+            <!-- Checkout Form -->
             <form action="{{ route('orders.checkout') }}" method="POST" class="space-y-3">
                 @csrf
-                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white py-3.5 px-6 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all text-sm">
+                <input type="hidden" name="package_id" :value="selectedId">
+
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white py-3.5 px-6 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all text-sm cursor-pointer hover:scale-[1.01] active:scale-[0.99]">
                     <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
-                    Lanjut Bayar Rp 10.000 via QRIS
+                    <span>Lanjut Bayar Rp <span x-text="selectedPrice"></span> via QRIS</span>
                 </button>
             </form>
 
             <div class="flex justify-center">
                 <flux:modal.close>
-                    <flux:button variant="ghost" size="sm">Nanti Saja</flux:button>
+                    <flux:button variant="ghost" size="sm" class="cursor-pointer">Nanti Saja</flux:button>
                 </flux:modal.close>
             </div>
         </div>

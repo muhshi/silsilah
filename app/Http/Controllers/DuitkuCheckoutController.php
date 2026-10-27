@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PricingPackage;
 use App\Services\DuitkuService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -19,10 +20,54 @@ class DuitkuCheckoutController extends Controller
      */
     public function checkout(Request $request): JsonResponse|RedirectResponse
     {
+        $request->validate([
+            'package_id' => ['nullable', 'exists:pricing_packages,id'],
+        ]);
+
         $user = $request->user();
 
+        $package = null;
+        if ($request->filled('package_id')) {
+            $package = PricingPackage::find($request->input('package_id'));
+        } else {
+            $package = PricingPackage::where('slug', 'satuan')->first() ?? PricingPackage::active()->first();
+        }
+
+        $quotaCount = 1;
+        $amount = 10000;
+        $packageId = null;
+
+        if ($package) {
+            if (! $package->is_active) {
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Paket ini sedang tidak aktif.',
+                    ], 422);
+                }
+
+                return back()->with('error', 'Paket ini sedang tidak aktif.');
+            }
+
+            if (! $package->canUserPurchase($user)) {
+                $msg = 'Anda sudah pernah menggunakan promo ini sebelumnya.';
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                    ], 422);
+                }
+
+                return back()->with('error', $msg);
+            }
+
+            $quotaCount = $package->tree_quota;
+            $amount = $package->price;
+            $packageId = $package->id;
+        }
+
         try {
-            $order = $this->duitkuService->createInvoice($user, 1, 10000);
+            $order = $this->duitkuService->createInvoice($user, $quotaCount, $amount, $packageId);
 
             if ($request->wantsJson()) {
                 return response()->json([

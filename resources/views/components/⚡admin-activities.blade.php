@@ -45,6 +45,8 @@ new class extends Component
                 $query->whereIn('action', ['order_verified', 'order_expired', 'webhook_simulated']);
             } elseif ($this->actionFilter === 'role') {
                 $query->where('action', 'role_changed');
+            } elseif ($this->actionFilter === 'system') {
+                $query->whereIn('action', ['download_database_backup', 'impersonate_user', 'leave_impersonation', 'toggle_package_status', 'update_pricing_package']);
             } else {
                 $query->where('action', $this->actionFilter);
             }
@@ -57,6 +59,7 @@ new class extends Component
             'quota' => AdminActivityLog::whereIn('action', ['quota_adjusted', 'quota_quick_added'])->count(),
             'orders' => AdminActivityLog::whereIn('action', ['order_verified', 'order_expired', 'webhook_simulated'])->count(),
             'role' => AdminActivityLog::where('action', 'role_changed')->count(),
+            'system' => AdminActivityLog::whereIn('action', ['download_database_backup', 'impersonate_user', 'leave_impersonation', 'toggle_package_status', 'update_pricing_package'])->count(),
         ];
 
         return [
@@ -83,9 +86,18 @@ new class extends Component
             </p>
         </div>
 
-        <!-- Search Bar -->
-        <div class="w-full sm:w-72">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari aktivitas, admin, IP..." icon="magnifying-glass" clearable />
+        <!-- Search Bar & Backup Button -->
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <div class="w-full sm:w-64">
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari aktivitas, admin, IP..." icon="magnifying-glass" clearable />
+            </div>
+
+            <a href="{{ route('admin.backup.download') }}"
+               title="Unduh snapshot seluruh database dalam format SQL"
+               class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white text-xs font-bold shadow-xs hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0">
+                <span class="material-symbols-outlined text-sm">download</span>
+                <span class="hidden md:inline">Unduh Backup (.sql)</span>
+            </a>
         </div>
     </div>
 
@@ -113,6 +125,12 @@ new class extends Component
                 class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 {{ $actionFilter === 'role' ? 'bg-violet-600 text-white shadow-xs' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
             <span>Perubahan Role</span>
             <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $actionFilter === 'role' ? 'bg-violet-700 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}">{{ $counts['role'] }}</span>
+        </button>
+
+        <button wire:click="$set('actionFilter', 'system')"
+                class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 {{ $actionFilter === 'system' ? 'bg-sky-600 text-white shadow-xs' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+            <span>Sistem & Backup</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $actionFilter === 'system' ? 'bg-sky-700 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}">{{ $counts['system'] }}</span>
         </button>
     </div>
 
@@ -176,6 +194,21 @@ new class extends Component
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-violet-50 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-200 dark:border-violet-800/60">
                                         <span class="material-symbols-outlined text-[12px]">shield_person</span>
                                         <span>ROLE</span>
+                                    </span>
+                                @elseif($log->action === 'download_database_backup')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-50 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60">
+                                        <span class="material-symbols-outlined text-[12px]">database</span>
+                                        <span>BACKUP DB</span>
+                                    </span>
+                                @elseif(in_array($log->action, ['impersonate_user', 'leave_impersonation']))
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                        <span class="material-symbols-outlined text-[12px]">supervised_user_circle</span>
+                                        <span>IMPERSONASI</span>
+                                    </span>
+                                @elseif(in_array($log->action, ['toggle_package_status', 'update_pricing_package']))
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60">
+                                        <span class="material-symbols-outlined text-[12px]">tag</span>
+                                        <span>HARGA PAKET</span>
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">

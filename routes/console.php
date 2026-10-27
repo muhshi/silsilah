@@ -20,3 +20,4 @@ Artisan::command('silsilah:cleanup', function () {
 })->purpose('Bersihkan data sementara, token undangan usang, dan order pending kedaluwarsa');
 
 Schedule::command('silsilah:cleanup')->daily();
+Schedule::command('silsilah:backup --notify')->dailyAt('02:00');

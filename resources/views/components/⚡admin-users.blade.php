@@ -320,6 +320,19 @@ new class extends Component
 
                                     <!-- Toggle Admin Role Button -->
                                     @if($user->id !== auth()->id())
+                                        <!-- Impersonate User Button (Only for Non-Admin) -->
+                                        @if($user->role !== 'admin')
+                                            <form method="POST" action="{{ route('admin.impersonate', $user) }}" class="inline-block shrink-0">
+                                                @csrf
+                                                <button type="submit"
+                                                        title="Login sebagai {{ $user->name }} (Mode Bantuan)"
+                                                        class="inline-flex items-center justify-center gap-1 h-7 px-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:hover:bg-amber-900 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800 transition-all cursor-pointer">
+                                                    <span class="material-symbols-outlined text-sm">login</span>
+                                                    <span class="hidden md:inline">Login As</span>
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         <button wire:click="toggleAdminRole({{ $user->id }})"
                                                 wire:confirm="Ubah role {{ $user->name }} menjadi {{ $user->role === 'admin' ? 'USER biasa' : 'ADMIN' }}?"
                                                 title="Ubah Role Akun"

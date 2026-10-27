@@ -34,7 +34,7 @@ class DuitkuService
      *
      * @throws Exception
      */
-    public function createInvoice(User $user, int $quotaCount = 1, int $amount = 10000): Order
+    public function createInvoice(User $user, int $quotaCount = 1, int $amount = 10000, ?int $packageId = null): Order
     {
         if (empty($this->merchantCode) || empty($this->apiKey)) {
             throw new Exception('Kredensial Duitku (Merchant Code / API Key) belum dikonfigurasi di server.');
@@ -44,6 +44,7 @@ class DuitkuService
 
         $order = Order::create([
             'user_id' => $user->id,
+            'package_id' => $packageId,
             'order_id' => $orderId,
             'amount' => $amount,
             'quota_count' => $quotaCount,
@@ -58,10 +59,14 @@ class DuitkuService
         $callbackUrl = route('duitku.callback');
         $returnUrl = route('dashboard', ['order_id' => $orderId]);
 
+        $productDetails = $packageId && $order->package
+            ? $order->package->name
+            : "Kuota {$quotaCount} Pohon Silsilah";
+
         $payload = [
             'paymentAmount' => $amount,
             'merchantOrderId' => $orderId,
-            'productDetails' => "Kuota {$quotaCount} Pohon Silsilah",
+            'productDetails' => $productDetails,
             'email' => $user->email,
             'additionalParam' => (string) $user->id,
             'callbackUrl' => $callbackUrl,
