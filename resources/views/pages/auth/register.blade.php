@@ -5,8 +5,16 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
+        @if(request('ref') || session('ref'))
+            <div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                <span class="text-base">🎁</span>
+                <span>Kamu diundang oleh temanmu! Daftar sekarang untuk nikmati <strong>Diskon 15%</strong> saat beli kuota silsilah.</span>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
             @csrf
+            <input type="hidden" name="ref" value="{{ request('ref', old('ref', session('ref'))) }}">
             <!-- Name -->
             <flux:input
                 name="name"

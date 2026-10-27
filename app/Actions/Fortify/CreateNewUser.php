@@ -24,10 +24,20 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
+        $referredById = null;
+        $refCode = $input['ref'] ?? $input['referral_code'] ?? session('referral_code');
+        if (! empty($refCode)) {
+            $referrer = User::where('referral_code', strtoupper(trim((string) $refCode)))->first();
+            if ($referrer) {
+                $referredById = $referrer->id;
+            }
+        }
+
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
+            'referred_by_id' => $referredById,
         ]);
     }
 }

@@ -263,6 +263,48 @@ new class extends Component
         </div>
     </div>
 
+    <!-- Referral Banner (Ajak Teman & Dapatkan +1 Kuota Pohon) -->
+    <div x-data="{ copied: false }" class="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white dark:from-emerald-950/40 dark:via-zinc-900 dark:to-zinc-900 border border-emerald-200/80 dark:border-emerald-800/60 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+                🎁
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">Program Referral Keluarga</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-200/70 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200">Win-Win</span>
+                </div>
+                <h3 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-white mt-0.5">
+                    Ajak Keluarga & Kerabat, Dapatkan +1 Kuota Pohon Gratis!
+                </h3>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                    Bagikan kode referral Anda. Teman Anda mendapat <strong>Diskon 15%</strong> saat beli kuota, dan Anda langsung dapat <strong>+1 Kuota Pohon Gratis</strong>.
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <div class="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono font-bold text-xs text-zinc-900 dark:text-white flex items-center gap-2 shadow-2xs">
+                <span class="text-zinc-400 font-sans text-[11px]">Kode:</span>
+                <span class="tracking-wider text-emerald-700 dark:text-emerald-400">{{ auth()->user()->referral_code ?? 'SIL-'.auth()->id() }}</span>
+            </div>
+
+            <button type="button"
+                    @click="navigator.clipboard.writeText('{{ auth()->user()->referral_code }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                    class="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]" x-text="copied ? 'check' : 'content_copy'"></span>
+                <span x-text="copied ? 'Tersalin!' : 'Salin'"></span>
+            </button>
+
+            <a href="https://wa.me/?text={{ urlencode('Halo! Aku pakai aplikasi Silsilah Keluarga Digital. Daftar atau beli kuota pakai kode referralku ' . (auth()->user()->referral_code) . ' untuk dapat diskon 15%: ' . (auth()->user()->referralLink())) }}"
+               target="_blank"
+               class="h-9 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                <span class="text-sm">💬</span>
+                <span class="hidden sm:inline">WhatsApp</span>
+            </a>
+        </div>
+    </div>
+
     <!-- Live Search & M3 Filter Chips Bar -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
         <!-- Search Input -->
@@ -414,139 +456,347 @@ new class extends Component
         </form>
     </flux:modal>
 
-    <!-- Modal Beli Kuota (Duitku QRIS Multi-Paket) -->
-    <flux:modal name="buy-quota-modal" class="md:w-[42rem]">
+    <!-- Modal Beli Kuota (Duitku QRIS Multi-Paket & Kustom Kuota) -->
+    <flux:modal name="buy-quota-modal" class="md:w-[44rem]">
         @php
             $defaultPackage = $pricingPackages->first(fn($p) => $p->canUserPurchase(auth()->user())) ?? $pricingPackages->first();
             $defaultId = $defaultPackage?->id ?? 0;
-            $defaultPriceFormatted = $defaultPackage ? number_format($defaultPackage->price, 0, ',', '.') : '10.000';
+            $packageMap = $pricingPackages->keyBy('id')->map(fn($p) => [
+                'id' => $p->id,
+                'price' => $p->price,
+                'name' => $p->name,
+                'quota' => $p->tree_quota,
+                'is_one_time' => $p->is_one_time_per_user,
+            ]);
         @endphp
 
         <div x-data="{
                 selectedId: {{ $defaultId }},
-                selectedPrice: '{{ $defaultPriceFormatted }}',
-                selectPackage(id, price) {
+                isCustom: false,
+                customCount: 4,
+                promoInput: '',
+                appliedCode: '',
+                discountAmount: 0,
+                promoMessage: '',
+                promoError: '',
+                isCheckingPromo: false,
+                packageMap: {{ Js::from($packageMap) }},
+
+                get basePrice() {
+                    if (this.isCustom) {
+                        let n = parseInt(this.customCount) || 1;
+                        if (n <= 2) return n * 10000;
+                        if (n <= 4) return n * 8500;
+                        return n * 8000;
+                    }
+                    return this.packageMap[this.selectedId] ? this.packageMap[this.selectedId].price : 10000;
+                },
+
+                get finalPrice() {
+                    return Math.max(1000, this.basePrice - this.discountAmount);
+                },
+
+                get formattedBasePrice() {
+                    return new Intl.NumberFormat('id-ID').format(this.basePrice);
+                },
+
+                get formattedFinalPrice() {
+                    return new Intl.NumberFormat('id-ID').format(this.finalPrice);
+                },
+
+                get formattedDiscount() {
+                    return new Intl.NumberFormat('id-ID').format(this.discountAmount);
+                },
+
+                selectPackage(id) {
+                    this.isCustom = false;
                     this.selectedId = id;
-                    this.selectedPrice = price;
+                    if (this.appliedCode) {
+                        this.validatePromo();
+                    }
+                },
+
+                selectCustom() {
+                    this.isCustom = true;
+                    this.selectedId = null;
+                    if (this.appliedCode) {
+                        this.validatePromo();
+                    }
+                },
+
+                changeCustomCount(delta) {
+                    let next = Math.max(1, Math.min(100, (parseInt(this.customCount) || 1) + delta));
+                    this.customCount = next;
+                    this.isCustom = true;
+                    this.selectedId = null;
+                    if (this.appliedCode) {
+                        this.validatePromo();
+                    }
+                },
+
+                async validatePromo() {
+                    let code = (this.promoInput || this.appliedCode).trim();
+                    if (!code) {
+                        this.promoError = 'Silakan masukkan kode promo atau referral.';
+                        return;
+                    }
+                    this.isCheckingPromo = true;
+                    this.promoError = '';
+                    this.promoMessage = '';
+
+                    try {
+                        let res = await fetch('{{ route('orders.validate-code') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                code: code,
+                                package_id: this.isCustom ? null : this.selectedId,
+                                custom_quota: this.isCustom ? this.customCount : null
+                            })
+                        });
+
+                        let data = await res.json();
+                        if (res.ok && data.valid) {
+                            this.appliedCode = data.code;
+                            this.discountAmount = data.discount;
+                            this.promoMessage = data.message;
+                            this.promoError = '';
+                        } else {
+                            this.discountAmount = 0;
+                            this.promoError = data.message || 'Kode promo atau referral tidak valid.';
+                            this.promoMessage = '';
+                            this.appliedCode = '';
+                        }
+                    } catch (e) {
+                        this.promoError = 'Gagal memverifikasi kode promo. Silakan coba lagi.';
+                    } finally {
+                        this.isCheckingPromo = false;
+                    }
+                },
+
+                removePromo() {
+                    this.appliedCode = '';
+                    this.promoInput = '';
+                    this.discountAmount = 0;
+                    this.promoMessage = '';
+                    this.promoError = '';
                 }
              }"
-             class="space-y-6">
+             class="space-y-5">
 
             <div class="text-center">
-                <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-3xl shadow-inner mb-3">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-3xl shadow-inner mb-2.5">
                     🌳
                 </div>
-                <flux:heading size="lg">Pilih Paket Kuota Pohon</flux:heading>
-                <flux:subheading class="mt-1">
-                    Setiap akun mendapatkan 1 Pohon Silsilah gratis. Pilih paket kuota tambahan sesuai kebutuhan keluarga besar Anda.
+                <flux:heading size="lg">Beli Kuota Pohon Silsilah</flux:heading>
+                <flux:subheading class="mt-0.5">
+                    Pilih paket hemat instan atau tentukan sendiri jumlah pohon sesuai kebutuhan keluarga Anda.
                 </flux:subheading>
             </div>
 
-            <!-- Package Selection Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                @foreach($pricingPackages as $package)
-                    @php
-                        $isEligible = $package->canUserPurchase(auth()->user());
-                        $priceFormatted = number_format($package->price, 0, ',', '.');
-                        $origPriceFormatted = $package->original_price ? number_format($package->original_price, 0, ',', '.') : null;
-                    @endphp
+            <!-- 1. Package Selection Grid -->
+            <div>
+                <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2">Pilihan Paket Hemat:</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($pricingPackages as $package)
+                        @php
+                            $isEligible = $package->canUserPurchase(auth()->user());
+                            $priceFormatted = number_format($package->price, 0, ',', '.');
+                            $origPriceFormatted = $package->original_price ? number_format($package->original_price, 0, ',', '.') : null;
+                        @endphp
 
-                    <div @if($isEligible) @click="selectPackage({{ $package->id }}, '{{ $priceFormatted }}')" @endif
-                         class="relative rounded-2xl p-4 border transition-all text-left select-none
-                                @if(!$isEligible)
-                                    opacity-50 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 cursor-not-allowed
-                                @else
-                                    cursor-pointer hover:shadow-md
-                                @endif"
-                         :class="{
-                            'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/30 dark:bg-emerald-950/40 dark:border-emerald-500': selectedId === {{ $package->id }} && {{ $isEligible ? 'true' : 'false' }},
-                            'bg-white dark:bg-zinc-900 border-zinc-200/90 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700': selectedId !== {{ $package->id }} && {{ $isEligible ? 'true' : 'false' }}
-                         }">
+                        <div @if($isEligible) @click="selectPackage({{ $package->id }})" @endif
+                             class="relative rounded-2xl p-3.5 border transition-all text-left select-none
+                                    @if(!$isEligible)
+                                        opacity-50 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 cursor-not-allowed
+                                    @else
+                                        cursor-pointer hover:shadow-sm
+                                    @endif"
+                             :class="{
+                                'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/30 dark:bg-emerald-950/40 dark:border-emerald-500': !isCustom && selectedId === {{ $package->id }} && {{ $isEligible ? 'true' : 'false' }},
+                                'bg-white dark:bg-zinc-900 border-zinc-200/90 dark:border-zinc-800 hover:border-emerald-300 dark:hover:border-emerald-700': isCustom || selectedId !== {{ $package->id }} && {{ $isEligible ? 'true' : 'false' }}
+                             }">
 
-                        <!-- Badge if present -->
-                        @if($package->badge)
-                            <div class="absolute -top-2.5 right-3">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-xs
-                                    {{ $package->slug === 'promo-idul-fitri'
-                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                                        : 'bg-emerald-600 text-white' }}">
-                                    {{ $package->badge }}
-                                </span>
-                            </div>
-                        @elseif(!$isEligible)
-                            <div class="absolute -top-2.5 right-3">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
-                                    Sudah Digunakan
-                                </span>
-                            </div>
-                        @endif
-
-                        <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-lg">🌳</span>
-                                    <span class="font-bold text-sm text-zinc-900 dark:text-white">{{ $package->name }}</span>
-                                </div>
-                                <div class="mt-1 flex items-baseline gap-2">
-                                    <span class="text-xl font-extrabold text-emerald-700 dark:text-emerald-400">
-                                        Rp {{ $priceFormatted }}
+                            <!-- Badge if present -->
+                            @if($package->badge)
+                                <div class="absolute -top-2.5 right-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-xs
+                                        {{ $package->slug === 'promo-idul-fitri'
+                                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                                            : 'bg-emerald-600 text-white' }}">
+                                        {{ $package->badge }}
                                     </span>
-                                    @if($origPriceFormatted)
-                                        <span class="text-xs text-zinc-400 line-through">
-                                            Rp {{ $origPriceFormatted }}
+                                </div>
+                            @elseif(!$isEligible)
+                                <div class="absolute -top-2.5 right-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                                        Sudah Digunakan
+                                    </span>
+                                </div>
+                            @endif
+
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-base">🌳</span>
+                                        <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-white">{{ $package->name }}</span>
+                                    </div>
+                                    <div class="mt-1 flex items-baseline gap-2">
+                                        <span class="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">
+                                            Rp {{ $priceFormatted }}
                                         </span>
-                                    @endif
+                                        @if($origPriceFormatted)
+                                            <span class="text-[11px] text-zinc-400 line-through">
+                                                Rp {{ $origPriceFormatted }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Radio indicator -->
+                                <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5"
+                                     :class="!isCustom && selectedId === {{ $package->id }} ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-300 dark:border-zinc-700'">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="!isCustom && selectedId === {{ $package->id }}"></div>
                                 </div>
                             </div>
 
-                            <!-- Radio indicator -->
-                            <div class="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5"
-                                 :class="selectedId === {{ $package->id }} ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-300 dark:border-zinc-700'">
-                                <div class="w-2 h-2 rounded-full bg-white" x-show="selectedId === {{ $package->id }}"></div>
+                            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
+                                {{ $package->description }}
+                            </p>
+
+                            <div class="mt-2.5 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[10px] font-semibold">
+                                <span class="text-zinc-500">Kuota Diperoleh:</span>
+                                <span class="text-emerald-700 dark:text-emerald-300 font-bold">+{{ $package->tree_quota }} Pohon Silsilah</span>
                             </div>
                         </div>
+                    @endforeach
+                </div>
+            </div>
 
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
-                            {{ $package->description }}
-                        </p>
-
-                        <div class="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-semibold">
-                            <span class="text-zinc-600 dark:text-zinc-400">Kuota Diperoleh:</span>
-                            <span class="text-emerald-700 dark:text-emerald-300 font-bold">+{{ $package->tree_quota }} Pohon Silsilah</span>
+            <!-- 2. Custom Quota Option (Beli Sesuai Kebutuhan) -->
+            <div class="rounded-2xl p-4 border transition-all text-left select-none cursor-pointer"
+                 @click="selectCustom"
+                 :class="{
+                    'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/30 dark:bg-emerald-950/40 dark:border-emerald-500': isCustom,
+                    'bg-white dark:bg-zinc-900 border-zinc-200/90 dark:border-zinc-800 hover:border-emerald-300': !isCustom
+                 }">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-lg">✨</span>
+                            <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-white">Beli Kuota Kustom (Sesuai Kebutuhan)</span>
+                            <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/40">Grosir Cerdas</span>
                         </div>
+                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Harga otomatis menyesuaikan: 1-2 pohon @Rp 10k, 3-4 pohon @Rp 8.5k, 5+ pohon @Rp 8k.
+                        </p>
                     </div>
-                @endforeach
+
+                    <!-- Counter Controls -->
+                    <div class="flex items-center gap-2 shrink-0" @click.stop>
+                        <button type="button"
+                                @click="changeCustomCount(-1)"
+                                :disabled="customCount <= 1"
+                                class="w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-extrabold flex items-center justify-center transition-all disabled:opacity-40 cursor-pointer">
+                            -
+                        </button>
+                        <div class="px-3 py-1 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-center min-w-[70px]">
+                            <span class="text-sm font-extrabold text-zinc-900 dark:text-white" x-text="customCount"></span>
+                            <span class="text-[10px] text-zinc-400 block -mt-0.5">Pohon</span>
+                        </div>
+                        <button type="button"
+                                @click="changeCustomCount(1)"
+                                :disabled="customCount >= 100"
+                                class="w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-extrabold flex items-center justify-center transition-all disabled:opacity-40 cursor-pointer">
+                            +
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Features Included List -->
-            <div class="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-3.5 text-xs grid grid-cols-2 gap-2 text-zinc-600 dark:text-zinc-400">
-                <div class="flex items-center gap-1.5">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Pohon permanen selamanya</span>
+            <!-- 3. Voucher / Referral Code Input Section -->
+            <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2">
+                <label class="block text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    🏷️ Punya Kode Promo atau Referral?
+                </label>
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <input type="text"
+                               x-model="promoInput"
+                               placeholder="Contoh: SILSILAH15 atau Kode Referral Teman"
+                               :disabled="!!appliedCode"
+                               @keydown.enter.prevent="validatePromo"
+                               class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-xs font-mono tracking-wider text-zinc-900 dark:text-white placeholder-zinc-400 focus:ring-2 focus:ring-emerald-500 uppercase disabled:opacity-60">
+                    </div>
+                    <template x-if="!appliedCode">
+                        <button type="button"
+                                @click="validatePromo"
+                                :disabled="isCheckingPromo"
+                                class="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer disabled:opacity-60">
+                            <span x-show="!isCheckingPromo">Terapkan</span>
+                            <span x-show="isCheckingPromo">Cek...</span>
+                        </button>
+                    </template>
+                    <template x-if="appliedCode">
+                        <button type="button"
+                                @click="removePromo"
+                                class="h-9 px-3 rounded-xl bg-zinc-200 hover:bg-red-50 text-zinc-700 hover:text-red-600 dark:bg-zinc-700 dark:hover:bg-red-950 dark:text-zinc-300 dark:hover:text-red-300 text-xs font-bold transition-all shrink-0 cursor-pointer">
+                            Hapus
+                        </button>
+                    </template>
                 </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Anggota keluarga tanpa batas</span>
+
+                <!-- Feedback Messages -->
+                <template x-if="promoMessage">
+                    <div class="p-2.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">check_circle</span>
+                            <span x-text="promoMessage"></span>
+                        </div>
+                        <span class="font-extrabold font-mono" x-text="'-Rp ' + formattedDiscount"></span>
+                    </div>
+                </template>
+                <template x-if="promoError">
+                    <p class="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">error</span>
+                        <span x-text="promoError"></span>
+                    </p>
+                </template>
+            </div>
+
+            <!-- 4. Price Summary -->
+            <div class="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-3.5 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+                    <span>Subtotal Tagihan:</span>
+                    <span class="font-bold text-zinc-900 dark:text-white" x-text="'Rp ' + formattedBasePrice"></span>
                 </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Ekspor PDF, PNG & Prompt AI</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-emerald-600 font-bold">✓</span>
-                    <span>Verifikasi instan via QRIS</span>
+                <template x-if="discountAmount > 0">
+                    <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                        <span>Diskon Promo / Referral:</span>
+                        <span x-text="'-Rp ' + formattedDiscount"></span>
+                    </div>
+                </template>
+                <div class="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-sm">
+                    <span class="font-extrabold text-zinc-900 dark:text-white">Total Pembayaran QRIS:</span>
+                    <span class="text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono" x-text="'Rp ' + formattedFinalPrice"></span>
                 </div>
             </div>
 
-            <!-- Checkout Form -->
+            <!-- 5. Checkout Form -->
             <form action="{{ route('orders.checkout') }}" method="POST" class="space-y-3">
                 @csrf
-                <input type="hidden" name="package_id" :value="selectedId">
+                <input type="hidden" name="package_id" :value="isCustom ? '' : selectedId">
+                <input type="hidden" name="custom_quota" :value="isCustom ? customCount : ''">
+                <input type="hidden" name="code" :value="appliedCode">
 
                 <button type="submit"
                         class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white py-3.5 px-6 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all text-sm cursor-pointer hover:scale-[1.01] active:scale-[0.99]">
                     <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
-                    <span>Lanjut Bayar Rp <span x-text="selectedPrice"></span> via QRIS</span>
+                    <span>Lanjut Bayar Rp <span x-text="formattedFinalPrice"></span> via QRIS</span>
                 </button>
             </form>
 

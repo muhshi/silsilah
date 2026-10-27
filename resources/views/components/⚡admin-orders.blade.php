@@ -82,13 +82,12 @@ new class extends Component
         }
 
         DB::transaction(function () use ($order) {
-            $order->update([
-                'status' => 'paid',
-                'paid_at' => now(),
-            ]);
+            app(\App\Services\DuitkuService::class)->processSuccessfulPayment(
+                $order->order_id,
+                ['paymentCode' => 'MANUAL_VERIFY', 'reference' => $order->reference ?? 'MANUAL-'.Str::random(8)]
+            );
 
             $quotaToAdd = $order->quota_count ?? 1;
-            $order->user->increment('tree_quota', $quotaToAdd);
 
             AdminActivityLog::log(
                 action: 'order_verified',
@@ -99,6 +98,8 @@ new class extends Component
                     'order_id' => $order->order_id,
                     'amount' => $order->amount,
                     'quota_added' => $quotaToAdd,
+                    'referrer_id' => $order->referrer_id,
+                    'voucher_code' => $order->voucher_code,
                 ]
             );
 
@@ -171,7 +172,7 @@ new class extends Component
 
     public function with()
     {
-        $query = Order::with('user')->latest();
+        $query = Order::with(['user', 'referrer', 'package'])->latest();
 
         if ($this->search) {
             $term = trim($this->search);
@@ -319,7 +320,17 @@ new class extends Component
                         </div>
                         <div class="text-right shrink-0">
                             <p class="text-xs font-extrabold text-zinc-900 dark:text-white">Rp {{ number_format($order->amount, 0, ',', '.') }}</p>
-                            <p class="text-[10px] text-zinc-400 font-medium">+{{ $order->quota_count }} Pohon</p>
+                            <p class="text-[10px] text-zinc-400 font-medium">+{{ $order->quota_count }} Pohon {{ $order->is_custom_quota ? '(Kustom)' : '' }}</p>
+                            @if($order->discount_amount > 0)
+                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200">
+                                    -Rp {{ number_format($order->discount_amount, 0, ',', '.') }} {{ $order->voucher_code ? "({$order->voucher_code})" : '' }}
+                                </span>
+                            @endif
+                            @if($order->referrer)
+                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 block mt-0.5">
+                                    Ref: {{ $order->referrer->name }}
+                                </span>
+                            @endif
                         </div>
                     </div>
 
@@ -403,7 +414,17 @@ new class extends Component
                             </td>
                             <td class="py-3.5 px-4 font-bold text-zinc-900 dark:text-white">
                                 Rp {{ number_format($order->amount, 0, ',', '.') }}
-                                <span class="text-[10px] text-zinc-400 block font-normal">+{{ $order->quota_count }} Pohon</span>
+                                <span class="text-[10px] text-zinc-400 block font-normal">+{{ $order->quota_count }} Pohon {{ $order->is_custom_quota ? '(Kustom)' : '' }}</span>
+                                @if($order->discount_amount > 0)
+                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200">
+                                        -Rp {{ number_format($order->discount_amount, 0, ',', '.') }} {{ $order->voucher_code ? "({$order->voucher_code})" : '' }}
+                                    </span>
+                                @endif
+                                @if($order->referrer)
+                                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 block mt-0.5">
+                                        Ref: {{ $order->referrer->name }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 @if($order->status === 'paid')

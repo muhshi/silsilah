@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\AdminActivityLog;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\Voucher;
 use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -34,8 +36,18 @@ class DuitkuService
      *
      * @throws Exception
      */
-    public function createInvoice(User $user, int $quotaCount = 1, int $amount = 10000, ?int $packageId = null): Order
-    {
+    public function createInvoice(
+        User $user,
+        int $quotaCount = 1,
+        int $amount = 10000,
+        ?int $packageId = null,
+        ?int $originalAmount = null,
+        int $discountAmount = 0,
+        ?string $voucherCode = null,
+        ?string $referralCode = null,
+        ?int $referrerId = null,
+        bool $isCustomQuota = false,
+    ): Order {
         if (empty($this->merchantCode) || empty($this->apiKey)) {
             throw new Exception('Kredensial Duitku (Merchant Code / API Key) belum dikonfigurasi di server.');
         }
@@ -47,6 +59,12 @@ class DuitkuService
             'package_id' => $packageId,
             'order_id' => $orderId,
             'amount' => $amount,
+            'original_amount' => $originalAmount ?? $amount,
+            'discount_amount' => $discountAmount,
+            'voucher_code' => $voucherCode,
+            'referral_code' => $referralCode,
+            'referrer_id' => $referrerId,
+            'is_custom_quota' => $isCustomQuota,
             'quota_count' => $quotaCount,
             'status' => 'pending',
             'payment_method' => 'QRIS',
@@ -160,8 +178,42 @@ class DuitkuService
                 'payload' => array_merge($order->payload ?? [], ['callback' => $callbackData]),
             ]);
 
-            // Add tree quota to user
+            // 1. Add tree quota to purchasing user
             $order->user->increment('tree_quota', $order->quota_count);
+
+            // 2. Handle Referral Reward for Referrer (+1 tree quota if this is referee's first paid order)
+            if ($order->referrer_id) {
+                $previousPaidCount = Order::where('user_id', $order->user_id)
+                    ->where('status', 'paid')
+                    ->where('id', '!=', $order->id)
+                    ->count();
+
+                if ($previousPaidCount === 0) {
+                    $referrer = User::find($order->referrer_id);
+                    if ($referrer) {
+                        $referrer->increment('tree_quota', 1);
+
+                        AdminActivityLog::log(
+                            action: 'referral_bonus_credited',
+                            description: "Referral Sukses: {$referrer->name} memperoleh bonus +1 kuota pohon karena pembeli perdana {$order->user->name} ({$order->order_id})",
+                            targetType: 'User',
+                            targetId: $referrer->id,
+                            properties: [
+                                'referee_id' => $order->user_id,
+                                'order_id' => $order->order_id,
+                                'bonus_quota' => 1,
+                            ]
+                        );
+
+                        Log::info("Referral Bonus: Referrer #{$referrer->id} awarded +1 tree quota for order #{$order->order_id}");
+                    }
+                }
+            }
+
+            // 3. Update voucher used count if voucher was applied
+            if ($order->voucher_code) {
+                Voucher::where('code', $order->voucher_code)->increment('used_count');
+            }
 
             Log::info("Duitku Payment Success: Order #{$order->order_id} credited {$order->quota_count} quota to User #{$order->user_id}");
         }

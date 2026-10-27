@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'avatar', 'tree_quota', 'role'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'avatar', 'tree_quota', 'role', 'referral_code', 'referred_by_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -24,6 +25,24 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => 'user',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->referral_code)) {
+                $user->referral_code = static::generateUniqueReferralCode();
+            }
+        });
+    }
+
+    public static function generateUniqueReferralCode(): string
+    {
+        do {
+            $code = 'SIL-'.strtoupper(Str::random(6));
+        } while (static::where('referral_code', $code)->exists());
+
+        return $code;
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -65,6 +84,35 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * @return BelongsTo<User, User>
+     */
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by_id');
+    }
+
+    /**
+     * @return HasMany<User>
+     */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(User::class, 'referred_by_id');
+    }
+
+    /**
+     * @return HasMany<Order>
+     */
+    public function referredOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'referrer_id');
+    }
+
+    public function referralLink(): string
+    {
+        return url('/?ref='.$this->referral_code);
     }
 
     public function ownedTreesCount(): int

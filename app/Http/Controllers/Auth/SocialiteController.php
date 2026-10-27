@@ -28,6 +28,15 @@ class SocialiteController extends Controller
                     'avatar' => $googleUser->avatar,
                 ]);
             } else {
+                $referrerId = null;
+                $refCode = session('referral_code');
+                if (! empty($refCode)) {
+                    $referrer = User::where('referral_code', strtoupper(trim((string) $refCode)))->first();
+                    if ($referrer) {
+                        $referrerId = $referrer->id;
+                    }
+                }
+
                 // Register new user
                 $user = User::create([
                     'name' => $googleUser->name,
@@ -35,7 +44,10 @@ class SocialiteController extends Controller
                     'google_id' => $googleUser->id,
                     'avatar' => $googleUser->avatar,
                     'password' => null,
+                    'referred_by_id' => $referrerId,
                 ]);
+
+                session()->forget('referral_code');
             }
 
             Auth::login($user, true);

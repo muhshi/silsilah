@@ -29,6 +29,7 @@ Route::match(['get', 'post'], 'invitations/accept/{token}/process', [InvitationC
 // Duitku Payment Gateway Routes
 Route::post('api/duitku/callback', [DuitkuCallbackController::class, 'handle'])->name('duitku.callback');
 Route::post('orders/checkout', [DuitkuCheckoutController::class, 'checkout'])->middleware(['auth'])->name('orders.checkout');
+Route::post('orders/validate-code', [DuitkuCheckoutController::class, 'validateCode'])->middleware(['auth'])->name('orders.validate-code');
 
 // Secure image proxy to bypass CORS for export (with SSRF protection)
 Route::get('api/image-proxy', [ImageProxyController::class, 'proxy'])->name('image.proxy');
@@ -67,6 +68,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::view('users', 'admin.users')->name('users');
     Route::view('orders', 'admin.orders')->name('orders');
     Route::view('pricing', 'admin.pricing')->name('pricing');
+    Route::view('vouchers', 'admin.vouchers')->name('vouchers');
     Route::view('activities', 'admin.activities')->name('activities');
     Route::view('settings', 'admin.settings')->name('settings');
     Route::get('backup/download', [AdminBackupController::class, 'download'])->name('backup.download');

@@ -65,6 +65,10 @@
                             {{ __('Paket & Harga') }}
                         </flux:sidebar.item>
 
+                        <flux:sidebar.item icon="ticket" :href="route('admin.vouchers')" :current="request()->routeIs('admin.vouchers')" wire:navigate>
+                            {{ __('Voucher & Promo') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.activities')" :current="request()->routeIs('admin.activities')" wire:navigate>
                             {{ __('Log Aktivitas') }}
                         </flux:sidebar.item>
@@ -172,6 +176,8 @@
                             Transaksi Duitku
                         @elseif(request()->routeIs('admin.pricing'))
                             Paket & Harga
+                        @elseif(request()->routeIs('admin.vouchers'))
+                            Voucher & Promo
                         @elseif(request()->routeIs('admin.activities'))
                             Log Aktivitas
                         @elseif(request()->routeIs('admin.settings'))

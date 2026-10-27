@@ -15,6 +15,12 @@ class Order extends Model
         'package_id',
         'order_id',
         'amount',
+        'original_amount',
+        'discount_amount',
+        'voucher_code',
+        'referral_code',
+        'referrer_id',
+        'is_custom_quota',
         'quota_count',
         'status',
         'payment_method',
@@ -32,6 +38,10 @@ class Order extends Model
         return [
             'package_id' => 'integer',
             'amount' => 'integer',
+            'original_amount' => 'integer',
+            'discount_amount' => 'integer',
+            'referrer_id' => 'integer',
+            'is_custom_quota' => 'boolean',
             'quota_count' => 'integer',
             'paid_at' => 'datetime',
             'payload' => 'array',
@@ -44,6 +54,14 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<User, Order>
+     */
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
     }
 
     /**

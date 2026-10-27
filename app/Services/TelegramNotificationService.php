@@ -190,7 +190,7 @@ class TelegramNotificationService
             $user = $order->user;
             $userName = $user ? $user->name : 'Pelanggan';
             $userEmail = $user ? $user->email : '-';
-            $packageName = $order->package ? $order->package->name : 'Kuota Tambahan';
+            $packageName = $order->is_custom_quota ? "Kustom ({$order->quota_count} Pohon)" : ($order->package ? $order->package->name : 'Kuota Tambahan');
             $amountFormatted = number_format($order->amount, 0, ',', '.');
             $paidAt = $order->paid_at ? $order->paid_at->format('d M Y H:i:s') : now()->format('d M Y H:i:s');
             $paymentMethod = $order->payment_method ?? 'QRIS';
@@ -203,6 +203,18 @@ class TelegramNotificationService
             $message .= "📦 <b>Paket:</b> {$packageName}\n";
             $message .= "🌳 <b>Kuota Masuk:</b> +{$order->quota_count} Pohon\n";
             $message .= "💰 <b>Nominal:</b> <b>Rp {$amountFormatted}</b>\n";
+
+            if ($order->discount_amount > 0) {
+                $discountFormatted = number_format($order->discount_amount, 0, ',', '.');
+                $codeDetail = $order->voucher_code ? " ({$order->voucher_code})" : ($order->referral_code ? " (Referral: {$order->referral_code})" : '');
+                $message .= "🏷️ <b>Diskon:</b> -Rp {$discountFormatted}{$codeDetail}\n";
+            }
+
+            if ($order->referrer_id) {
+                $referrerName = $order->referrer?->name ?? "User #{$order->referrer_id}";
+                $message .= "🤝 <b>Referral:</b> Dari {$referrerName} (+1 Pohon Bonus Referrer)\n";
+            }
+
             $message .= "🕒 <b>Waktu:</b> {$paidAt} WIB\n";
             $message .= "━━━━━━━━━━━━━━━━━━━━\n";
             $message .= '🚀 <i>Sistem Silsilah Keluarga Digital</i>';
