@@ -180,7 +180,7 @@ new class extends Component
     {
         return [
             'invitations' => TreeInvitation::where('family_tree_id', $this->treeId)->where('status', 'pending')->get(),
-            'editors' => $this->tree->users()->where('role', 'editor')->get(),
+            'editors' => $this->tree->users()->wherePivot('role', 'editor')->get(),
             'logs' => ActivityLog::with('user')
                 ->where('family_tree_id', $this->treeId)
                 ->latest()

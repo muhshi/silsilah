@@ -14,12 +14,16 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'avatar', 'tree_quota'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'avatar', 'tree_quota', 'role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+
+    protected $attributes = [
+        'role' => 'user',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -76,5 +80,10 @@ class User extends Authenticatable
     public function remainingTreeQuota(): int
     {
         return max(0, ($this->tree_quota ?? 1) - $this->ownedTreesCount());
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }

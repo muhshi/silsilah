@@ -22,7 +22,7 @@
         </a>
 
         <!-- Desktop Nav -->
-        <flux:navbar class="-mb-px max-lg:hidden ml-8">
+        <flux:navbar class="-mb-px max-lg:hidden ml-8 gap-2">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all
                           {{ request()->routeIs('dashboard')
     ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 shadow-sm border border-emerald-200/60 dark:border-emerald-800/60'
@@ -30,6 +30,13 @@
                 <span class="material-symbols-outlined text-base">dashboard</span>
                 Dashboard Silsilah
             </a>
+
+            @if(auth()->user()->isAdmin())
+                <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 transition-all shadow-2xs">
+                    <span>🛡️</span>
+                    Panel Superadmin
+                </a>
+            @endif
         </flux:navbar>
 
         <flux:spacer />
@@ -75,6 +82,12 @@
                         </div>
                     </div>
                     <flux:menu.separator />
+                    @if(auth()->user()->isAdmin())
+                        <flux:menu.item :href="route('admin.dashboard')" icon="shield-check" wire:navigate class="!rounded-lg text-xs font-bold !text-amber-700 dark:!text-amber-400 hover:!bg-amber-50 dark:hover:!bg-amber-950/40">
+                            {{ __('Panel Superadmin') }}
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                    @endif
                     <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate class="!rounded-lg text-xs font-medium">
                         {{ __('Pengaturan Akun') }}
                     </flux:menu.item>
@@ -110,6 +123,13 @@
                     :current="request()->routeIs('dashboard')" wire:navigate>
                     Dashboard
                 </flux:sidebar.item>
+
+                @if(auth()->user()->isAdmin())
+                    <flux:sidebar.item icon="shield-check" :href="route('admin.dashboard')"
+                        :current="request()->routeIs('admin.*')" wire:navigate>
+                        Panel Superadmin
+                    </flux:sidebar.item>
+                @endif
             </flux:sidebar.group>
         </flux:sidebar.nav>
     </flux:sidebar>

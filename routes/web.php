@@ -59,6 +59,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('tree.simple');
 });
 
+// Superadmin Area
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::view('/', 'admin.dashboard')->name('dashboard');
+    Route::view('users', 'admin.users')->name('users');
+    Route::view('orders', 'admin.orders')->name('orders');
+});
+
 // Public tree view (no auth required) - Default is Horizontal
 Route::get('public/tree/{slug}', function ($slug) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
