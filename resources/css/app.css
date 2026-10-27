@@ -78,6 +78,14 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    [type="button"]:not(:disabled),
+    [type="reset"]:not(:disabled),
+    [type="submit"]:not(:disabled) {
+        cursor: pointer;
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
