@@ -96,3 +96,26 @@ test('admin can trigger webhook simulation for pending order', function () {
     expect($order->isPaid())->toBeTrue()
         ->and($customer->tree_quota)->toBe(2);
 });
+
+test('admin can export orders to csv', function () {
+    $admin = User::factory()->admin()->create();
+    $customer = User::factory()->create([
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+    ]);
+
+    Order::create([
+        'user_id' => $customer->id,
+        'order_id' => 'ORDER-CSV-EXPORT',
+        'amount' => 10000,
+        'quota_count' => 1,
+        'status' => 'paid',
+        'payment_method' => 'QRIS',
+    ]);
+
+    $response = Livewire::actingAs($admin)
+        ->test('⚡admin-orders')
+        ->call('exportCsv');
+
+    $response->assertFileDownloaded();
+});

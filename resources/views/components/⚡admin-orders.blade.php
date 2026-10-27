@@ -104,6 +104,38 @@ new class extends Component
         session()->flash('success', "Pesanan {$order->order_id} ditandai sebagai EXPIRED.");
     }
 
+    public function exportCsv()
+    {
+        $orders = Order::with('user')->latest()->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="transaksi_silsilah_'.date('Ymd_His').'.csv"',
+        ];
+
+        $callback = function () use ($orders) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Order ID', 'Reference', 'Customer Name', 'Customer Email', 'Nominal (Rp)', 'Kuota Pohon', 'Status', 'Tanggal Transaksi']);
+
+            foreach ($orders as $order) {
+                fputcsv($handle, [
+                    $order->order_id,
+                    $order->reference ?? '-',
+                    $order->user?->name ?? 'User #'.$order->user_id,
+                    $order->user?->email ?? '-',
+                    $order->amount,
+                    $order->quota_count,
+                    strtoupper($order->status),
+                    $order->created_at?->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function with()
     {
         $query = Order::with('user')->latest();
@@ -157,9 +189,17 @@ new class extends Component
             </p>
         </div>
 
-        <!-- Search Bar -->
-        <div class="w-full sm:w-80">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari Order ID, customer, email..." icon="magnifying-glass" clearable />
+        <!-- Action & Search Toolbar -->
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <button wire:click="exportCsv"
+                    class="h-9 px-3.5 rounded-xl bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0"
+                    title="Unduh seluruh data transaksi dalam format CSV">
+                <span class="material-symbols-outlined text-base">download</span>
+                <span>Export CSV</span>
+            </button>
+            <div class="w-full sm:w-72">
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari Order ID, customer, email..." icon="magnifying-glass" clearable />
+            </div>
         </div>
     </div>
 

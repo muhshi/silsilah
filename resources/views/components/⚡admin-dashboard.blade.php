@@ -135,10 +135,10 @@ new class extends Component
         </div>
     </div>
 
-    <!-- 2 Column Layout: Recent Transactions & New Users -->
+    <!-- 2 Column Layout: Recent Transactions & New Users (Structured Mini-Tables) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Recent Orders Card -->
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
             <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                     <h3 class="font-bold text-sm text-zinc-900 dark:text-white">Transaksi Duitku Terkini</h3>
@@ -150,46 +150,65 @@ new class extends Component
                 </a>
             </div>
 
-            <div class="divide-y divide-zinc-100 dark:divide-zinc-800/80">
-                @forelse($recentOrders as $order)
-                    <div class="p-4 flex items-center justify-between gap-3 text-xs hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40 transition-colors">
-                        <div class="min-w-0">
-                            <p class="font-bold text-zinc-900 dark:text-white truncate">
-                                {{ $order->user?->name ?? 'User #'.$order->user_id }}
-                            </p>
-                            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mt-0.5 truncate">
-                                {{ $order->order_id }} &bull; {{ $order->created_at->diffForHumans() }}
-                            </p>
-                        </div>
-                        <div class="text-right flex items-center gap-2.5 shrink-0">
-                            <span class="font-bold text-zinc-900 dark:text-white text-xs">
-                                Rp {{ number_format($order->amount, 0, ',', '.') }}
-                            </span>
-                            @if($order->isPaid())
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
-                                    PAID
-                                </span>
-                            @elseif($order->status === 'pending')
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-                                    PENDING
-                                </span>
-                            @else
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                    {{ strtoupper($order->status) }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @empty
-                    <div class="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                        Belum ada transaksi kuota tercatat.
-                    </div>
-                @endforelse
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
+                            <th class="py-2.5 px-4">Pelanggan & ID</th>
+                            <th class="py-2.5 px-3">Waktu</th>
+                            <th class="py-2.5 px-3 text-right">Nominal</th>
+                            <th class="py-2.5 px-4 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                        @forelse($recentOrders as $order)
+                            <tr class="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/30 transition-colors">
+                                <td class="py-3 px-4">
+                                    <p class="font-bold text-zinc-900 dark:text-white truncate max-w-[170px] sm:max-w-none">
+                                        {{ $order->user?->name ?? 'User #'.$order->user_id }}
+                                    </p>
+                                    <p class="text-[10px] text-zinc-400 font-mono truncate">
+                                        {{ $order->order_id }} &bull; +{{ $order->quota_count }} Pohon
+                                    </p>
+                                </td>
+                                <td class="py-3 px-3 text-zinc-500 dark:text-zinc-400 text-[11px] whitespace-nowrap">
+                                    {{ $order->created_at->diffForHumans() }}
+                                </td>
+                                <td class="py-3 px-3 text-right font-bold text-zinc-900 dark:text-white whitespace-nowrap">
+                                    Rp {{ number_format($order->amount, 0, ',', '.') }}
+                                </td>
+                                <td class="py-3 px-4 text-right whitespace-nowrap">
+                                    @if($order->isPaid())
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                                            <span class="material-symbols-outlined text-[12px] leading-none">check</span>
+                                            <span>PAID</span>
+                                        </span>
+                                    @elseif($order->status === 'pending')
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <span>PENDING</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+                                            {{ strtoupper($order->status) }}
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                                    Belum ada transaksi kuota tercatat.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- Recent Registered Users Card -->
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
             <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                     <h3 class="font-bold text-sm text-zinc-900 dark:text-white">Pengguna Baru Bergabung</h3>
@@ -201,34 +220,57 @@ new class extends Component
                 </a>
             </div>
 
-            <div class="divide-y divide-zinc-100 dark:divide-zinc-800/80">
-                @forelse($recentUsers as $u)
-                    <div class="p-4 flex items-center justify-between gap-3 text-xs hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40 transition-colors">
-                        <div class="flex items-center gap-3 min-w-0">
-                            @if($u->avatar)
-                                <img src="{{ $u->avatar }}" class="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0" alt="">
-                            @else
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center font-bold text-[11px] shrink-0">
-                                    {{ $u->initials() }}
-                                </div>
-                            @endif
-                            <div class="min-w-0">
-                                <p class="font-bold text-zinc-900 dark:text-white truncate">{{ $u->name }}</p>
-                                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">{{ $u->email }}</p>
-                            </div>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                                Kuota: {{ $u->tree_quota ?? 1 }}
-                            </span>
-                            <p class="text-[10px] text-zinc-400 mt-0.5">{{ $u->family_trees_count }} pohon</p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                        Belum ada pengguna terdaftar.
-                    </div>
-                @endforelse
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
+                            <th class="py-2.5 px-4">Pengguna</th>
+                            <th class="py-2.5 px-3">Bergabung</th>
+                            <th class="py-2.5 px-3 text-center">Pohon</th>
+                            <th class="py-2.5 px-4 text-right">Kuota Tersedia</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                        @forelse($recentUsers as $u)
+                            <tr class="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/30 transition-colors">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-2.5">
+                                        @if($u->avatar)
+                                            <img src="{{ $u->avatar }}" class="w-7 h-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0" alt="">
+                                        @else
+                                            <div class="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center font-bold text-[10px] shrink-0">
+                                                {{ $u->initials() }}
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0 max-w-[150px] sm:max-w-none">
+                                            <p class="font-bold text-zinc-900 dark:text-white truncate">{{ $u->name }}</p>
+                                            <p class="text-[10px] text-zinc-400 truncate">{{ $u->email }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-3 text-zinc-500 dark:text-zinc-400 text-[11px] whitespace-nowrap">
+                                    {{ $u->created_at->diffForHumans() }}
+                                </td>
+                                <td class="py-3 px-3 text-center whitespace-nowrap font-medium text-zinc-700 dark:text-zinc-300">
+                                    <span class="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[11px] font-bold">
+                                        {{ $u->family_trees_count }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                                        {{ $u->tree_quota ?? 1 }} Kuota
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                                    Belum ada pengguna terdaftar.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
