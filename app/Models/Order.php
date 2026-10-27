@@ -46,6 +46,6 @@ class Order extends Model
 
     public function isPaid(): bool
     {
-        return $this->status === 'success';
+        return in_array($this->status, ['paid', 'success']);
     }
 }

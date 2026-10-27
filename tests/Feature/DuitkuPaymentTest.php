@@ -74,7 +74,8 @@ test('duitku callback with valid hmac signature updates order and adds user quot
     $response->assertSee('OK');
 
     $order->refresh();
-    expect($order->status)->toBe('success');
+    expect($order->isPaid())->toBeTrue();
+    expect($order->status)->toBe('paid');
     expect($order->paid_at)->not->toBeNull();
 
     $user->refresh();

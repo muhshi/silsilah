@@ -56,7 +56,7 @@ class DuitkuService
         $signature = hash_hmac('sha256', $stringToSign, $this->apiKey);
 
         $callbackUrl = route('duitku.callback');
-        $returnUrl = route('dashboard', ['payment' => 'success', 'order_id' => $orderId]);
+        $returnUrl = route('dashboard', ['order_id' => $orderId]);
 
         $payload = [
             'paymentAmount' => $amount,
@@ -148,7 +148,7 @@ class DuitkuService
 
         if ($order->status === 'pending') {
             $order->update([
-                'status' => 'success',
+                'status' => 'paid',
                 'paid_at' => now(),
                 'payment_method' => $callbackData['paymentCode'] ?? $callbackData['paymentMethod'] ?? 'QRIS',
                 'reference' => $callbackData['reference'] ?? $order->reference,

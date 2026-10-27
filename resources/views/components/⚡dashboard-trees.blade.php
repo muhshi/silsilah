@@ -88,6 +88,13 @@ new class extends Component
             $trees = $trees->where('is_premium', true);
         }
 
+        $recentOrder = null;
+        if (request()->filled('order_id')) {
+            $recentOrder = \App\Models\Order::where('order_id', request('order_id'))
+                ->where('user_id', $user->id)
+                ->first();
+        }
+
         return [
             'trees' => $trees,
             'totalMembers' => $totalMembers,
@@ -99,6 +106,7 @@ new class extends Component
             'treeQuota' => $treeQuota,
             'remainingQuota' => $remainingQuota,
             'hasAvailableQuota' => $hasAvailableQuota,
+            'recentOrder' => $recentOrder,
         ];
     }
 
@@ -114,8 +122,34 @@ new class extends Component
 ?>
 
 <div class="space-y-8 max-w-7xl mx-auto">
-    <!-- Flash Messages -->
-    @if(request('payment') === 'success')
+    <!-- Payment Feedback Messages -->
+    @if($recentOrder)
+        @if($recentOrder->isPaid())
+            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 shadow-sm">
+                <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">check_circle</span>
+                <div>
+                    <span class="font-bold text-sm block">Pembayaran Berhasil!</span>
+                    <span class="text-xs">Alhamdulillah, pembayaran untuk pesanan <strong>{{ $recentOrder->order_id }}</strong> berhasil diverifikasi dan kuota pohon silsilah Anda telah bertambah.</span>
+                </div>
+            </div>
+        @elseif($recentOrder->status === 'pending')
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300 shadow-sm">
+                <span class="material-symbols-outlined text-amber-600 dark:text-amber-400">hourglass_top</span>
+                <div>
+                    <span class="font-bold text-sm block">Menunggu Pembayaran</span>
+                    <span class="text-xs">Pesanan <strong>{{ $recentOrder->order_id }}</strong> masih berstatus PENDING. Silakan selesaikan pembayaran QRIS Anda atau tunggu beberapa saat jika baru saja melakukan pembayaran.</span>
+                </div>
+            </div>
+        @elseif($recentOrder->status === 'expired' || $recentOrder->status === 'failed')
+            <div class="bg-zinc-100 border border-zinc-300 text-zinc-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 shadow-sm">
+                <span class="material-symbols-outlined text-zinc-500">cancel</span>
+                <div>
+                    <span class="font-bold text-sm block">Pembayaran Belum Berhasil</span>
+                    <span class="text-xs">Pesanan <strong>{{ $recentOrder->order_id }}</strong> belum diselesaikan atau telah kedaluwarsa.</span>
+                </div>
+            </div>
+        @endif
+    @elseif(request('payment') === 'success')
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 shadow-sm">
             <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">check_circle</span>
             <div>
