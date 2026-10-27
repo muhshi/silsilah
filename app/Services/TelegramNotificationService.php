@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -13,18 +14,165 @@ class TelegramNotificationService
 
     protected ?string $adminChatId;
 
-    public function __construct()
+    public function __construct(?string $token = null, ?string $chatId = null)
     {
-        $this->botToken = config('services.telegram.bot_token');
-        $this->adminChatId = config('services.telegram.admin_chat_id');
+        $this->botToken = $token ?? Setting::get('telegram_bot_token', config('services.telegram.bot_token'));
+        $this->adminChatId = $chatId ?? Setting::get('telegram_admin_chat_id', config('services.telegram.admin_chat_id'));
     }
 
     /**
-     * Check if Telegram notifications are configured
+     * Check if Telegram notifications are configured and enabled
      */
     public function isConfigured(): bool
     {
         return ! empty($this->botToken) && ! empty($this->adminChatId);
+    }
+
+    public function isEnabled(): bool
+    {
+        return $this->isConfigured() && Setting::get('telegram_enabled', '1') !== '0';
+    }
+
+    public function getBotToken(): ?string
+    {
+        return $this->botToken;
+    }
+
+    public function getAdminChatId(): ?string
+    {
+        return $this->adminChatId;
+    }
+
+    /**
+     * Get basic info about the configured bot from Telegram getMe
+     *
+     * @return array{ok: bool, username?: string, first_name?: string, error?: string}
+     */
+    public function getBotInfo(?string $token = null): array
+    {
+        $token = $token ?: $this->botToken;
+
+        if (empty($token)) {
+            return ['ok' => false, 'error' => 'Bot token belum diisi.'];
+        }
+
+        try {
+            $response = Http::timeout(5)->get("https://api.telegram.org/bot{$token}/getMe");
+
+            if (! $response->successful()) {
+                return ['ok' => false, 'error' => 'Token bot tidak valid atau ditolak Telegram.'];
+            }
+
+            $data = $response->json();
+            $result = $data['result'] ?? [];
+
+            return [
+                'ok' => true,
+                'username' => $result['username'] ?? '',
+                'first_name' => $result['first_name'] ?? '',
+            ];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'error' => 'Koneksi ke Telegram gagal: '.$e->getMessage()];
+        }
+    }
+
+    /**
+     * Automatically detect the latest chat ID from users who sent /start to the bot
+     *
+     * @return array{ok: bool, chat_id?: string, sender?: string, message?: string, error?: string}
+     */
+    public function detectChatId(?string $token = null): array
+    {
+        $token = $token ?: $this->botToken;
+
+        if (empty($token)) {
+            return ['ok' => false, 'error' => 'Masukkan Bot Token terlebih dahulu sebelum mendeteksi Chat ID.'];
+        }
+
+        try {
+            $response = Http::timeout(5)->get("https://api.telegram.org/bot{$token}/getUpdates");
+
+            if (! $response->successful()) {
+                return ['ok' => false, 'error' => 'Gagal mengambil data dari Telegram. Pastikan Bot Token benar.'];
+            }
+
+            $data = $response->json();
+            $updates = $data['result'] ?? [];
+
+            if (empty($updates)) {
+                return [
+                    'ok' => false,
+                    'error' => "Belum ada pesan yang diterima bot. Buka Telegram, cari bot Anda, lalu klik tombol 'Start' atau kirim pesan apa saja.",
+                ];
+            }
+
+            // Get latest message with chat ID
+            $latest = end($updates);
+            $msg = $latest['message'] ?? $latest['my_chat_member'] ?? $latest['channel_post'] ?? null;
+
+            if (! $msg || empty($msg['chat']['id'])) {
+                return ['ok' => false, 'error' => 'Pesan diterima tetapi tidak memiliki format Chat ID yang valid.'];
+            }
+
+            $chatId = (string) $msg['chat']['id'];
+            $from = $msg['from'] ?? $msg['chat'] ?? [];
+            $senderName = trim(($from['first_name'] ?? '').' '.($from['last_name'] ?? ''));
+            $username = $from['username'] ?? '';
+            $senderDisplay = $senderName.($username ? " (@{$username})" : '');
+
+            return [
+                'ok' => true,
+                'chat_id' => $chatId,
+                'sender' => $senderDisplay ?: "ID {$chatId}",
+                'message' => "Berhasil mendeteksi Chat ID: {$chatId} dari {$senderDisplay}!",
+            ];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'error' => 'Gagal mendeteksi Chat ID: '.$e->getMessage()];
+        }
+    }
+
+    /**
+     * Send test message to verify Telegram credentials
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function testConnection(?string $token = null, ?string $chatId = null): array
+    {
+        $token = $token ?: $this->botToken;
+        $chatId = $chatId ?: $this->adminChatId;
+
+        if (empty($token) || empty($chatId)) {
+            return ['ok' => false, 'message' => 'Bot Token dan Chat ID wajib diisi untuk melakukan tes kirim pesan.'];
+        }
+
+        $now = now()->format('d M Y H:i:s');
+        $text = "🌿 <b>TES KONEKSI TELEGRAM BERHASIL</b>\n";
+        $text .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $text .= "Halo! Bot Telegram berhasil terhubung dengan sistem <b>Silsilah Digital</b>.\n";
+        $text .= "🕒 <b>Waktu Tes:</b> {$now} WIB\n";
+        $text .= '🛡️ <i>Semua notifikasi transaksi QRIS dan backup database akan dikirim ke sini.</i>';
+
+        try {
+            $response = Http::timeout(5)->post("https://api.telegram.org/bot{$token}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'HTML',
+            ]);
+
+            if ($response->successful()) {
+                return [
+                    'ok' => true,
+                    'message' => 'Pesan uji coba berhasil dikirim! Silakan periksa aplikasi Telegram Anda.',
+                ];
+            }
+
+            $data = $response->json();
+            $desc = $data['description'] ?? 'Tolak koneksi oleh server Telegram.';
+
+            return ['ok' => false, 'message' => "Telegram API Error: {$desc}"];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'message' => 'Gagal menghubungi server Telegram: '.$e->getMessage()];
+        }
     }
 
     /**
@@ -32,8 +180,8 @@ class TelegramNotificationService
      */
     public function sendOrderPaidNotification(Order $order): bool
     {
-        if (! $this->isConfigured()) {
-            Log::debug('TelegramNotificationService: bot_token or admin_chat_id not configured, skipping notification.');
+        if (! $this->isEnabled()) {
+            Log::debug('TelegramNotificationService: not configured or disabled, skipping notification.');
 
             return false;
         }
@@ -74,7 +222,7 @@ class TelegramNotificationService
      */
     public function sendBackupNotification(string $filename, string $fileSize): bool
     {
-        if (! $this->isConfigured()) {
+        if (! $this->isEnabled()) {
             return false;
         }
 

@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::view('orders', 'admin.orders')->name('orders');
     Route::view('pricing', 'admin.pricing')->name('pricing');
     Route::view('activities', 'admin.activities')->name('activities');
+    Route::view('settings', 'admin.settings')->name('settings');
     Route::get('backup/download', [AdminBackupController::class, 'download'])->name('backup.download');
     Route::post('impersonate/{user}', [AdminImpersonationController::class, 'impersonate'])->name('impersonate');
 });

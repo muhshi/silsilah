@@ -68,6 +68,10 @@
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.activities')" :current="request()->routeIs('admin.activities')" wire:navigate>
                             {{ __('Log Aktivitas') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="cog-6-tooth" :href="route('admin.settings')" :current="request()->routeIs('admin.settings')" wire:navigate>
+                            {{ __('Pengaturan & Bot') }}
+                        </flux:sidebar.item>
                     </div>
                 </div>
 
@@ -170,6 +174,8 @@
                             Paket & Harga
                         @elseif(request()->routeIs('admin.activities'))
                             Log Aktivitas
+                        @elseif(request()->routeIs('admin.settings'))
+                            Pengaturan & Bot
                         @else
                             Dashboard
                         @endif
