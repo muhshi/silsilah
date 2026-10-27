@@ -330,11 +330,9 @@ new class extends Component
                 <span class="text-4xl block mb-3">🔍</span>
                 <h3 class="text-base font-bold text-zinc-800 dark:text-zinc-200">Tidak ada silsilah ditemukan</h3>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">Coba ganti kata kunci pencarian atau buat pohon silsilah keluarga baru.</p>
-                <flux:modal.trigger name="create-tree-modal">
-                    <button class="mt-4 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors">
-                        + Buat Silsilah Baru
-                    </button>
-                </flux:modal.trigger>
+                <button wire:click="openCreateTree" class="mt-4 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors">
+                    + Buat Silsilah Baru
+                </button>
             </div>
         @endforelse
     </div>
