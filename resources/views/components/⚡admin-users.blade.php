@@ -109,16 +109,17 @@ new class extends Component
 
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
         <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 mb-2">
-                <span>👥</span> Pengguna & Hak Akses
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-sky-50 text-sky-800 dark:bg-sky-950/80 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60 mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                Manajemen Pengguna
             </div>
-            <h1 class="text-3xl font-extrabold text-zinc-900 dark:text-white font-headline tracking-tight">
-                Manajemen Pengguna & Kuota
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white font-headline tracking-tight">
+                Direktori Pengguna & Hak Akses
             </h1>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                Kelola akun pengguna, berikan kuota pohon secara manual jika terjadi kendala pembayaran, atau atur peran admin.
+            <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                Kelola akun pengguna, pantau jumlah pohon, dan berikan kuota pohon secara manual.
             </p>
         </div>
 
@@ -176,11 +177,11 @@ new class extends Component
                             </td>
                             <td class="py-3.5 px-4">
                                 @if($user->role === 'admin')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300/40">
-                                        🛡️ ADMIN
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                        ADMIN
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                                         USER
                                     </span>
                                 @endif
@@ -189,38 +190,41 @@ new class extends Component
                                 {{ $user->family_trees_count }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-xl text-xs font-bold {{ ($user->tree_quota ?? 1) > 1 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300' }}">
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-xs font-bold {{ ($user->tree_quota ?? 1) > 1 ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }}">
                                     {{ $user->tree_quota ?? 1 }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-zinc-500 dark:text-zinc-400 text-[11px]">
                                 {{ $user->created_at?->translatedFormat('d M Y') ?? '-' }}
                             </td>
-                            <td class="py-3.5 px-5 text-right space-x-1.5">
-                                <!-- Quick Add +1 Quota -->
-                                <button wire:click="quickAddQuota({{ $user->id }}, 1)"
-                                        title="Tambah +1 Kuota Langsung"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 dark:text-emerald-300 font-bold text-[11px] border border-emerald-200 dark:border-emerald-800 transition-all shadow-2xs">
-                                    <span class="material-symbols-outlined text-sm">add</span>
-                                    +1 Kuota
-                                </button>
-
-                                <!-- Custom Adjust Quota Modal Button -->
-                                <button wire:click="setTargetUser({{ $user->id }})"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-200 font-semibold text-[11px] transition-all">
-                                    <span class="material-symbols-outlined text-sm">tune</span>
-                                    Atur
-                                </button>
-
-                                <!-- Toggle Admin Role Button -->
-                                @if($user->id !== auth()->id())
-                                    <button wire:click="toggleAdminRole({{ $user->id }})"
-                                            wire:confirm="Yakin ingin mengubah peran pengguna ini?"
-                                            class="inline-flex items-center px-2 py-1.5 rounded-xl text-[10px] font-semibold text-zinc-400 hover:text-amber-700 dark:hover:text-amber-400 transition-colors"
-                                            title="Ubah Role Admin/User">
-                                        {{ $user->role === 'admin' ? 'Jadikan User' : 'Jadikan Admin' }}
+                            <td class="py-3.5 px-5 text-right">
+                                <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                                    <!-- Quick Add +1 Quota -->
+                                    <button wire:click="quickAddQuota({{ $user->id }}, 1)"
+                                            title="Tambah +1 Kuota Langsung"
+                                            class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800 transition-all shrink-0">
+                                        <span class="material-symbols-outlined text-sm">add</span>
+                                        <span>+1 Kuota</span>
                                     </button>
-                                @endif
+
+                                    <!-- Custom Adjust Quota Modal Button -->
+                                    <button wire:click="setTargetUser({{ $user->id }})"
+                                            title="Atur kuota khusus"
+                                            class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 font-semibold text-xs border border-zinc-200/80 dark:border-zinc-700 transition-all shrink-0">
+                                        <span class="material-symbols-outlined text-sm">tune</span>
+                                        <span>Atur</span>
+                                    </button>
+
+                                    <!-- Toggle Admin Role Button -->
+                                    @if($user->id !== auth()->id())
+                                        <button wire:click="toggleAdminRole({{ $user->id }})"
+                                                wire:confirm="Yakin ingin mengubah peran pengguna ini?"
+                                                class="inline-flex items-center justify-center h-7 px-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors shrink-0"
+                                                title="Ubah Role Admin/User">
+                                            {{ $user->role === 'admin' ? 'Jadikan User' : 'Jadikan Admin' }}
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

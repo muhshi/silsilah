@@ -5,95 +5,109 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-background text-on-surface dark:bg-zinc-900 font-body">
-    <!-- Admin Top Header Navigation -->
-    <flux:header container
-        class="border-b border-amber-200/60 bg-white/90 backdrop-blur-xl sticky top-0 z-50 dark:bg-zinc-900/90 dark:border-amber-950/60 transition-all">
-        <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
+<body class="min-h-screen bg-zinc-50/60 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-body antialiased flex flex-col lg:flex-row">
+    @php
+        $pendingOrdersCount = \App\Models\Order::where('status', 'pending')->count();
+    @endphp
 
-        <!-- Logo & Admin Badge -->
-        <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-3 group">
-            <div class="w-9 h-9 bg-amber-500/10 dark:bg-amber-500/20 rounded-xl flex items-center justify-center shadow-xs border border-amber-300/40 dark:border-amber-700/40 group-hover:scale-105 transition-all p-1">
-                <span class="text-xl">🛡️</span>
-            </div>
-            <div class="flex flex-col">
+    <!-- Left Sticky Sidebar (Desktop & Mobile Drawer) -->
+    <flux:sidebar sticky collapsible="mobile" class="w-64 lg:w-72 border-e border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-900/95 flex flex-col justify-between shrink-0 shadow-xs">
+        <div>
+            <!-- Sidebar Brand Header -->
+            <flux:sidebar.header class="pb-4 pt-2">
+                <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-all p-1.5">
+                        <img src="{{ asset('images/logo-transparent.png') }}" class="w-full h-full object-contain filter brightness-0 invert" alt="Silsilah">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-headline font-extrabold text-zinc-900 dark:text-white text-base tracking-tight leading-none">Silsilah</span>
+                            <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/40">
+                                ADMIN
+                            </span>
+                        </div>
+                        <span class="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">Control Panel</span>
+                    </div>
+                </a>
+
+                <flux:sidebar.collapse class="lg:hidden" />
+            </flux:sidebar.header>
+
+            <!-- Navigation Groups -->
+            <flux:sidebar.nav class="space-y-6 pt-2">
+                <!-- Group 1: Ikhtisar -->
+                <flux:sidebar.group :heading="__('Ikhtisar')" class="grid gap-1">
+                    <flux:sidebar.item icon="layout-grid" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
+                        {{ __('Ringkasan KPI') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <!-- Group 2: Manajemen SaaS -->
+                <flux:sidebar.group :heading="__('Manajemen SaaS')" class="grid gap-1">
+                    <flux:sidebar.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>
+                        {{ __('Pengguna & Kuota') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="credit-card" :href="route('admin.orders')" :current="request()->routeIs('admin.orders')" wire:navigate class="flex items-center justify-between">
+                        <span>{{ __('Transaksi Duitku') }}</span>
+                        @if($pendingOrdersCount > 0)
+                            <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                                {{ $pendingOrdersCount }}
+                            </span>
+                        @endif
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <!-- Group 3: Navigasi App -->
+                <flux:sidebar.group :heading="__('Aplikasi')" class="grid gap-1">
+                    <flux:sidebar.item icon="arrow-left" :href="route('dashboard')" wire:navigate>
+                        {{ __('Kembali ke Silsilah') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+            </flux:sidebar.nav>
+        </div>
+
+        <!-- Sidebar Footer: Admin Profile & System Status -->
+        <div class="pt-4 pb-2 border-t border-zinc-100 dark:border-zinc-800/80 space-y-3">
+            <!-- System Pulse Indicator -->
+            <div class="px-3 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-2">
-                    <span class="font-headline font-extrabold text-zinc-900 dark:text-white text-base tracking-tight leading-none">Superadmin</span>
-                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300/50 dark:border-amber-700/50">PRO</span>
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">Gateway Status</span>
                 </div>
-                <span class="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest leading-tight mt-0.5">Silsilah Platform Management</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded {{ config('services.duitku.is_production') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' }}">
+                    {{ config('services.duitku.is_production') ? 'PRODUCTION' : 'SANDBOX' }}
+                </span>
             </div>
-        </a>
 
-        <!-- Desktop Admin Nav -->
-        <flux:navbar class="-mb-px max-lg:hidden ml-8 gap-1">
-            <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all
-                {{ request()->routeIs('admin.dashboard')
-                    ? 'bg-amber-100/70 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/60'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60' }}">
-                <span class="material-symbols-outlined text-base">dashboard</span>
-                Ringkasan KPI
-            </a>
-
-            <a href="{{ route('admin.users') }}" wire:navigate class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all
-                {{ request()->routeIs('admin.users')
-                    ? 'bg-amber-100/70 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/60'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60' }}">
-                <span class="material-symbols-outlined text-base">group</span>
-                Pengguna & Kuota
-            </a>
-
-            <a href="{{ route('admin.orders') }}" wire:navigate class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all
-                {{ request()->routeIs('admin.orders')
-                    ? 'bg-amber-100/70 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/60'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60' }}">
-                <span class="material-symbols-outlined text-base">receipt_long</span>
-                Transaksi Duitku
-            </a>
-        </flux:navbar>
-
-        <flux:spacer />
-
-        <!-- Switch back to user app & Profile -->
-        <div class="flex items-center gap-3">
-            <a href="{{ route('dashboard') }}" wire:navigate class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all">
-                <span class="material-symbols-outlined text-sm">arrow_back</span>
-                Kembali ke App
-            </a>
-
-            <!-- User Dropdown -->
-            <flux:dropdown position="bottom" align="end">
-                <button
-                    class="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-full bg-zinc-100/80 hover:bg-zinc-200/80 dark:bg-zinc-800/80 dark:hover:bg-zinc-700/80 border border-zinc-200/60 dark:border-zinc-700/60 transition-all group">
+            <!-- Admin Profile Menu -->
+            <flux:dropdown position="top" align="start">
+                <button class="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors text-left group">
                     @if(auth()->user()->avatar)
-                        <img src="{{ auth()->user()->avatar }}"
-                            class="w-7 h-7 rounded-full object-cover border border-amber-500/40"
-                            alt="{{ auth()->user()->name }}">
+                        <img src="{{ auth()->user()->avatar }}" class="w-9 h-9 rounded-full object-cover border border-emerald-500/40 shrink-0" alt="">
                     @else
-                        <div
-                            class="w-7 h-7 rounded-full bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-white text-[11px] font-extrabold shadow-sm">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-600 to-teal-800 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
                             {{ auth()->user()->initials() }}
                         </div>
                     @endif
-                    <span class="text-xs font-bold text-zinc-800 dark:text-zinc-200 max-md:hidden">{{ auth()->user()->name }}</span>
-                    <span
-                        class="material-symbols-outlined text-sm text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 max-md:hidden">expand_more</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-zinc-900 dark:text-white truncate">{{ auth()->user()->name }}</p>
+                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">{{ auth()->user()->email }}</p>
+                    </div>
+                    <span class="material-symbols-outlined text-sm text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200">unfold_more</span>
                 </button>
 
                 <flux:menu class="w-60 !rounded-2xl p-1.5 shadow-xl border border-zinc-200 dark:border-zinc-800">
-                    <div class="flex items-center gap-3 px-3 py-3 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl mb-1">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-bold text-zinc-900 dark:text-white truncate">{{ auth()->user()->name }}</p>
-                            <p class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold uppercase tracking-wider">Superadmin</p>
-                        </div>
-                    </div>
-                    <flux:menu.separator />
                     <flux:menu.item :href="route('dashboard')" icon="home" wire:navigate class="!rounded-lg text-xs font-medium">
-                        {{ __('Aplikasi Silsilah') }}
+                        {{ __('Buka Dashboard User') }}
                     </flux:menu.item>
                     <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate class="!rounded-lg text-xs font-medium">
                         {{ __('Pengaturan Akun') }}
                     </flux:menu.item>
+                    <flux:menu.separator />
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle"
@@ -104,39 +118,49 @@
                 </flux:menu>
             </flux:dropdown>
         </div>
-    </flux:header>
-
-    <!-- Admin Mobile Menu -->
-    <flux:sidebar collapsible="mobile" sticky
-        class="lg:hidden border-e border-amber-200/50 bg-white dark:bg-zinc-900 text-on-surface">
-        <flux:sidebar.header>
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">🛡️</span>
-                <span class="font-bold text-sm">Superadmin Panel</span>
-            </div>
-            <flux:sidebar.collapse class="lg:hidden" />
-        </flux:sidebar.header>
-
-        <flux:sidebar.nav>
-            <flux:sidebar.item icon="layout-grid" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
-                {{ __('Ringkasan KPI') }}
-            </flux:sidebar.item>
-            <flux:sidebar.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>
-                {{ __('Pengguna & Kuota') }}
-            </flux:sidebar.item>
-            <flux:sidebar.item icon="credit-card" :href="route('admin.orders')" :current="request()->routeIs('admin.orders')" wire:navigate>
-                {{ __('Transaksi Duitku') }}
-            </flux:sidebar.item>
-            <flux:separator />
-            <flux:sidebar.item icon="arrow-left" :href="route('dashboard')" wire:navigate>
-                {{ __('Kembali ke Aplikasi') }}
-            </flux:sidebar.item>
-        </flux:sidebar.nav>
     </flux:sidebar>
 
-    <flux:main container class="py-6 sm:py-8 space-y-6">
-        {{ $slot }}
-    </flux:main>
+    <!-- Main Content Wrapper with Topbar -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Navigation Bar inside Workspace -->
+        <header class="h-16 px-4 lg:px-8 border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+
+                <!-- Dynamic Breadcrumbs -->
+                <div class="flex items-center gap-2 text-xs">
+                    <a href="{{ route('admin.dashboard') }}" wire:navigate class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 font-medium">
+                        Superadmin
+                    </a>
+                    <span class="text-zinc-400">/</span>
+                    <span class="font-bold text-zinc-900 dark:text-white">
+                        @if(request()->routeIs('admin.dashboard'))
+                            Ringkasan KPI
+                        @elseif(request()->routeIs('admin.users'))
+                            Pengguna & Kuota
+                        @elseif(request()->routeIs('admin.orders'))
+                            Transaksi Duitku
+                        @else
+                            Dashboard
+                        @endif
+                    </span>
+                </div>
+            </div>
+
+            <!-- Topbar Quick Info -->
+            <div class="flex items-center gap-3">
+                <a href="{{ route('dashboard') }}" wire:navigate class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all">
+                    <span class="material-symbols-outlined text-sm">home</span>
+                    Lihat Aplikasi Utama
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+            {{ $slot }}
+        </main>
+    </div>
 
     @fluxScripts
 </body>
