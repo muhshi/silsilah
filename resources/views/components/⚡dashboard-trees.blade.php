@@ -133,12 +133,25 @@ new class extends Component
                 </div>
             </div>
         @elseif($recentOrder->status === 'pending')
-            <div class="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300 shadow-sm">
-                <span class="material-symbols-outlined text-amber-600 dark:text-amber-400">hourglass_top</span>
-                <div>
-                    <span class="font-bold text-sm block">Menunggu Pembayaran</span>
-                    <span class="text-xs">Pesanan <strong>{{ $recentOrder->order_id }}</strong> masih berstatus PENDING. Silakan selesaikan pembayaran QRIS Anda atau tunggu beberapa saat jika baru saja melakukan pembayaran.</span>
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 px-5 py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200 shadow-sm">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-2xl shrink-0">hourglass_top</span>
+                    <div>
+                        <span class="font-bold text-sm block">Menunggu Pembayaran</span>
+                        <span class="text-xs text-amber-800 dark:text-amber-300">
+                            Pesanan <strong>{{ $recentOrder->order_id }}</strong> masih berstatus PENDING. Silakan selesaikan pembayaran QRIS Anda atau tunggu beberapa saat jika baru saja melakukan pembayaran.
+                        </span>
+                    </div>
                 </div>
+                @if($recentOrder->payment_url)
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a href="{{ $recentOrder->payment_url }}" target="_blank"
+                           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-bold shadow-md shadow-amber-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                            <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+                            Lanjut Bayar QRIS &rarr;
+                        </a>
+                    </div>
+                @endif
             </div>
         @elseif($recentOrder->status === 'expired' || $recentOrder->status === 'failed')
             <div class="bg-zinc-100 border border-zinc-300 text-zinc-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 shadow-sm">

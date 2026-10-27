@@ -253,35 +253,43 @@ new class extends Component
                                 {{ $order->created_at?->translatedFormat('d M Y, H:i') ?? '-' }}
                                 <span class="block text-[10px] text-zinc-400">{{ $order->created_at?->diffForHumans() }}</span>
                             </td>
-                            <td class="py-3.5 px-5 text-right space-x-1.5">
+                            <td class="py-3.5 px-5 text-right">
                                 @if(! $order->isPaid())
-                                    <button wire:click="simulateWebhook({{ $order->id }})"
-                                            wire:confirm="Simulasikan kiriman Webhook Callback Duitku (QRIS Sukses) untuk pesanan ini?"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:hover:bg-amber-900 dark:text-amber-300 border border-amber-300/70 dark:border-amber-800 font-bold text-[11px] transition-all"
-                                            title="Simulasikan Webhook Duitku (Uji Coba Integrasi)">
-                                        <span>🧪</span>
-                                        Simulasi Webhook
-                                    </button>
-
-                                    <button wire:click="manualVerifyOrder({{ $order->id }})"
-                                            wire:confirm="Konfirmasi manual pesanan ini dan otomatis tambahkan kuota pohon ke pengguna?"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-[11px] shadow-sm transition-all">
-                                        <span class="material-symbols-outlined text-sm">verified</span>
-                                        Verifikasi Manual
-                                    </button>
-
-                                    @if($order->status === 'pending')
-                                        <button wire:click="markAsExpired({{ $order->id }})"
-                                                wire:confirm="Tandai pesanan ini sebagai EXPIRED?"
-                                                class="inline-flex items-center px-2 py-1.5 rounded-xl text-[10px] font-semibold text-zinc-400 hover:text-red-600 transition-colors">
-                                            Expired
+                                    <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                                        <!-- Button 1: Simulasi Webhook -->
+                                        <button wire:click="simulateWebhook({{ $order->id }})"
+                                                wire:confirm="Simulasikan kiriman Webhook Callback Duitku (QRIS Sukses) untuk pesanan ini?"
+                                                title="Simulasikan Webhook Duitku (Uji Coba Integrasi)"
+                                                class="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:hover:bg-amber-900 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/80 text-xs font-bold transition-all shrink-0">
+                                            <span class="text-xs">🧪</span>
+                                            <span>Simulasi Webhook</span>
                                         </button>
-                                    @endif
+
+                                        <!-- Button 2: Verifikasi Manual -->
+                                        <button wire:click="manualVerifyOrder({{ $order->id }})"
+                                                wire:confirm="Konfirmasi manual pesanan ini dan otomatis tambahkan kuota pohon ke pengguna?"
+                                                title="Konfirmasi status bayar & tambah kuota langsung"
+                                                class="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 text-xs font-bold shadow-xs transition-all shrink-0">
+                                            <span class="material-symbols-outlined text-sm">verified</span>
+                                            <span>Verifikasi Manual</span>
+                                        </button>
+
+                                        <!-- Button 3: Expired -->
+                                        @if($order->status === 'pending')
+                                            <button wire:click="markAsExpired({{ $order->id }})"
+                                                    wire:confirm="Tandai pesanan ini sebagai EXPIRED?"
+                                                    title="Tandai pesanan kedaluwarsa"
+                                                    class="inline-flex items-center justify-center gap-1 h-8 px-2.5 rounded-xl bg-zinc-100 hover:bg-red-50 text-zinc-600 hover:text-red-600 dark:bg-zinc-700/60 dark:hover:bg-red-950/40 dark:text-zinc-400 dark:hover:text-red-400 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold transition-all shrink-0">
+                                                <span class="material-symbols-outlined text-xs">close</span>
+                                                <span>Expired</span>
+                                            </button>
+                                        @endif
+                                    </div>
                                 @else
-                                    <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-1">
-                                        <span class="material-symbols-outlined text-sm">check</span>
-                                        Tuntas
-                                    </span>
+                                    <div class="flex items-center justify-end gap-1.5 h-8 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                                        <span class="material-symbols-outlined text-base">check_circle</span>
+                                        <span>Tuntas (PAID)</span>
+                                    </div>
                                 @endif
                             </td>
                         </tr>

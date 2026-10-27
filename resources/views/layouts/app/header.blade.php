@@ -32,8 +32,11 @@
             </a>
 
             @if(auth()->user()->isAdmin())
-                <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 transition-all shadow-2xs">
-                    <span>🛡️</span>
+                <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all
+                              {{ request()->routeIs('admin.*')
+        ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 shadow-sm border border-amber-300/60 dark:border-amber-800/60'
+        : 'text-amber-800 dark:text-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60' }}">
+                    <span class="material-symbols-outlined text-base text-amber-600 dark:text-amber-400">admin_panel_settings</span>
                     Panel Superadmin
                 </a>
             @endif
