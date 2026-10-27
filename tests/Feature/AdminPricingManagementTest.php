@@ -58,3 +58,31 @@ test('admin can update pricing package details', function () {
     expect($package->price)->toBe(12000);
     expect($package->badge)->toBe('BEST VALUE');
 });
+
+test('admin can set seasonal schedule on pricing package', function () {
+    $admin = User::factory()->admin()->create();
+
+    $package = PricingPackage::where('slug', 'promo-idul-fitri')->firstOrFail();
+
+    Livewire::actingAs($admin)
+        ->test('admin-pricing')
+        ->call('editPackage', $package->id)
+        ->call('setRamadanPreset', 2026)
+        ->call('updatePackage');
+
+    $package->refresh();
+    expect($package->starts_at)->not->toBeNull()
+        ->and($package->ends_at)->not->toBeNull()
+        ->and($package->starts_at->year)->toBe(2026);
+
+    // Test clear schedule
+    Livewire::actingAs($admin)
+        ->test('admin-pricing')
+        ->call('editPackage', $package->id)
+        ->call('clearSchedule')
+        ->call('updatePackage');
+
+    $package->refresh();
+    expect($package->starts_at)->toBeNull()
+        ->and($package->ends_at)->toBeNull();
+});

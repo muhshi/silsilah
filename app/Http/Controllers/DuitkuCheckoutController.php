@@ -49,6 +49,18 @@ class DuitkuCheckoutController extends Controller
                 return back()->with('error', 'Paket ini sedang tidak aktif.');
             }
 
+            if (! $package->isAvailableNow()) {
+                $msg = 'Paket ini berada di luar periode promo yang ditentukan.';
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                    ], 422);
+                }
+
+                return back()->with('error', $msg);
+            }
+
             if (! $package->canUserPurchase($user)) {
                 $msg = 'Anda sudah pernah menggunakan promo ini sebelumnya.';
                 if ($request->wantsJson()) {

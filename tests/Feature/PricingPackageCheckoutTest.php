@@ -101,3 +101,85 @@ test('inactive package cannot be checked out', function () {
     $response->assertRedirect(route('dashboard'));
     $response->assertSessionHas('error', 'Paket ini sedang tidak aktif.');
 });
+
+test('package outside seasonal schedule cannot be checked out', function () {
+    $user = User::factory()->create();
+
+    // Past package (expired)
+    $expiredPackage = PricingPackage::create([
+        'name' => 'Promo Lebaran Tahun Lalu',
+        'slug' => 'promo-lebaran-lalu',
+        'tree_quota' => 2,
+        'price' => 10000,
+        'is_active' => true,
+        'starts_at' => now()->subMonths(2),
+        'ends_at' => now()->subMonth(),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->from(route('dashboard'))
+        ->post(route('orders.checkout'), [
+            'package_id' => $expiredPackage->id,
+        ]);
+
+    $response->assertRedirect(route('dashboard'));
+    $response->assertSessionHas('error', 'Paket ini berada di luar periode promo yang ditentukan.');
+
+    // Future package (not started yet)
+    $futurePackage = PricingPackage::create([
+        'name' => 'Promo Lebaran Tahun Depan',
+        'slug' => 'promo-lebaran-depan',
+        'tree_quota' => 2,
+        'price' => 10000,
+        'is_active' => true,
+        'starts_at' => now()->addMonth(),
+        'ends_at' => now()->addMonths(2),
+    ]);
+
+    $response2 = $this->actingAs($user)
+        ->from(route('dashboard'))
+        ->post(route('orders.checkout'), [
+            'package_id' => $futurePackage->id,
+        ]);
+
+    $response2->assertRedirect(route('dashboard'));
+    $response2->assertSessionHas('error', 'Paket ini berada di luar periode promo yang ditentukan.');
+});
+
+test('scopeActive filters out packages outside seasonal schedule', function () {
+    $expired = PricingPackage::create([
+        'name' => 'Expired Promo',
+        'slug' => 'expired-promo',
+        'tree_quota' => 1,
+        'price' => 10000,
+        'is_active' => true,
+        'starts_at' => now()->subWeeks(4),
+        'ends_at' => now()->subWeek(),
+    ]);
+
+    $upcoming = PricingPackage::create([
+        'name' => 'Upcoming Promo',
+        'slug' => 'upcoming-promo',
+        'tree_quota' => 1,
+        'price' => 10000,
+        'is_active' => true,
+        'starts_at' => now()->addWeek(),
+        'ends_at' => now()->addWeeks(4),
+    ]);
+
+    $current = PricingPackage::create([
+        'name' => 'Current Seasonal Promo',
+        'slug' => 'current-seasonal-promo',
+        'tree_quota' => 1,
+        'price' => 10000,
+        'is_active' => true,
+        'starts_at' => now()->subDays(5),
+        'ends_at' => now()->addDays(10),
+    ]);
+
+    $activeSlugs = PricingPackage::active()->pluck('slug')->toArray();
+
+    expect($activeSlugs)->toContain('current-seasonal-promo')
+        ->and($activeSlugs)->not->toContain('expired-promo')
+        ->and($activeSlugs)->not->toContain('upcoming-promo');
+});

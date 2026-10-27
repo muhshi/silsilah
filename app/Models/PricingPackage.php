@@ -21,6 +21,8 @@ class PricingPackage extends Model
         'description',
         'is_one_time_per_user',
         'is_active',
+        'starts_at',
+        'ends_at',
         'sort_order',
     ];
 
@@ -32,6 +34,8 @@ class PricingPackage extends Model
         return [
             'is_one_time_per_user' => 'boolean',
             'is_active' => 'boolean',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
             'tree_quota' => 'integer',
             'price' => 'integer',
             'original_price' => 'integer',
@@ -40,13 +44,46 @@ class PricingPackage extends Model
     }
 
     /**
-     * Scope to only active packages sorted by sort_order
+     * Check if package is available at current moment based on schedule
+     */
+    public function isAvailableNow(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $now = now();
+
+        if ($this->starts_at && $this->starts_at->isFuture()) {
+            return false;
+        }
+
+        if ($this->ends_at && $this->ends_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Scope to only active and currently scheduled packages sorted by sort_order
      *
      * @param  Builder<PricingPackage>  $query
      */
     public function scopeActive(Builder $query): void
     {
-        $query->where('is_active', true)->orderBy('sort_order');
+        $now = now();
+
+        $query->where('is_active', true)
+            ->where(function (Builder $q) use ($now) {
+                $q->whereNull('starts_at')
+                    ->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function (Builder $q) use ($now) {
+                $q->whereNull('ends_at')
+                    ->orWhere('ends_at', '>=', $now);
+            })
+            ->orderBy('sort_order');
     }
 
     /**
@@ -54,7 +91,7 @@ class PricingPackage extends Model
      */
     public function canUserPurchase(?User $user): bool
     {
-        if (! $this->is_active) {
+        if (! $this->isAvailableNow()) {
             return false;
         }
 

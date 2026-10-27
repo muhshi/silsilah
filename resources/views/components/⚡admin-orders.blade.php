@@ -223,9 +223,9 @@ new class extends Component
         </div>
 
         <!-- Action & Search Toolbar -->
-        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
             <button wire:click="exportCsv"
-                    class="h-9 px-3.5 rounded-xl bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0"
+                    class="h-9 px-3.5 rounded-xl bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                     title="Unduh seluruh data transaksi dalam format CSV">
                 <span class="material-symbols-outlined text-base">download</span>
                 <span>Export CSV</span>
@@ -277,10 +277,107 @@ new class extends Component
         </button>
     </div>
 
-    <!-- Orders Table -->
+    <!-- Orders List / Table Container -->
     <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+        
+        <!-- 1. Mobile Cards View (Tampilan Khusus Layar HP / Small Screen) -->
+        <div class="block md:hidden divide-y divide-zinc-100 dark:divide-zinc-800/80">
+            @forelse($orders as $order)
+                <div class="p-4 space-y-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                    <!-- Top: Order ID + Status -->
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="font-bold text-zinc-900 dark:text-white font-mono text-xs">{{ $order->order_id }}</span>
+                            @if($order->reference)
+                                <span class="text-[10px] text-zinc-400 font-mono block">Ref: {{ $order->reference }}</span>
+                            @endif
+                        </div>
+                        <div class="shrink-0">
+                            @if($order->status === 'paid')
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                                    <span class="material-symbols-outlined text-[13px] leading-none">check</span>
+                                    <span>PAID</span>
+                                </span>
+                            @elseif($order->status === 'pending')
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span>PENDING</span>
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                                    {{ strtoupper($order->status) }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Middle: Customer & Amount -->
+                    <div class="flex items-start justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/50">
+                        <div class="min-w-0 pr-2">
+                            <p class="text-xs font-bold text-zinc-900 dark:text-white truncate">{{ $order->user?->name ?? 'User #'.$order->user_id }}</p>
+                            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">{{ $order->user?->email }}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-xs font-extrabold text-zinc-900 dark:text-white">Rp {{ number_format($order->amount, 0, ',', '.') }}</p>
+                            <p class="text-[10px] text-zinc-400 font-medium">+{{ $order->quota_count }} Pohon</p>
+                        </div>
+                    </div>
+
+                    <!-- Meta: Time -->
+                    <div class="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
+                        <span class="flex items-center gap-1 text-[11px]">
+                            <span class="material-symbols-outlined text-xs text-zinc-400">schedule</span>
+                            {{ $order->created_at?->translatedFormat('d M Y, H:i') ?? '-' }}
+                        </span>
+                        <span class="text-[10px] text-zinc-400">{{ $order->created_at?->diffForHumans() }}</span>
+                    </div>
+
+                    <!-- Actions Bottom -->
+                    @if(! $order->isPaid())
+                        <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex flex-wrap items-center gap-2">
+                            <!-- Button 1: Simulasi Webhook -->
+                            <button wire:click="simulateWebhook({{ $order->id }})"
+                                    wire:confirm="Simulasikan kiriman Webhook Callback Duitku (QRIS Sukses) untuk pesanan ini?"
+                                    class="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:hover:bg-amber-900 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/80 text-xs font-bold transition-all flex-1 min-w-[130px] cursor-pointer">
+                                <span class="material-symbols-outlined text-[15px]">science</span>
+                                <span>Simulasi Webhook</span>
+                            </button>
+
+                            <!-- Button 2: Verifikasi Manual -->
+                            <button wire:click="manualVerifyOrder({{ $order->id }})"
+                                    wire:confirm="Konfirmasi manual pesanan ini dan otomatis tambahkan kuota pohon ke pengguna?"
+                                    class="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 text-xs font-bold shadow-xs transition-all flex-1 min-w-[130px] cursor-pointer">
+                                <span class="material-symbols-outlined text-[15px]">verified</span>
+                                <span>Verifikasi Manual</span>
+                            </button>
+
+                            <!-- Button 3: Expired -->
+                            @if($order->status === 'pending')
+                                <button wire:click="markAsExpired({{ $order->id }})"
+                                        wire:confirm="Tandai pesanan ini sebagai EXPIRED?"
+                                        class="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-xl bg-zinc-100 hover:bg-red-50 text-zinc-600 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-950/40 dark:text-zinc-400 dark:hover:text-red-400 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold transition-all shrink-0 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[14px]">close</span>
+                                    <span>Expired</span>
+                                </button>
+                            @endif
+                        </div>
+                    @else
+                        <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-end gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                            <span class="material-symbols-outlined text-base">check_circle</span>
+                            <span>Tuntas (PAID)</span>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                    Tidak ada transaksi yang sesuai dengan filter.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- 2. Desktop Table View (Layar Desktop / Tablet Lebar) -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full min-w-[880px] text-left border-collapse text-xs">
                 <thead>
                     <tr class="border-b border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
                         <th class="py-3.5 px-5">ID Pesanan</th>
@@ -336,7 +433,7 @@ new class extends Component
                                         <button wire:click="simulateWebhook({{ $order->id }})"
                                                 wire:confirm="Simulasikan kiriman Webhook Callback Duitku (QRIS Sukses) untuk pesanan ini?"
                                                 title="Simulasikan Webhook Duitku (Uji Coba Integrasi)"
-                                                class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:hover:bg-amber-900 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/80 text-[11px] font-bold transition-all shrink-0">
+                                                class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:hover:bg-amber-900 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/80 text-[11px] font-bold transition-all shrink-0 cursor-pointer">
                                             <span class="material-symbols-outlined text-[14px]">science</span>
                                             <span>Simulasi Webhook</span>
                                         </button>
@@ -345,7 +442,7 @@ new class extends Component
                                         <button wire:click="manualVerifyOrder({{ $order->id }})"
                                                 wire:confirm="Konfirmasi manual pesanan ini dan otomatis tambahkan kuota pohon ke pengguna?"
                                                 title="Konfirmasi status bayar & tambah kuota langsung"
-                                                class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 text-[11px] font-bold shadow-xs transition-all shrink-0">
+                                                class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 text-[11px] font-bold shadow-xs transition-all shrink-0 cursor-pointer">
                                             <span class="material-symbols-outlined text-[14px]">verified</span>
                                             <span>Verifikasi Manual</span>
                                         </button>
@@ -355,7 +452,7 @@ new class extends Component
                                             <button wire:click="markAsExpired({{ $order->id }})"
                                                     wire:confirm="Tandai pesanan ini sebagai EXPIRED?"
                                                     title="Tandai pesanan kedaluwarsa"
-                                                    class="inline-flex items-center justify-center gap-1 h-7 px-2 rounded-lg bg-zinc-100 hover:bg-red-50 text-zinc-600 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-950/40 dark:text-zinc-400 dark:hover:text-red-400 border border-zinc-200 dark:border-zinc-700 text-[11px] font-semibold transition-all shrink-0">
+                                                    class="inline-flex items-center justify-center gap-1 h-7 px-2 rounded-lg bg-zinc-100 hover:bg-red-50 text-zinc-600 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-950/40 dark:text-zinc-400 dark:hover:text-red-400 border border-zinc-200 dark:border-zinc-700 text-[11px] font-semibold transition-all shrink-0 cursor-pointer">
                                                 <span class="material-symbols-outlined text-[13px]">close</span>
                                                 <span>Expired</span>
                                             </button>

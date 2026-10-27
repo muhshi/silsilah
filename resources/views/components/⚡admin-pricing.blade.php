@@ -16,6 +16,8 @@ new class extends Component
     public string $description = '';
     public bool $is_one_time_per_user = false;
     public bool $is_active = true;
+    public ?string $starts_at = null;
+    public ?string $ends_at = null;
 
     public function toggleActive(int $id): void
     {
@@ -49,8 +51,23 @@ new class extends Component
         $this->description = $package->description ?? '';
         $this->is_one_time_per_user = $package->is_one_time_per_user;
         $this->is_active = $package->is_active;
+        $this->starts_at = $package->starts_at?->format('Y-m-d\TH:i');
+        $this->ends_at = $package->ends_at?->format('Y-m-d\TH:i');
 
         Flux::modal('edit-package-modal')->show();
+    }
+
+    public function setRamadanPreset(int $year = 2026): void
+    {
+        // Preset bulan puasa hingga lebaran (pertengahan Feb - pertengahan Apr)
+        $this->starts_at = "{$year}-02-15T00:00";
+        $this->ends_at = "{$year}-04-15T23:59";
+    }
+
+    public function clearSchedule(): void
+    {
+        $this->starts_at = null;
+        $this->ends_at = null;
     }
 
     public function updatePackage(): void
@@ -64,6 +81,8 @@ new class extends Component
             'description' => 'nullable|string|max:500',
             'is_one_time_per_user' => 'boolean',
             'is_active' => 'boolean',
+            'starts_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
         ]);
 
         $package = PricingPackage::findOrFail($this->editingId);
@@ -76,6 +95,8 @@ new class extends Component
             'description' => $this->description ? trim($this->description) : null,
             'is_one_time_per_user' => $this->is_one_time_per_user,
             'is_active' => $this->is_active,
+            'starts_at' => $this->starts_at ?: null,
+            'ends_at' => $this->ends_at ?: null,
         ]);
 
         AdminActivityLog::log(
@@ -83,7 +104,12 @@ new class extends Component
             "Admin " . auth()->user()->name . " memperbarui detail paket '{$package->name}'",
             PricingPackage::class,
             $package->id,
-            ['price' => $package->price, 'tree_quota' => $package->tree_quota]
+            [
+                'price' => $package->price,
+                'tree_quota' => $package->tree_quota,
+                'starts_at' => $package->starts_at,
+                'ends_at' => $package->ends_at,
+            ]
         );
 
         Flux::modal('edit-package-modal')->close();
@@ -125,13 +151,14 @@ new class extends Component
     <!-- Pricing Cards / Table -->
     <div class="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table class="w-full min-w-[840px] text-left text-xs">
                 <thead class="bg-zinc-50/75 dark:bg-zinc-800/50 border-b border-zinc-200/70 dark:border-zinc-800 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
                     <tr>
                         <th class="py-3 px-4">Nama Paket & Info</th>
                         <th class="py-3 px-4">Kuota Tambahan</th>
                         <th class="py-3 px-4">Harga Normal / Promo</th>
                         <th class="py-3 px-4">Batasan Pembelian</th>
+                        <th class="py-3 px-4">Periode Promo</th>
                         <th class="py-3 px-4 text-center">Status</th>
                         <th class="py-3 px-4 text-right">Aksi</th>
                     </tr>
@@ -194,13 +221,45 @@ new class extends Component
                                 @endif
                             </td>
 
+                            <!-- Periode Promo -->
+                            <td class="py-3.5 px-4">
+                                @if($pkg->starts_at || $pkg->ends_at)
+                                    <div class="space-y-0.5">
+                                        @if($pkg->isAvailableNow())
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <span>Sedang Berjalan</span>
+                                            </span>
+                                        @elseif($pkg->ends_at && $pkg->ends_at->isPast())
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+                                                <span class="material-symbols-outlined text-[12px]">history</span>
+                                                <span>Kedaluwarsa</span>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                                <span class="material-symbols-outlined text-[12px]">schedule</span>
+                                                <span>Akan Datang</span>
+                                            </span>
+                                        @endif
+                                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
+                                            {{ $pkg->starts_at ? $pkg->starts_at->translatedFormat('d M Y') : 'Awal' }} - {{ $pkg->ends_at ? $pkg->ends_at->translatedFormat('d M Y') : 'Seterusnya' }}
+                                        </p>
+                                    </div>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                                        <span class="material-symbols-outlined text-xs text-zinc-400">all_inclusive</span>
+                                        Sepanjang Tahun
+                                    </span>
+                                @endif
+                            </td>
+
                             <!-- Active Toggle -->
                             <td class="py-3.5 px-4 text-center">
                                 <button wire:click="toggleActive({{ $pkg->id }})"
                                         class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer transition-all
                                         {{ $pkg->is_active
-                                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/60 hover:bg-emerald-200'
-                                            : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200' }}">
+                                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/60 hover:bg-emerald-200'
+                                             : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200' }}">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $pkg->is_active ? 'bg-emerald-600 animate-pulse' : 'bg-zinc-400' }}"></span>
                                     {{ $pkg->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </button>
@@ -217,7 +276,7 @@ new class extends Component
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-zinc-500">
+                            <td colspan="7" class="py-8 text-center text-zinc-500">
                                 Belum ada data paket kuota.
                             </td>
                         </tr>
@@ -232,7 +291,7 @@ new class extends Component
         <form wire:submit="updatePackage" class="space-y-4">
             <div>
                 <flux:heading size="lg">Ubah Paket Kuota</flux:heading>
-                <flux:subheading>Sesuaikan harga, kuota pohon, dan deskripsi paket.</flux:subheading>
+                <flux:subheading>Sesuaikan harga, kuota pohon, jadwal, dan deskripsi paket.</flux:subheading>
             </div>
 
             <flux:input wire:model="name" label="Nama Paket" placeholder="Misal: Promo Idul Fitri" required />
@@ -245,6 +304,30 @@ new class extends Component
             <div class="grid grid-cols-2 gap-3">
                 <flux:input type="number" wire:model="original_price" label="Harga Coret (Rp - Opsional)" min="0" step="1000" />
                 <flux:input wire:model="badge" label="Badge Teks (Opsional)" placeholder="Misal: POPULER" />
+            </div>
+
+            <!-- Jadwal Promo Musiman Section -->
+            <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-700/80 space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                        🗓️ Jadwal / Periode Musiman (Opsional)
+                    </label>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" wire:click="setRamadanPreset(2026)" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 transition-colors cursor-pointer">
+                            🌙 Puasa & Lebaran 2026
+                        </button>
+                        <button type="button" wire:click="clearSchedule" class="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Kosongkan jika paket aktif sepanjang tahun. Jika diisi, paket hanya akan muncul bagi user di rentang tanggal ini.
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:input type="datetime-local" wire:model="starts_at" label="Mulai Berlaku" />
+                    <flux:input type="datetime-local" wire:model="ends_at" label="Berakhir Pada" />
+                </div>
             </div>
 
             <flux:textarea wire:model="description" label="Deskripsi Singkat" rows="2" />

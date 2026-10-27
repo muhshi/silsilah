@@ -234,7 +234,7 @@ new class extends Component
     <!-- Table Card -->
     <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="w-full min-w-[760px] text-left border-collapse text-xs">
                 <thead>
                     <tr class="border-b border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
                         <th class="py-3.5 px-5">Pengguna</th>
