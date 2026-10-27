@@ -45,6 +45,12 @@ test('admin can adjust user tree quota manually', function () {
 
     $targetUser->refresh();
     expect($targetUser->tree_quota)->toBe(3);
+
+    $this->assertDatabaseHas('admin_activity_logs', [
+        'admin_id' => $admin->id,
+        'action' => 'quota_adjusted',
+        'target_id' => $targetUser->id,
+    ]);
 });
 
 test('admin can quickly add quota to user (+1)', function () {
@@ -59,4 +65,51 @@ test('admin can quickly add quota to user (+1)', function () {
 
     $targetUser->refresh();
     expect($targetUser->tree_quota)->toBe(3);
+
+    $this->assertDatabaseHas('admin_activity_logs', [
+        'admin_id' => $admin->id,
+        'action' => 'quota_quick_added',
+        'target_id' => $targetUser->id,
+    ]);
+});
+
+test('admin can filter users by quota status', function () {
+    $admin = User::factory()->admin()->create();
+    $userWithQuota = User::factory()->create([
+        'name' => 'User Banyak Kuota',
+        'tree_quota' => 5,
+    ]);
+    $userExhausted = User::factory()->create([
+        'name' => 'User Kuota Nol',
+        'tree_quota' => 0,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('⚡admin-users')
+        ->set('quotaFilter', 'exhausted')
+        ->assertSee('User Kuota Nol')
+        ->assertDontSee('User Banyak Kuota')
+        ->set('quotaFilter', 'available')
+        ->assertSee('User Banyak Kuota')
+        ->assertDontSee('User Kuota Nol');
+});
+
+test('admin can toggle role and records audit log', function () {
+    $admin = User::factory()->admin()->create();
+    $targetUser = User::factory()->create([
+        'role' => 'user',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('⚡admin-users')
+        ->call('toggleAdminRole', $targetUser->id);
+
+    $targetUser->refresh();
+    expect($targetUser->role)->toBe('admin');
+
+    $this->assertDatabaseHas('admin_activity_logs', [
+        'admin_id' => $admin->id,
+        'action' => 'role_changed',
+        'target_id' => $targetUser->id,
+    ]);
 });

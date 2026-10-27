@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::view('/', 'admin.dashboard')->name('dashboard');
     Route::view('users', 'admin.users')->name('users');
     Route::view('orders', 'admin.orders')->name('orders');
+    Route::view('activities', 'admin.activities')->name('activities');
 });
 
 // Public tree view (no auth required) - Default is Horizontal

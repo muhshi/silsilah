@@ -3,6 +3,7 @@
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\User;
+use App\Models\AdminActivityLog;
 use Flux\Flux;
 use Illuminate\Support\Facades\Log;
 
@@ -11,12 +12,18 @@ new class extends Component
     use WithPagination;
 
     public $search = '';
+    public $quotaFilter = 'all';
     public $targetUserId = null;
     public $targetUserName = '';
     public $newQuota = 1;
     public $reason = '';
 
     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingQuotaFilter()
     {
         $this->resetPage();
     }
@@ -43,6 +50,18 @@ new class extends Component
         $oldQuota = $user->tree_quota ?? 1;
         $user->update(['tree_quota' => $this->newQuota]);
 
+        AdminActivityLog::log(
+            action: 'quota_adjusted',
+            description: "Mengubah kuota pohon {$user->name} ({$user->email}) dari {$oldQuota} menjadi {$this->newQuota}".($this->reason ? " (Alasan: {$this->reason})" : ''),
+            targetType: 'User',
+            targetId: $user->id,
+            properties: [
+                'old_quota' => $oldQuota,
+                'new_quota' => $this->newQuota,
+                'reason' => $this->reason,
+            ]
+        );
+
         Log::info('Admin Adjusted Tree Quota', [
             'admin_id' => auth()->id(),
             'user_id' => $user->id,
@@ -60,6 +79,18 @@ new class extends Component
         $user = User::findOrFail($userId);
         $oldQuota = $user->tree_quota ?? 1;
         $user->increment('tree_quota', $amount);
+
+        AdminActivityLog::log(
+            action: 'quota_quick_added',
+            description: "Menambahkan +{$amount} kuota pohon untuk {$user->name} ({$user->email}). Total kuota: {$user->tree_quota}",
+            targetType: 'User',
+            targetId: $user->id,
+            properties: [
+                'old_quota' => $oldQuota,
+                'added' => $amount,
+                'new_quota' => $user->tree_quota,
+            ]
+        );
 
         Log::info('Admin Quick Added Tree Quota', [
             'admin_id' => auth()->id(),
@@ -80,15 +111,29 @@ new class extends Component
         }
 
         $user = User::findOrFail($userId);
+        $oldRole = $user->role;
         $newRole = $user->role === 'admin' ? 'user' : 'admin';
         $user->update(['role' => $newRole]);
+
+        AdminActivityLog::log(
+            action: 'role_changed',
+            description: "Mengubah role {$user->name} ({$user->email}) dari ".strtoupper($oldRole).' menjadi '.strtoupper($newRole),
+            targetType: 'User',
+            targetId: $user->id,
+            properties: [
+                'old_role' => $oldRole,
+                'new_role' => $newRole,
+            ]
+        );
 
         session()->flash('success', "Role untuk {$user->name} diubah menjadi {$newRole}.");
     }
 
     public function with()
     {
-        $query = User::withCount('familyTrees')->latest();
+        $ownedSubquery = '(SELECT COUNT(*) FROM family_tree_user WHERE family_tree_user.user_id = users.id AND family_tree_user.role = "owner")';
+
+        $query = User::withCount(['familyTrees as owned_trees_count' => fn ($q) => $q->wherePivot('role', 'owner')])->latest();
 
         if ($this->search) {
             $term = trim($this->search);
@@ -98,10 +143,26 @@ new class extends Component
             });
         }
 
+        if ($this->quotaFilter === 'exhausted') {
+            $query->whereRaw("COALESCE(tree_quota, 1) <= {$ownedSubquery}");
+        } elseif ($this->quotaFilter === 'available') {
+            $query->whereRaw("COALESCE(tree_quota, 1) > {$ownedSubquery}");
+        } elseif ($this->quotaFilter === 'admin') {
+            $query->where('role', 'admin');
+        }
+
         $users = $query->paginate(15);
+
+        $counts = [
+            'all' => User::count(),
+            'exhausted' => User::whereRaw("COALESCE(tree_quota, 1) <= {$ownedSubquery}")->count(),
+            'available' => User::whereRaw("COALESCE(tree_quota, 1) > {$ownedSubquery}")->count(),
+            'admin' => User::where('role', 'admin')->count(),
+        ];
 
         return [
             'users' => $users,
+            'counts' => $counts,
         ];
     }
 };
@@ -116,7 +177,7 @@ new class extends Component
                 Manajemen Pengguna
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white font-headline tracking-tight">
-                Direktori Pengguna & Hak Akses
+                Manajemen Pengguna & Kuota
             </h1>
             <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                 Kelola akun pengguna, pantau jumlah pohon, dan berikan kuota pohon secara manual.
@@ -143,29 +204,60 @@ new class extends Component
         </div>
     @endif
 
+    <!-- Quota & Role Filter Tabs -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <button wire:click="$set('quotaFilter', 'all')"
+                class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 {{ $quotaFilter === 'all' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+            <span>Semua Pengguna</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $quotaFilter === 'all' ? 'bg-white/20 dark:bg-black/20' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}">{{ $counts['all'] }}</span>
+        </button>
+
+        <button wire:click="$set('quotaFilter', 'exhausted')"
+                class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 {{ $quotaFilter === 'exhausted' ? 'bg-amber-600 text-white shadow-xs' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+            <span>Kuota Habis (0 Sisa)</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $quotaFilter === 'exhausted' ? 'bg-amber-700 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}">{{ $counts['exhausted'] }}</span>
+        </button>
+
+        <button wire:click="$set('quotaFilter', 'available')"
+                class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 {{ $quotaFilter === 'available' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+            <span>Sisa Kuota Ada</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $quotaFilter === 'available' ? 'bg-emerald-700 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}">{{ $counts['available'] }}</span>
+        </button>
+
+        <button wire:click="$set('quotaFilter', 'admin')"
+                class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 {{ $quotaFilter === 'admin' ? 'bg-zinc-700 text-white shadow-xs' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+            <span>Administrator</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $quotaFilter === 'admin' ? 'bg-zinc-800 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}">{{ $counts['admin'] }}</span>
+        </button>
+    </div>
+
     <!-- Table Card -->
-    <div class="bg-white dark:bg-zinc-800/80 rounded-3xl border border-zinc-200/80 dark:border-zinc-700/60 shadow-xs overflow-hidden">
+    <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-zinc-200/80 dark:border-zinc-700/60 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                    <tr class="border-b border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
                         <th class="py-3.5 px-5">Pengguna</th>
                         <th class="py-3.5 px-4">Role</th>
                         <th class="py-3.5 px-4 text-center">Pohon Dibuat</th>
-                        <th class="py-3.5 px-4 text-center">Kuota Pohon</th>
+                        <th class="py-3.5 px-4 text-center">Kuota & Sisa</th>
                         <th class="py-3.5 px-4">Terdaftar</th>
                         <th class="py-3.5 px-5 text-right">Aksi Kuota & Role</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                     @forelse($users as $user)
-                        <tr class="hover:bg-zinc-50/80 dark:hover:bg-zinc-700/20 transition-colors">
+                        @php
+                            $ownedCount = $user->owned_trees_count ?? $user->ownedTreesCount();
+                            $remaining = max(0, ($user->tree_quota ?? 1) - $ownedCount);
+                        @endphp
+                        <tr class="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/30 transition-colors">
                             <td class="py-3.5 px-5">
                                 <div class="flex items-center gap-3">
                                     @if($user->avatar)
                                         <img src="{{ $user->avatar }}" class="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shrink-0" alt="">
                                     @else
-                                        <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 flex items-center justify-center font-bold text-xs shrink-0">
+                                        <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-200/60 dark:border-emerald-800/60">
                                             {{ $user->initials() }}
                                         </div>
                                     @endif
@@ -181,18 +273,29 @@ new class extends Component
                                         ADMIN
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
                                         USER
                                     </span>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-center font-bold text-zinc-700 dark:text-zinc-300">
-                                {{ $user->family_trees_count }}
+                                {{ $ownedCount }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-xs font-bold {{ ($user->tree_quota ?? 1) > 1 ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }}">
-                                    {{ $user->tree_quota ?? 1 }}
-                                </span>
+                                <div class="inline-flex flex-col items-center">
+                                    <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-xs font-bold {{ ($user->tree_quota ?? 1) > 1 ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }}">
+                                        {{ $user->tree_quota ?? 1 }} Total
+                                    </span>
+                                    @if($remaining === 0)
+                                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
+                                            0 Sisa (Habis)
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+                                            {{ $remaining }} Sisa
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="py-3.5 px-4 text-zinc-500 dark:text-zinc-400 text-[11px]">
                                 {{ $user->created_at?->translatedFormat('d M Y') ?? '-' }}
@@ -218,10 +321,11 @@ new class extends Component
                                     <!-- Toggle Admin Role Button -->
                                     @if($user->id !== auth()->id())
                                         <button wire:click="toggleAdminRole({{ $user->id }})"
-                                                wire:confirm="Yakin ingin mengubah peran pengguna ini?"
-                                                class="inline-flex items-center justify-center h-7 px-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors shrink-0"
-                                                title="Ubah Role Admin/User">
-                                            {{ $user->role === 'admin' ? 'Jadikan User' : 'Jadikan Admin' }}
+                                                wire:confirm="Ubah role {{ $user->name }} menjadi {{ $user->role === 'admin' ? 'USER biasa' : 'ADMIN' }}?"
+                                                title="Ubah Role Akun"
+                                                class="inline-flex items-center justify-center h-7 px-2 rounded-lg {{ $user->role === 'admin' ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200' }} dark:bg-zinc-800 dark:text-zinc-400 text-xs font-semibold transition-all shrink-0">
+                                            <span class="material-symbols-outlined text-sm">{{ $user->role === 'admin' ? 'shield_person' : 'security' }}</span>
+                                            <span class="hidden sm:inline ml-1">{{ $user->role === 'admin' ? 'Revoke Admin' : 'Make Admin' }}</span>
                                         </button>
                                     @endif
                                 </div>

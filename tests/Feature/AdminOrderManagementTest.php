@@ -66,6 +66,12 @@ test('admin can manually mark order as paid and automatically grant quota', func
 
     expect($order->status)->toBe('paid')
         ->and($customer->tree_quota)->toBe(2);
+
+    $this->assertDatabaseHas('admin_activity_logs', [
+        'admin_id' => $admin->id,
+        'action' => 'order_verified',
+        'target_id' => $order->id,
+    ]);
 });
 
 test('admin can trigger webhook simulation for pending order', function () {
@@ -95,6 +101,12 @@ test('admin can trigger webhook simulation for pending order', function () {
 
     expect($order->isPaid())->toBeTrue()
         ->and($customer->tree_quota)->toBe(2);
+
+    $this->assertDatabaseHas('admin_activity_logs', [
+        'admin_id' => $admin->id,
+        'action' => 'webhook_simulated',
+        'target_id' => $order->id,
+    ]);
 });
 
 test('admin can export orders to csv', function () {

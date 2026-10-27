@@ -3,6 +3,7 @@
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Order;
+use App\Models\AdminActivityLog;
 use App\Http\Controllers\DuitkuCallbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,14 @@ new class extends Component
         $response = app(DuitkuCallbackController::class)->handle($request);
 
         if ($response->getStatusCode() === 200) {
+            AdminActivityLog::log(
+                action: 'webhook_simulated',
+                description: "Simulasi Webhook QRIS sukses untuk pesanan {$order->order_id} ({$order->user?->name})",
+                targetType: 'Order',
+                targetId: $order->id,
+                properties: ['amount' => $order->amount, 'order_id' => $order->order_id]
+            );
+
             session()->flash('success', "🧪 Simulasi Webhook Sukses! Signature Duitku terverifikasi sah, pesanan {$order->order_id} otomatis berubah menjadi PAID, dan kuota +{$order->quota_count} berhasil ditambahkan ke akun {$order->user->name}.");
         } else {
             session()->flash('error', 'Simulasi Webhook Gagal: '.$response->getContent());
@@ -80,6 +89,18 @@ new class extends Component
             $quotaToAdd = $order->quota_count ?? 1;
             $order->user->increment('tree_quota', $quotaToAdd);
 
+            AdminActivityLog::log(
+                action: 'order_verified',
+                description: "Verifikasi manual pesanan {$order->order_id} dan penambahan +{$quotaToAdd} kuota pohon ke {$order->user?->name}",
+                targetType: 'Order',
+                targetId: $order->id,
+                properties: [
+                    'order_id' => $order->order_id,
+                    'amount' => $order->amount,
+                    'quota_added' => $quotaToAdd,
+                ]
+            );
+
             Log::info('Admin Manually Verified Order', [
                 'admin_id' => auth()->id(),
                 'order_id' => $order->order_id,
@@ -101,6 +122,15 @@ new class extends Component
         }
 
         $order->update(['status' => 'expired']);
+
+        AdminActivityLog::log(
+            action: 'order_expired',
+            description: "Menandai pesanan {$order->order_id} sebagai EXPIRED",
+            targetType: 'Order',
+            targetId: $order->id,
+            properties: ['order_id' => $order->order_id]
+        );
+
         session()->flash('success', "Pesanan {$order->order_id} ditandai sebagai EXPIRED.");
     }
 

@@ -60,6 +60,10 @@
                         <flux:sidebar.item icon="credit-card" :href="route('admin.orders')" :current="request()->routeIs('admin.orders')" wire:navigate :badge="$pendingOrdersCount > 0 ? $pendingOrdersCount : null" badge-color="amber">
                             {{ __('Transaksi Duitku') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.activities')" :current="request()->routeIs('admin.activities')" wire:navigate>
+                            {{ __('Log Aktivitas') }}
+                        </flux:sidebar.item>
                     </div>
                 </div>
 
@@ -158,6 +162,8 @@
                             Pengguna & Kuota
                         @elseif(request()->routeIs('admin.orders'))
                             Transaksi Duitku
+                        @elseif(request()->routeIs('admin.activities'))
+                            Log Aktivitas
                         @else
                             Dashboard
                         @endif
