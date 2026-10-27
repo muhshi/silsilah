@@ -39,11 +39,17 @@ class DatabaseBackupService
         if ($driver === 'mysql') {
             $out .= "SET FOREIGN_KEY_CHECKS = 0;\n";
             $out .= "SET NAMES utf8mb4;\n\n";
+
+            $tableResults = DB::select("SELECT TABLE_NAME as name FROM information_schema.tables WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE'");
+            $tables = array_map(fn ($row) => (string) $row->name, $tableResults);
         } elseif ($driver === 'sqlite') {
             $out .= "PRAGMA foreign_keys = OFF;\n\n";
-        }
 
-        $tables = Schema::getTableListing();
+            $tableResults = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+            $tables = array_map(fn ($row) => (string) $row->name, $tableResults);
+        } else {
+            $tables = Schema::getTableListing();
+        }
 
         // Tables to skip from data dumping if desired (e.g. cache locks)
         $skipDataTables = ['sessions', 'cache', 'cache_locks', 'jobs', 'failed_jobs', 'job_batches'];
