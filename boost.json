@@ -19,6 +19,8 @@
         "livewire-development",
         "pest-testing",
         "tailwindcss-development",
-        "fortify-development"
+        "fortify-development",
+        "laravel-service-pattern",
+        "laravel-security"
     ]
 }

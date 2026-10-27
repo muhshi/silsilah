@@ -177,7 +177,7 @@
 
                     <div class="flex items-baseline gap-1 mb-6">
                         <span class="text-sm opacity-60">Rp</span>
-                        <span class="font-headline text-3xl font-extrabold">10rb</span>
+                        <span class="font-headline text-3xl font-extrabold">10.000</span>
                         <span class="text-sm opacity-60">/ pohon</span>
                     </div>
 
@@ -233,8 +233,9 @@
                     <div>
                         <h4 class="font-semibold text-on-surface mb-3">Legal</h4>
                         <ul class="space-y-2 text-on-surface-variant">
-                            <li><a href="#" class="hover:text-primary transition-colors">Kebijakan Privasi</a></li>
-                            <li><a href="#" class="hover:text-primary transition-colors">Syarat & Ketentuan</a></li>
+                            <li><a href="{{ route('legal.privacy') }}" class="hover:text-primary transition-colors">Kebijakan Privasi</a></li>
+                            <li><a href="{{ route('legal.terms') }}" class="hover:text-primary transition-colors">Syarat & Ketentuan</a></li>
+                            <li><a href="{{ route('legal.refund') }}" class="hover:text-primary transition-colors">Kebijakan Refund</a></li>
                         </ul>
                     </div>
                 </div>

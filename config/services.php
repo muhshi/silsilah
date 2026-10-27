@@ -41,4 +41,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'duitku' => [
+        'merchant_code' => env('DUITKU_MERCHANT_CODE'),
+        'api_key' => env('DUITKU_API_KEY'),
+        'is_production' => (bool) env('DUITKU_IS_PRODUCTION', false),
+        'sandbox_url' => 'https://api-sandbox.duitku.com/api/merchant/createInvoice',
+        'production_url' => 'https://api-prod.duitku.com/api/merchant/createInvoice',
+    ],
+
 ];

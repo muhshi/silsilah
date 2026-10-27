@@ -3,6 +3,7 @@
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\FamilyTree;
+use App\Models\Marriage;
 use App\Models\Member;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\On;
@@ -37,13 +38,17 @@ new class extends Component
             public function collection()
             {
                 return collect([
-                    ['Budi', 'Santoso', 'L', 'Hidup', '1980-05-12'],
-                    ['Siti', 'Aminah', 'P', 'Wafat', '1982-08-20'],
+                    [1, 'Budi', 'Santoso', 'L', 'Wafat', '1950-05-12', null, null],
+                    [2, 'Siti', 'Aminah', 'P', 'Wafat', '1954-08-20', null, null],
+                    [3, 'Agus', 'Santoso', 'L', 'Hidup', '1978-02-15', 1, 2],
+                    [4, 'Dewi', 'Lestari', 'P', 'Hidup', '1980-11-25', null, null],
+                    [5, 'Rian', 'Santoso', 'L', 'Hidup', '2005-09-01', 3, 4],
                 ]);
             }
+
             public function headings(): array
             {
-                return ['Nama Depan', 'Nama Belakang', 'Jenis Kelamin (L/P)', 'Status (Hidup/Wafat)', 'Tanggal Lahir (YYYY-MM-DD)'];
+                return ['No', 'Nama Depan', 'Nama Belakang', 'Jenis Kelamin (L/P)', 'Status (Hidup/Wafat)', 'Tanggal Lahir (YYYY-MM-DD)', 'No Ayah', 'No Ibu'];
             }
         };
 
@@ -60,41 +65,58 @@ new class extends Component
 
         $import = new class($this->treeId) implements ToArray {
             public $treeId;
-            public function __construct($treeId) {
+
+            public function __construct($treeId)
+            {
                 $this->treeId = $treeId;
             }
+
             public function array(array $array)
             {
                 $count = 0;
                 $isHeader = true;
+                $createdMembersByRef = [];
+                $pendingRelations = [];
+
                 foreach ($array as $row) {
                     if ($isHeader) {
                         $isHeader = false;
                         continue;
                     }
-                    if (count($row) < 3) continue;
+                    if (count($row) < 3) {
+                        continue;
+                    }
 
-                    $firstName = trim($row[0] ?? '');
-                    if (empty($firstName)) continue;
+                    // Check if row[0] is numeric "No" (new format) or string "Nama Depan" (legacy format)
+                    $isNewFormat = is_numeric($row[0] ?? null);
+                    $refNo = $isNewFormat ? (int) $row[0] : null;
 
-                    $lastName = trim($row[1] ?? '');
-                    $genderChar = strtoupper(trim($row[2] ?? 'L'));
-                    $statusChar = strtoupper(trim($row[3] ?? 'HIDUP'));
-                    
-                    $birthDate = $row[4] ?? null;
+                    $firstName = trim((string) ($isNewFormat ? ($row[1] ?? '') : ($row[0] ?? '')));
+                    if (empty($firstName)) {
+                        continue;
+                    }
+
+                    $lastName = trim((string) ($isNewFormat ? ($row[2] ?? '') : ($row[1] ?? '')));
+                    $genderChar = strtoupper(trim((string) ($isNewFormat ? ($row[3] ?? 'L') : ($row[2] ?? 'L'))));
+                    $statusChar = strtoupper(trim((string) ($isNewFormat ? ($row[4] ?? 'HIDUP') : ($row[3] ?? 'HIDUP'))));
+                    $birthDate = $isNewFormat ? ($row[5] ?? null) : ($row[4] ?? null);
+
+                    $fatherRef = ($isNewFormat && isset($row[6]) && is_numeric($row[6])) ? (int) $row[6] : null;
+                    $motherRef = ($isNewFormat && isset($row[7]) && is_numeric($row[7])) ? (int) $row[7] : null;
+
                     $bd = null;
                     if ($birthDate) {
                         if (is_numeric($birthDate)) {
                             $bd = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($birthDate)->format('Y-m-d');
-                        } else if (strtotime($birthDate)) {
-                            $bd = date('Y-m-d', strtotime($birthDate));
+                        } elseif (strtotime((string) $birthDate)) {
+                            $bd = date('Y-m-d', strtotime((string) $birthDate));
                         }
                     }
 
-                    $gender = ($genderChar === 'P' || $genderChar === 'PEREMPUAN' || $genderChar === 'F') ? 'female' : 'male';
-                    $isLiving = ($statusChar === 'W' || $statusChar === 'WAFAT' || $statusChar === 'MATI' || $statusChar === 'N' || $statusChar === 'MENINGGAL') ? false : true;
+                    $gender = in_array($genderChar, ['P', 'PEREMPUAN', 'F', 'FEMALE'], true) ? 'female' : 'male';
+                    $isLiving = ! in_array($statusChar, ['W', 'WAFAT', 'MATI', 'N', 'MENINGGAL'], true);
 
-                    Member::create([
+                    $member = Member::create([
                         'family_tree_id' => $this->treeId,
                         'first_name' => $firstName,
                         'last_name' => $lastName,
@@ -102,9 +124,53 @@ new class extends Component
                         'is_living' => $isLiving,
                         'birth_date' => $bd,
                     ]);
+
+                    if ($refNo !== null) {
+                        $createdMembersByRef[$refNo] = $member->id;
+                    }
+
+                    if ($fatherRef !== null || $motherRef !== null) {
+                        $pendingRelations[] = [
+                            'member' => $member,
+                            'father_ref' => $fatherRef,
+                            'mother_ref' => $motherRef,
+                        ];
+                    }
+
                     $count++;
                 }
-                session()->flash('success', "$count anggota berhasil diimpor.");
+
+                // Pass 2: Connect parent relationships & create marriages
+                foreach ($pendingRelations as $item) {
+                    $updates = [];
+                    $fatherId = null;
+                    $motherId = null;
+
+                    if ($item['father_ref'] && isset($createdMembersByRef[$item['father_ref']])) {
+                        $fatherId = $createdMembersByRef[$item['father_ref']];
+                        $updates['father_id'] = $fatherId;
+                    }
+
+                    if ($item['mother_ref'] && isset($createdMembersByRef[$item['mother_ref']])) {
+                        $motherId = $createdMembersByRef[$item['mother_ref']];
+                        $updates['mother_id'] = $motherId;
+                    }
+
+                    if (! empty($updates)) {
+                        $item['member']->update($updates);
+                    }
+
+                    if ($fatherId && $motherId) {
+                        Marriage::firstOrCreate([
+                            'husband_id' => $fatherId,
+                            'wife_id' => $motherId,
+                        ], [
+                            'is_current' => true,
+                        ]);
+                    }
+                }
+
+                session()->flash('success', "$count anggota berhasil diimpor beserta relasi kekerabatannya.");
             }
         };
 
@@ -129,7 +195,7 @@ new class extends Component
                 <p class="font-bold mb-2">Cara Penggunaan:</p>
                 <ol class="list-decimal pl-4 space-y-1">
                     <li>Download template Excel di bawah ini.</li>
-                    <li>Isi baris demi baris nama-nama keluarga Anda.</li>
+                    <li>Isi baris demi baris nama keluarga Anda. Gunakan kolom <strong>No Ayah</strong> dan <strong>No Ibu</strong> untuk menghubungkan anak ke orang tua secara otomatis.</li>
                     <li>Simpan dan pastikan format file tetap .xlsx</li>
                     <li>Upload file Excel tersebut ke form ini.</li>
                 </ol>

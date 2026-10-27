@@ -166,8 +166,16 @@ new class extends Component
         }
 
         if ($this->memberId || (!$this->targetMemberId)) {
+            $excludedIds = collect();
+            if ($this->memberId) {
+                $current = Member::find($this->memberId);
+                if ($current) {
+                    $excludedIds = $current->getAllDescendantIds()->push($this->memberId);
+                }
+            }
+
             $availableMembers = Member::where('family_tree_id', $this->treeId)
-                ->when($this->memberId, fn($q) => $q->where('id', '!=', $this->memberId))
+                ->when($excludedIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $excludedIds))
                 ->orderBy('first_name')
                 ->get();
         }
@@ -193,6 +201,24 @@ new class extends Component
             'father_id' => 'nullable|exists:members,id',
             'mother_id' => 'nullable|exists:members,id',
         ]);
+
+        // Anti-cycle validation: Cannot select self or any descendant as parent
+        if ($this->memberId) {
+            $current = Member::find($this->memberId);
+            if ($current) {
+                $descendants = $current->getAllDescendantIds();
+                if ($this->father_id && ($this->father_id == $this->memberId || $descendants->contains((int) $this->father_id))) {
+                    $this->addError('father_id', 'Keturunan Anda tidak dapat dipilih sebagai Ayah.');
+
+                    return;
+                }
+                if ($this->mother_id && ($this->mother_id == $this->memberId || $descendants->contains((int) $this->mother_id))) {
+                    $this->addError('mother_id', 'Keturunan Anda tidak dapat dipilih sebagai Ibu.');
+
+                    return;
+                }
+            }
+        }
 
         $data = [
             'family_tree_id' => $this->treeId,

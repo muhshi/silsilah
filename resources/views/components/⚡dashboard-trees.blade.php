@@ -4,6 +4,7 @@ use Livewire\Component;
 use App\Models\FamilyTree;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Flux\Flux;
 
 new class extends Component
 {
@@ -16,8 +17,24 @@ new class extends Component
     public $search = '';
     public $filter = 'all';
 
+    public function openCreateTree()
+    {
+        if (auth()->user()->hasAvailableTreeQuota()) {
+            Flux::modal('create-tree-modal')->show();
+        } else {
+            Flux::modal('buy-quota-modal')->show();
+        }
+    }
+
     public function createTree()
     {
+        $user = auth()->user();
+        if (! $user->hasAvailableTreeQuota()) {
+            Flux::modal('create-tree-modal')->close();
+            Flux::modal('buy-quota-modal')->show();
+            return;
+        }
+
         $this->validate([
             'name' => 'required|string|max:255',
         ]);
@@ -29,7 +46,7 @@ new class extends Component
             'view_password' => $this->view_password ? Hash::make($this->view_password) : null,
         ]);
 
-        $tree->users()->attach(auth()->id(), ['role' => 'owner']);
+        $tree->users()->attach($user->id, ['role' => 'owner']);
 
         return redirect()->route('tree.show', $tree);
     }
@@ -41,12 +58,18 @@ new class extends Component
 
     public function with()
     {
-        $allUserTrees = auth()->user()->familyTrees()->withCount('members')->latest()->get();
+        $user = auth()->user();
+        $allUserTrees = $user->familyTrees()->withCount('members')->latest()->get();
         $totalMembers = $allUserTrees->sum('members_count');
         $totalTrees = $allUserTrees->count();
         $totalPublic = $allUserTrees->where('is_public', true)->count();
         $totalPrivate = $allUserTrees->where('is_public', false)->count();
         $totalPremium = $allUserTrees->where('is_premium', true)->count();
+
+        $ownedTreesCount = $user->ownedTreesCount();
+        $treeQuota = $user->tree_quota ?? 1;
+        $remainingQuota = $user->remainingTreeQuota();
+        $hasAvailableQuota = $user->hasAvailableTreeQuota();
 
         $trees = $allUserTrees;
 
@@ -72,6 +95,10 @@ new class extends Component
             'totalPublic' => $totalPublic,
             'totalPrivate' => $totalPrivate,
             'totalPremium' => $totalPremium,
+            'ownedTreesCount' => $ownedTreesCount,
+            'treeQuota' => $treeQuota,
+            'remainingQuota' => $remainingQuota,
+            'hasAvailableQuota' => $hasAvailableQuota,
         ];
     }
 
@@ -88,6 +115,15 @@ new class extends Component
 
 <div class="space-y-8 max-w-7xl mx-auto">
     <!-- Flash Messages -->
+    @if(request('payment') === 'success')
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 shadow-sm">
+            <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">check_circle</span>
+            <div>
+                <span class="font-bold text-sm block">Pembayaran Berhasil!</span>
+                <span class="text-xs">Alhamdulillah, kuota pohon silsilah Anda telah bertambah dan siap digunakan.</span>
+            </div>
+        </div>
+    @endif
     @if(session('success'))
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl flex items-center gap-3 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 shadow-sm">
             <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">check_circle</span>
@@ -116,10 +152,16 @@ new class extends Component
         </div>
 
         <div class="flex items-center gap-3 flex-wrap">
-            <flux:modal.trigger name="create-tree-modal">
-                <button class="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-7 py-3.5 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto text-sm">
-                    <span class="material-symbols-outlined text-xl">add</span>
-                    Buat Silsilah Baru
+            <button wire:click="openCreateTree"
+                    class="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-7 py-3.5 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto text-sm">
+                <span class="material-symbols-outlined text-xl">add</span>
+                Buat Silsilah Baru
+            </button>
+
+            <flux:modal.trigger name="buy-quota-modal">
+                <button class="flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-5 py-3.5 rounded-2xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all w-full sm:w-auto text-sm shadow-xs">
+                    <span class="material-symbols-outlined text-lg">shopping_bag</span>
+                    Beli Kuota (Rp10rb)
                 </button>
             </flux:modal.trigger>
         </div>
@@ -127,12 +169,19 @@ new class extends Component
 
     <!-- M3 Stat Metric Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <!-- Stat 1: Total Pohon -->
+        <!-- Stat 1: Total Pohon & Kuota -->
         <div class="p-6 rounded-3xl bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-zinc-900 border border-emerald-100 dark:border-emerald-900/40 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1">Total Silsilah</p>
                 <p class="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline">{{ $totalTrees }}</p>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Pohon keluarga aktif</p>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    Kuota: <span class="font-bold text-zinc-700 dark:text-zinc-200">{{ $ownedTreesCount }} / {{ $treeQuota }}</span> 
+                    @if($remainingQuota > 0)
+                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">(Sisa {{ $remainingQuota }})</span>
+                    @else
+                        <span class="text-amber-600 dark:text-amber-400 font-bold">(Penuh)</span>
+                    @endif
+                </p>
             </div>
             <div class="w-14 h-14 rounded-2xl bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-2xl shadow-inner">
                 🌳
@@ -315,5 +364,57 @@ new class extends Component
                 <flux:button type="submit" variant="primary" class="!bg-emerald-600 !text-white hover:!bg-emerald-700">Simpan & Mulai</flux:button>
             </div>
         </form>
+    </flux:modal>
+
+    <!-- Modal Beli Kuota (Duitku QRIS) -->
+    <flux:modal name="buy-quota-modal" class="md:w-[30rem]">
+        <div class="space-y-6">
+            <div class="text-center">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-3xl shadow-inner mb-3">
+                    🌳
+                </div>
+                <flux:heading size="lg">Tambah Kuota Pohon Silsilah</flux:heading>
+                <flux:subheading class="mt-1">
+                    Setiap akun mendapatkan 1 Pohon Silsilah gratis. Untuk menambah pohon silsilah baru, Anda dapat membeli kuota digital seharga Rp10.000.
+                </flux:subheading>
+            </div>
+
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 text-xs space-y-2 text-zinc-700 dark:text-zinc-300">
+                <div class="flex items-center justify-between font-bold text-sm text-zinc-900 dark:text-white pb-2 border-b border-emerald-200/60 dark:border-emerald-800/60">
+                    <span>1x Kuota Pohon Keluarga</span>
+                    <span class="text-emerald-700 dark:text-emerald-400 text-base">Rp 10.000</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-600">✓</span>
+                    <span>Akses pembuatan 1 pohon keluarga baru selamanya</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-600">✓</span>
+                    <span>Anggota dan relasi kekerabatan tanpa batas</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-600">✓</span>
+                    <span>Fitur ekspor lengkap (PDF, PNG, JSON, Prompt AI)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-600">✓</span>
+                    <span>Pembayaran instan dan otomatis via QRIS</span>
+                </div>
+            </div>
+
+            <form action="{{ route('orders.checkout') }}" method="POST" class="space-y-3">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white py-3.5 px-6 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all text-sm">
+                    <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+                    Lanjut Bayar Rp 10.000 via QRIS
+                </button>
+            </form>
+
+            <div class="flex justify-center">
+                <flux:modal.close>
+                    <flux:button variant="ghost" size="sm">Nanti Saja</flux:button>
+                </flux:modal.close>
+            </div>
+        </div>
     </flux:modal>
 </div>
