@@ -3,8 +3,11 @@
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Order;
+use App\Http\Controllers\DuitkuCallbackController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 new class extends Component
 {
@@ -21,6 +24,43 @@ new class extends Component
     public function updatingStatusFilter()
     {
         $this->resetPage();
+    }
+
+    public function simulateWebhook($orderId)
+    {
+        $order = Order::with('user')->findOrFail($orderId);
+
+        if ($order->isPaid()) {
+            session()->flash('error', 'Pesanan ini sudah berstatus PAID sebelumnya.');
+            return;
+        }
+
+        $merchantCode = (string) config('services.duitku.merchant_code');
+        $apiKey = (string) config('services.duitku.api_key');
+        $amount = (string) $order->amount;
+        $signature = hash_hmac('sha256', $merchantCode.$amount.$order->order_id, $apiKey);
+
+        $payload = [
+            'merchantCode' => $merchantCode,
+            'amount' => $amount,
+            'merchantOrderId' => $order->order_id,
+            'productDetail' => "Kuota {$order->quota_count} Pohon Silsilah",
+            'additionalParam' => (string) $order->user_id,
+            'paymentCode' => 'QR',
+            'resultCode' => '00',
+            'merchantUserId' => (string) $order->user_id,
+            'reference' => $order->reference ?? 'SIM-'.Str::random(10),
+            'signature' => $signature,
+        ];
+
+        $request = Request::create('/api/duitku/callback', 'POST', $payload);
+        $response = app(DuitkuCallbackController::class)->handle($request);
+
+        if ($response->getStatusCode() === 200) {
+            session()->flash('success', "🧪 Simulasi Webhook Sukses! Signature Duitku terverifikasi sah, pesanan {$order->order_id} otomatis berubah menjadi PAID, dan kuota +{$order->quota_count} berhasil ditambahkan ke akun {$order->user->name}.");
+        } else {
+            session()->flash('error', 'Simulasi Webhook Gagal: '.$response->getContent());
+        }
     }
 
     public function manualVerifyOrder($orderId)
@@ -214,12 +254,20 @@ new class extends Component
                                 <span class="block text-[10px] text-zinc-400">{{ $order->created_at?->diffForHumans() }}</span>
                             </td>
                             <td class="py-3.5 px-5 text-right space-x-1.5">
-                                @if($order->status !== 'paid')
+                                @if(! $order->isPaid())
+                                    <button wire:click="simulateWebhook({{ $order->id }})"
+                                            wire:confirm="Simulasikan kiriman Webhook Callback Duitku (QRIS Sukses) untuk pesanan ini?"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:hover:bg-amber-900 dark:text-amber-300 border border-amber-300/70 dark:border-amber-800 font-bold text-[11px] transition-all"
+                                            title="Simulasikan Webhook Duitku (Uji Coba Integrasi)">
+                                        <span>🧪</span>
+                                        Simulasi Webhook
+                                    </button>
+
                                     <button wire:click="manualVerifyOrder({{ $order->id }})"
                                             wire:confirm="Konfirmasi manual pesanan ini dan otomatis tambahkan kuota pohon ke pengguna?"
                                             class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-[11px] shadow-sm transition-all">
                                         <span class="material-symbols-outlined text-sm">verified</span>
-                                        Verifikasi & Beri Kuota
+                                        Verifikasi Manual
                                     </button>
 
                                     @if($order->status === 'pending')

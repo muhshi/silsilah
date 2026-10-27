@@ -67,3 +67,32 @@ test('admin can manually mark order as paid and automatically grant quota', func
     expect($order->status)->toBe('paid')
         ->and($customer->tree_quota)->toBe(2);
 });
+
+test('admin can trigger webhook simulation for pending order', function () {
+    config()->set('services.duitku.merchant_code', 'DS12345');
+    config()->set('services.duitku.api_key', 'test_key_abc');
+
+    $admin = User::factory()->admin()->create();
+    $customer = User::factory()->create([
+        'tree_quota' => 1,
+    ]);
+
+    $order = Order::create([
+        'user_id' => $customer->id,
+        'order_id' => 'ORDER-WEBHOOK-SIM',
+        'amount' => 10000,
+        'quota_count' => 1,
+        'status' => 'pending',
+        'payment_method' => 'QRIS',
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('⚡admin-orders')
+        ->call('simulateWebhook', $order->id);
+
+    $order->refresh();
+    $customer->refresh();
+
+    expect($order->isPaid())->toBeTrue()
+        ->and($customer->tree_quota)->toBe(2);
+});
