@@ -176,6 +176,184 @@ class FamilyReminderService
     }
 
     /**
+     * Get all family events occurring in a specific calendar month and year.
+     *
+     * @return Collection<int, array{
+     *     id: string,
+     *     type: 'haul'|'birthday'|'marriage',
+     *     title: string,
+     *     member: Member|null,
+     *     spouse: Member|null,
+     *     date: Carbon,
+     *     original_date: Carbon,
+     *     days_until: int,
+     *     ordinal: int,
+     *     ordinal_text: string,
+     *     description: string,
+     *     wa_share_url: string,
+     *     whatsapp_message: string,
+     * }>
+     */
+    public function getMonthEvents(FamilyTree $tree, int $year, int $month): Collection
+    {
+        $today = Carbon::today();
+        $events = collect();
+        $daysInTargetMonth = Carbon::create($year, $month, 1)->daysInMonth;
+
+        // 1. Process Members (Birthdays & Hauls)
+        $members = $tree->relationLoaded('members')
+            ? $tree->members->filter(fn ($m) => ! empty($m->birth_date) || ! empty($m->death_date))
+            : $tree->members()
+                ->where(function ($query) {
+                    $query->whereNotNull('birth_date')
+                        ->orWhereNotNull('death_date');
+                })
+                ->get();
+
+        foreach ($members as $member) {
+            $isDeceased = ($member->is_living === false)
+                || ($member->is_alive === false)
+                || ! empty($member->death_date);
+
+            if ($isDeceased) {
+                // Haul for deceased member
+                if (! empty($member->death_date)) {
+                    $originalDate = Carbon::parse($member->death_date)->startOfDay();
+
+                    if ($originalDate->month === $month && $originalDate->year <= $year) {
+                        $day = min($originalDate->day, $daysInTargetMonth);
+                        $targetDate = Carbon::create($year, $month, $day)->startOfDay();
+                        $ordinal = max(1, $year - $originalDate->year);
+                        $daysUntil = (int) $today->diffInDays($targetDate, false);
+
+                        $prefix = ($member->gender === 'female') ? 'Almarhumah' : 'Almarhum';
+                        $fullName = $this->getFullName($member);
+                        $displayName = preg_match('/almarhum/i', $fullName) ? $fullName : "{$prefix} {$fullName}";
+
+                        $ordinalText = "Haul ke-{$ordinal}";
+                        $title = "Haul ke-{$ordinal} {$displayName}";
+                        $daysText = $this->getRelativeDaysText($daysUntil);
+                        $description = "Peringatan {$ordinalText} {$displayName} ({$daysText})";
+
+                        $eventData = [
+                            'id' => "haul-{$member->id}",
+                            'type' => 'haul',
+                            'title' => $title,
+                            'member' => $member,
+                            'spouse' => null,
+                            'date' => $targetDate,
+                            'original_date' => $originalDate,
+                            'days_until' => $daysUntil,
+                            'ordinal' => $ordinal,
+                            'ordinal_text' => $ordinalText,
+                            'description' => $description,
+                        ];
+
+                        $waMessage = $this->formatWhatsAppMessage($eventData, $tree);
+                        $eventData['whatsapp_message'] = $waMessage;
+                        $eventData['wa_share_url'] = 'https://wa.me/?text='.rawurlencode($waMessage);
+
+                        $events->push($eventData);
+                    }
+                }
+            } else {
+                // Birthday for living member
+                if (! empty($member->birth_date) && empty($member->is_birth_date_unknown)) {
+                    $originalDate = Carbon::parse($member->birth_date)->startOfDay();
+
+                    if ($originalDate->month === $month && $originalDate->year <= $year) {
+                        $day = min($originalDate->day, $daysInTargetMonth);
+                        $targetDate = Carbon::create($year, $month, $day)->startOfDay();
+                        $ordinal = max(1, $year - $originalDate->year);
+                        $daysUntil = (int) $today->diffInDays($targetDate, false);
+
+                        $fullName = $this->getFullName($member);
+                        $ordinalText = "Ulang Tahun ke-{$ordinal}";
+                        $title = "Ulang Tahun ke-{$ordinal} {$fullName}";
+                        $daysText = $this->getRelativeDaysText($daysUntil);
+                        $description = "{$ordinalText} {$fullName} ({$daysText})";
+
+                        $eventData = [
+                            'id' => "birthday-{$member->id}",
+                            'type' => 'birthday',
+                            'title' => $title,
+                            'member' => $member,
+                            'spouse' => null,
+                            'date' => $targetDate,
+                            'original_date' => $originalDate,
+                            'days_until' => $daysUntil,
+                            'ordinal' => $ordinal,
+                            'ordinal_text' => $ordinalText,
+                            'description' => $description,
+                        ];
+
+                        $waMessage = $this->formatWhatsAppMessage($eventData, $tree);
+                        $eventData['whatsapp_message'] = $waMessage;
+                        $eventData['wa_share_url'] = 'https://wa.me/?text='.rawurlencode($waMessage);
+
+                        $events->push($eventData);
+                    }
+                }
+            }
+        }
+
+        // 2. Process Marriages (Wedding Anniversaries)
+        $memberIds = $tree->relationLoaded('members')
+            ? $tree->members->pluck('id')
+            : $tree->members()->pluck('id');
+
+        $marriages = Marriage::with(['husband', 'wife'])
+            ->where(function ($query) use ($memberIds) {
+                $query->whereIn('husband_id', $memberIds)
+                    ->orWhereIn('wife_id', $memberIds);
+            })
+            ->whereNotNull('marriage_date')
+            ->where('is_current', true)
+            ->get();
+
+        foreach ($marriages as $marriage) {
+            $originalDate = Carbon::parse($marriage->marriage_date)->startOfDay();
+
+            if ($originalDate->month === $month && $originalDate->year <= $year) {
+                $day = min($originalDate->day, $daysInTargetMonth);
+                $targetDate = Carbon::create($year, $month, $day)->startOfDay();
+                $ordinal = max(1, $year - $originalDate->year);
+                $daysUntil = (int) $today->diffInDays($targetDate, false);
+
+                $husbandName = $this->getFullName($marriage->husband) ?: 'Suami';
+                $wifeName = $this->getFullName($marriage->wife) ?: 'Istri';
+
+                $ordinalText = "Ulang Tahun Pernikahan ke-{$ordinal}";
+                $title = "Ulang Tahun Pernikahan ke-{$ordinal} {$husbandName} & {$wifeName}";
+                $daysText = $this->getRelativeDaysText($daysUntil);
+                $description = "{$ordinalText} {$husbandName} & {$wifeName} ({$daysText})";
+
+                $eventData = [
+                    'id' => "marriage-{$marriage->id}",
+                    'type' => 'marriage',
+                    'title' => $title,
+                    'member' => $marriage->husband,
+                    'spouse' => $marriage->wife,
+                    'date' => $targetDate,
+                    'original_date' => $originalDate,
+                    'days_until' => $daysUntil,
+                    'ordinal' => $ordinal,
+                    'ordinal_text' => $ordinalText,
+                    'description' => $description,
+                ];
+
+                $waMessage = $this->formatWhatsAppMessage($eventData, $tree);
+                $eventData['whatsapp_message'] = $waMessage;
+                $eventData['wa_share_url'] = 'https://wa.me/?text='.rawurlencode($waMessage);
+
+                $events->push($eventData);
+            }
+        }
+
+        return $events->sortBy(fn ($e) => $e['date']->timestamp)->values();
+    }
+
+    /**
      * Alias for getUpcomingEvents for backwards/plan compatibility.
      *
      * @return Collection<int, array{
@@ -369,6 +547,12 @@ class FamilyReminderService
 
         if ($daysUntil === 2) {
             return 'lusa';
+        }
+
+        if ($daysUntil < 0) {
+            $abs = abs($daysUntil);
+
+            return "{$abs} hari yang lalu";
         }
 
         return "{$daysUntil} hari lagi";

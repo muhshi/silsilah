@@ -253,6 +253,9 @@ new class extends Component
                         <flux:menu.item icon="calendar" wire:click="$dispatch('open-family-reminders')">
                             Agenda &amp; Pengingat Keluarga
                         </flux:menu.item>
+                        <flux:menu.item icon="calendar-days" href="{{ route('tree.calendar', $tree->slug ?: $tree->id) }}" target="_blank">
+                            Buka Halaman Kalender Penuh
+                        </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
 
@@ -275,6 +278,9 @@ new class extends Component
                         </flux:menu.item>
                         <flux:menu.item icon="calendar" wire:click="$dispatch('open-family-reminders')">
                             Agenda &amp; Pengingat Keluarga
+                        </flux:menu.item>
+                        <flux:menu.item icon="calendar-days" href="{{ route('tree.public.calendar', $tree->slug) }}" target="_blank">
+                            Buka Halaman Kalender Penuh
                         </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
