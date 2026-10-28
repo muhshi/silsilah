@@ -124,7 +124,9 @@ class FamilyReminderService
         }
 
         // 2. Process Marriages (Wedding Anniversaries)
-        $memberIds = $tree->members()->pluck('id');
+        $memberIds = $tree->relationLoaded('members')
+            ? $tree->members->pluck('id')
+            : $tree->members()->pluck('id');
 
         $marriages = Marriage::with(['husband', 'wife'])
             ->where(function ($query) use ($memberIds) {
