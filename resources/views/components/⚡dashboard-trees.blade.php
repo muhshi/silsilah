@@ -206,71 +206,73 @@ new class extends Component
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold uppercase tracking-widest mb-3">
                 <span>🌱</span> The Living Heritage
             </div>
-            <h1 class="text-4xl sm:text-5xl font-headline font-extrabold text-zinc-900 dark:text-white tracking-tight leading-tight">
+            <h1 class="text-2xl sm:text-4xl lg:text-5xl font-headline font-extrabold text-zinc-900 dark:text-white tracking-tight leading-tight">
                 Silsilah Keluarga
             </h1>
-            <p class="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg mt-2 leading-relaxed">
+            <p class="text-xs sm:text-base text-zinc-600 dark:text-zinc-400 mt-1 sm:mt-2 leading-relaxed">
                 Kelola, telusuri, dan wariskan akar silsilah keluarga Anda secara elegan dan terstruktur.
             </p>
         </div>
 
-        <div class="flex items-center gap-3 flex-wrap">
+        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <button wire:click="openCreateTree"
-                    class="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-7 py-3.5 rounded-2xl font-bold shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/35 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto text-sm">
-                <span class="material-symbols-outlined text-xl">add</span>
-                Buat Silsilah Baru
+                    class="flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold shadow-md shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto text-xs sm:text-sm cursor-pointer">
+                <span class="material-symbols-outlined text-lg sm:text-xl">add</span>
+                <span>Buat Silsilah</span>
             </button>
 
             <flux:modal.trigger name="buy-quota-modal">
-                <button class="flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-5 py-3.5 rounded-2xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all w-full sm:w-auto text-sm shadow-xs cursor-pointer">
-                    <span class="material-symbols-outlined text-lg">shopping_bag</span>
-                    Beli Kuota Pohon
+                <button class="flex items-center justify-center gap-1.5 sm:gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all w-full sm:w-auto text-xs sm:text-sm shadow-2xs cursor-pointer">
+                    <span class="material-symbols-outlined text-base sm:text-lg">shopping_bag</span>
+                    <span>Beli Kuota</span>
                 </button>
             </flux:modal.trigger>
         </div>
     </div>
 
     <!-- M3 Stat Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+    <div class="grid grid-cols-3 gap-2 sm:gap-5">
         <!-- Stat 1: Total Pohon & Kuota -->
-        <div class="p-6 rounded-3xl bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-zinc-900 border border-emerald-100 dark:border-emerald-900/40 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1">Total Silsilah</p>
-                <p class="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline">{{ $totalTrees }}</p>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    Kuota: <span class="font-bold text-zinc-700 dark:text-zinc-200">{{ $ownedTreesCount }} / {{ $treeQuota }}</span> 
-                    @if($remainingQuota > 0)
-                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">(Sisa {{ $remainingQuota }})</span>
-                    @else
-                        <span class="text-amber-600 dark:text-amber-400 font-bold">(Penuh)</span>
-                    @endif
+        <div class="p-3 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-zinc-900 border border-emerald-100 dark:border-emerald-900/40 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-0.5 truncate">Total Silsilah</p>
+                <p class="text-xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline tabular-nums">{{ $totalTrees }}</p>
+                <p class="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                    Kuota: <span class="font-bold text-zinc-700 dark:text-zinc-200">{{ $ownedTreesCount }}/{{ $treeQuota }}</span>
+                    <span class="hidden sm:inline">
+                        @if($remainingQuota > 0)
+                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">(Sisa {{ $remainingQuota }})</span>
+                        @else
+                            <span class="text-amber-600 dark:text-amber-400 font-bold">(Penuh)</span>
+                        @endif
+                    </span>
                 </p>
             </div>
-            <div class="w-14 h-14 rounded-2xl bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-2xl shadow-inner">
+            <div class="hidden sm:flex w-10 h-10 lg:w-14 lg:h-14 rounded-2xl bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 items-center justify-center text-xl lg:text-2xl shadow-inner shrink-0">
                 🌳
             </div>
         </div>
 
         <!-- Stat 2: Total Anggota -->
-        <div class="p-6 rounded-3xl bg-gradient-to-br from-amber-50/80 to-white dark:from-amber-950/20 dark:to-zinc-900 border border-amber-100 dark:border-amber-900/40 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">Total Anggota</p>
-                <p class="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline">{{ $totalMembers }}</p>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Jiwa terhubung</p>
+        <div class="p-3 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50/80 to-white dark:from-amber-950/20 dark:to-zinc-900 border border-amber-100 dark:border-amber-900/40 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-0.5 truncate">Total Anggota</p>
+                <p class="text-xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline tabular-nums">{{ $totalMembers }}</p>
+                <p class="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">Jiwa terhubung</p>
             </div>
-            <div class="w-14 h-14 rounded-2xl bg-amber-100/80 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center text-2xl shadow-inner">
+            <div class="hidden sm:flex w-10 h-10 lg:w-14 lg:h-14 rounded-2xl bg-amber-100/80 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 items-center justify-center text-xl lg:text-2xl shadow-inner shrink-0">
                 👥
             </div>
         </div>
 
         <!-- Stat 3: Status Premium -->
-        <div class="p-6 rounded-3xl bg-gradient-to-br from-purple-50/80 to-white dark:from-purple-950/20 dark:to-zinc-900 border border-purple-100 dark:border-purple-900/40 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400 mb-1">Pohon Premium</p>
-                <p class="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline">{{ $totalPremium }}</p>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Fitur tak terbatas</p>
+        <div class="p-3 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/80 to-white dark:from-purple-950/20 dark:to-zinc-900 border border-purple-100 dark:border-purple-900/40 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400 mb-0.5 truncate">Pohon Premium</p>
+                <p class="text-xl sm:text-3xl lg:text-4xl font-extrabold text-zinc-900 dark:text-white font-headline tabular-nums">{{ $totalPremium }}</p>
+                <p class="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">Fitur tak terbatas</p>
             </div>
-            <div class="w-14 h-14 rounded-2xl bg-purple-100/80 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-2xl shadow-inner">
+            <div class="hidden sm:flex w-10 h-10 lg:w-14 lg:h-14 rounded-2xl bg-purple-100/80 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 items-center justify-center text-xl lg:text-2xl shadow-inner shrink-0">
                 👑
             </div>
         </div>
@@ -361,7 +363,7 @@ new class extends Component
             <!-- M3 Elevated Family Tree Card -->
             <div wire:key="tree-{{ $tree->id }}"
                  onclick="window.location='{{ route('tree.show', $tree) }}'"
-                 class="group bg-white dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/80 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-emerald-600/10 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 cursor-pointer relative overflow-hidden transition-all duration-300 flex flex-col justify-between">
+                 class="group bg-white dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/80 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-xl hover:shadow-emerald-600/10 hover:border-emerald-400/50 dark:hover:border-emerald-500/50 cursor-pointer relative overflow-hidden transition-all duration-300 flex flex-col justify-between">
                 
                 <div>
                     <!-- Top Status Row -->
@@ -442,8 +444,8 @@ new class extends Component
                            onclick="event.stopPropagation();"
                            wire:navigate
                            class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-zinc-200 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                           title="Mode Fokus Smartphone (Vertikal)">
-                            <span class="material-symbols-outlined text-lg">smartphone</span>
+                           title="Mode Fokus Eksplorasi">
+                            <span class="material-symbols-outlined text-lg">explore</span>
                         </a>
 
                         <!-- Management Hub: Kelola Pohon (Height 40px) -->
