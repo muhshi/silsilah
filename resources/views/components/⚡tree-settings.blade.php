@@ -5,6 +5,7 @@ use Livewire\Attributes\On;
 use App\Models\FamilyTree;
 use App\Models\TreeInvitation;
 use App\Models\ActivityLog;
+use App\Models\AdminActivityLog;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,6 +21,8 @@ new class extends Component
     public $inviteEmail = '';
     public $activeTab = 'general';
     public $showModal = false;
+    public $overrideReason = 'cash_cod';
+    public $overrideNotes = '';
 
     public function mount($treeId)
     {
@@ -186,6 +189,54 @@ new class extends Component
         );
 
         session()->flash('success', 'Kolaborator dihapus.');
+    }
+
+    public function adminOverridePremium(bool $makePremium)
+    {
+        abort_unless(auth()->check() && auth()->user()->isAdmin(), 403);
+
+        $reasonMap = [
+            'cash_cod' => 'Bayar Tunai / COD',
+            'bank_transfer' => 'Transfer Bank Manual',
+            'gateway_issue' => 'Kendala Gateway Pembayaran QRIS',
+            'special_promo' => 'Kompensasi / Promo Khusus',
+            'other' => 'Lainnya',
+        ];
+
+        $reasonLabel = $reasonMap[$this->overrideReason] ?? $this->overrideReason;
+        $notesText = trim($this->overrideNotes);
+        $fullDescription = 'Super Admin '.auth()->user()->name.($makePremium ? ' mengaktifkan status Premium manual' : ' mengembalikan status Standar')." (Metode: {$reasonLabel}".($notesText ? " - {$notesText}" : '').')';
+
+        $this->tree->update(['is_premium' => $makePremium]);
+        $this->loadTreeData();
+
+        ActivityLog::log(
+            $this->treeId,
+            'admin_override_premium',
+            $fullDescription,
+            [
+                'admin_id' => auth()->id(),
+                'admin_name' => auth()->user()->name,
+                'is_premium' => $makePremium,
+                'reason' => $this->overrideReason,
+                'notes' => $this->overrideNotes,
+            ]
+        );
+
+        AdminActivityLog::log(
+            'tree_premium_override',
+            $fullDescription,
+            'family_trees',
+            $this->tree->id,
+            [
+                'is_premium' => $makePremium,
+                'reason' => $this->overrideReason,
+                'notes' => $this->overrideNotes,
+            ]
+        );
+
+        session()->flash('success_override', $makePremium ? 'Status pohon berhasil diubah menjadi Premium!' : 'Status pohon dikembalikan ke Standar.');
+        $this->dispatch('refresh-tree');
     }
 
     public function with()

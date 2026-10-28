@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\MemberFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,7 @@ class Member extends Model
         'last_name',
         'gender',
         'is_living',
+        'is_alive',
         'birth_date',
         'death_date',
         'birth_place',
@@ -52,6 +54,17 @@ class Member extends Model
             'birth_date' => 'date',
             'death_date' => 'date',
         ];
+    }
+
+    /**
+     * @return Attribute<bool, bool>
+     */
+    protected function isAlive(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) => (bool) ($attributes['is_living'] ?? true),
+            set: fn ($value) => ['is_living' => (bool) $value],
+        );
     }
 
     /**

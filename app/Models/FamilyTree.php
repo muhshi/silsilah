@@ -115,4 +115,40 @@ class FamilyTree extends Model
     {
         $this->increment('views_count');
     }
+
+    /**
+     * @return array{
+     *     total_members: int,
+     *     male_count: int,
+     *     female_count: int,
+     *     alive_count: int,
+     *     deceased_count: int,
+     *     views_count: int,
+     *     quota_limit: ?int,
+     *     remaining_slots: ?int,
+     *     is_premium: bool,
+     * }
+     */
+    public function getStatistics(): array
+    {
+        $members = $this->members()->get(['id', 'gender', 'is_living']);
+
+        $total = $members->count();
+        $male = $members->where('gender', 'male')->count();
+        $female = $members->where('gender', 'female')->count();
+        $alive = $members->where('is_alive', true)->count();
+        $deceased = $members->where('is_alive', false)->count();
+
+        return [
+            'total_members' => $total,
+            'male_count' => $male,
+            'female_count' => $female,
+            'alive_count' => $alive,
+            'deceased_count' => $deceased,
+            'views_count' => (int) ($this->views_count ?? 0),
+            'quota_limit' => $this->maxMembersLimit(),
+            'remaining_slots' => $this->remainingMemberSlots(),
+            'is_premium' => $this->isPremium(),
+        ];
+    }
 }
