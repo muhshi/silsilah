@@ -54,6 +54,7 @@ test('manifest.json endpoint returns valid PWA manifest structure', function () 
     $response = $this->get('/manifest.json');
 
     $response->assertOk();
+    $response->assertHeader('Content-Type', 'application/manifest+json');
     $data = $response->json();
 
     expect($data)->toBeArray()

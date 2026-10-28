@@ -19,7 +19,7 @@ Route::view('/', 'welcome')->name('home');
 // PWA Routes
 Route::get('manifest.json', function () {
     return response(file_get_contents(public_path('manifest.json')), 200, [
-        'Content-Type' => 'application/json',
+        'Content-Type' => 'application/manifest+json',
     ]);
 });
 
@@ -27,6 +27,7 @@ Route::get('sw.js', function () {
     return response(file_get_contents(public_path('sw.js')), 200, [
         'Content-Type' => 'application/javascript; charset=utf-8',
         'Service-Worker-Allowed' => '/',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
     ]);
 });
 

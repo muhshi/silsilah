@@ -8,8 +8,11 @@
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <meta property="og:image" content="{{ asset('images/logo.png') }}">
+    <meta property="og:type" content="website">
     <meta property="og:title" content="Pohon Silsilah - Lestarikan Sejarah Keluargamu">
+    <meta property="og:description" content="Aplikasi silsilah keluarga modern, interaktif, dan mudah digunakan. Bagan silsilah, buku PDF, kalkulator nasab, dan pengingat haul keluarga.">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('images/logo.png') }}">
 
     <!-- PWA & Mobile Meta -->
     <link rel="manifest" href="/manifest.json">
