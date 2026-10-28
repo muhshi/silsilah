@@ -289,6 +289,22 @@ new class extends Component
     }
 
     #[Computed]
+    public function googleCalendarUrl(): string
+    {
+        $webcal = $this->webcalFeedUrl;
+
+        return 'https://calendar.google.com/calendar/render?cid='.urlencode($webcal);
+    }
+
+    #[Computed]
+    public function downloadIcsUrl(): string
+    {
+        $url = $this->calendarFeedUrl;
+
+        return $url.(str_contains($url, '?') ? '&' : '?').'download=1';
+    }
+
+    #[Computed]
     public function calendarPageUrl(): ?string
     {
         if (! $this->tree) {

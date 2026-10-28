@@ -39,36 +39,84 @@
     </div>
 
     {{-- Calendar Sync Banner / Card --}}
-    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100/60 dark:from-emerald-950/40 dark:via-zinc-900 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800/60 shadow-sm space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-start gap-3">
+    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/70 to-emerald-100/50 dark:from-emerald-950/40 dark:via-zinc-900 dark:to-teal-950/30 border border-emerald-200/90 dark:border-emerald-800/60 shadow-xs space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+            <div class="flex items-start gap-3 min-w-0">
                 <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <flux:icon name="calendar" class="w-5 h-5" />
+                    <span class="material-symbols-outlined text-xl">sync</span>
                 </div>
-                <div>
-                    <h4 class="text-sm font-bold text-zinc-900 dark:text-white">Langganan Kalender Otomatis</h4>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h4 class="text-sm font-bold text-zinc-900 dark:text-white">Sinkronisasi Kalender</h4>
+                        <span class="px-2 py-0.2 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">Gratis &amp; Otomatis</span>
+                    </div>
                     <p class="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed mt-0.5">
-                        Sinkronkan ke Google Calendar, Apple Calendar, atau kalender ponsel Anda. Jadwal akan otomatis berulang setiap tahun!
+                        Hubungkan pengingat keluarga ke Google Calendar di Android/PC atau Apple Calendar di iPhone/Mac. Jadwal ter-update otomatis setiap tahun.
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 pt-1 sm:pt-0 shrink-0">
-                <flux:button href="{{ $this->webcalFeedUrl }}" icon="calendar" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 !font-bold text-xs shadow-sm">
-                    Langganan Kalender
-                </flux:button>
-
-                <div x-data="{ copied: false }">
-                    <flux:button
-                        type="button"
-                        x-on:click="navigator.clipboard.writeText(@js($this->calendarFeedUrl)); copied = true; setTimeout(() => copied = false, 2500)"
-                        icon="link"
-                        size="sm"
-                        variant="subtle"
-                        class="text-xs font-semibold">
-                        <span x-show="!copied">Salin Link .ICS</span>
-                        <span x-show="copied" class="text-emerald-600 dark:text-emerald-400 font-bold">✓ Tersalin!</span>
+            <div class="flex flex-wrap items-center gap-2 pt-1 md:pt-0 shrink-0">
+                {{-- Dropdown Sinkronisasi Lengkap --}}
+                <flux:dropdown>
+                    <flux:button icon="arrow-path" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 !font-bold text-xs shadow-sm cursor-pointer min-h-[38px]">
+                        Sinkron ke Kalender
                     </flux:button>
+                    <flux:menu class="!rounded-2xl p-1.5 shadow-xl border border-zinc-200 dark:border-zinc-800 min-w-[270px]">
+                        <div class="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-400">Pilih Aplikasi Kalender:</div>
+
+                        {{-- Google Calendar (Best for Android & PC) --}}
+                        <flux:menu.item icon="calendar" href="{{ $this->googleCalendarUrl }}" target="_blank" rel="noopener noreferrer">
+                            <div>
+                                <div class="font-bold text-xs flex items-center gap-1.5">
+                                    <span>Google Calendar</span>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700 font-bold">Android &amp; PC</span>
+                                </div>
+                                <div class="text-[11px] text-zinc-500">1-Klik buka &amp; simpan di akun Google</div>
+                            </div>
+                        </flux:menu.item>
+
+                        {{-- Apple Calendar (iPhone/Mac) --}}
+                        <flux:menu.item icon="device-phone-mobile" href="{{ $this->webcalFeedUrl }}">
+                            <div>
+                                <div class="font-bold text-xs flex items-center gap-1.5">
+                                    <span>Apple Calendar</span>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-zinc-200 text-zinc-700 font-bold">iOS &amp; Mac</span>
+                                </div>
+                                <div class="text-[11px] text-zinc-500">Otomatis buka di iPhone, iPad, &amp; Mac</div>
+                            </div>
+                        </flux:menu.item>
+
+                        {{-- Direct .ICS File Download --}}
+                        <flux:menu.item icon="arrow-down-tray" href="{{ $this->downloadIcsUrl }}" download>
+                            <div>
+                                <div class="font-bold text-xs">Unduh File .ICS</div>
+                                <div class="text-[11px] text-zinc-500">Impor ke kalender bawaan HP / offline</div>
+                            </div>
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+
+                {{-- Quick Shortcut: Google Calendar (especially handy on Android HP) --}}
+                <a href="{{ $this->googleCalendarUrl }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 text-xs font-bold transition-all shadow-2xs min-h-[38px] cursor-pointer">
+                    <span class="text-sm">🗓️</span>
+                    <span>Google Cal</span>
+                </a>
+
+                {{-- Copy ICS Link --}}
+                <div x-data="{ copied: false }">
+                    <button
+                        type="button"
+                        x-on:click="navigator.clipboard.writeText({{ json_encode($this->calendarFeedUrl) }}); copied = true; setTimeout(() => copied = false, 2500)"
+                        class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold transition-colors min-h-[38px] cursor-pointer"
+                        title="Salin Link Feed Kalender (.ICS)">
+                        <span class="material-symbols-outlined text-sm" x-show="!copied">link</span>
+                        <span x-show="!copied">Salin Link</span>
+                        <span x-show="copied" class="text-emerald-600 dark:text-emerald-400 font-black">✓ Tersalin!</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -159,7 +207,8 @@
             </div>
 
             {{-- 7-Day Header --}}
-            <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 py-1"
+                 style="display: grid !important; grid-template-columns: repeat(7, minmax(0, 1fr)) !important;">
                 <div class="py-1">Sen<span class="hidden sm:inline">in</span></div>
                 <div class="py-1">Sel<span class="hidden sm:inline">asa</span></div>
                 <div class="py-1">Rab<span class="hidden sm:inline">u</span></div>
@@ -172,7 +221,8 @@
             {{-- Calendar Weeks Grid --}}
             <div class="space-y-1 sm:space-y-2">
                 @foreach($this->calendarWeeks as $week)
-                    <div class="grid grid-cols-7 gap-1 sm:gap-2">
+                    <div class="grid grid-cols-7 gap-1 sm:gap-2"
+                         style="display: grid !important; grid-template-columns: repeat(7, minmax(0, 1fr)) !important;">
                         @foreach($week as $day)
                             @php
                                 $isSelected = $day['is_current_month'] && ($selectedDay === $day['day']);
@@ -184,37 +234,45 @@
                                     role="button"
                                     tabindex="0"
                                 @endif
-                                class="min-h-[55px] sm:min-h-[96px] p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none
-                                    {{ ! $day['is_current_month'] ? 'opacity-30 bg-zinc-50/50 dark:bg-zinc-900/30 border-dashed border-zinc-200 dark:border-zinc-800 cursor-not-allowed' : 'cursor-pointer' }}
-                                    {{ $day['is_current_month'] && ! $isSelected && ! $day['is_today'] ? 'bg-white dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700/80 hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-xs' : '' }}
-                                    {{ $day['is_today'] && ! $isSelected ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-400/50' : '' }}
-                                    {{ $isSelected ? 'bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 dark:border-indigo-500 ring-2 ring-indigo-500 shadow-sm' : '' }}
+                                class="min-h-[58px] sm:min-h-[96px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none
+                                    {{ ! $day['is_current_month'] ? 'opacity-25 bg-zinc-50/50 dark:bg-zinc-900/30 border-dashed border-zinc-200 dark:border-zinc-800 cursor-not-allowed' : 'cursor-pointer' }}
+                                    {{ $day['is_current_month'] && ! $isSelected && ! $day['is_today'] ? 'bg-white dark:bg-zinc-800/90 border-zinc-200 dark:border-zinc-700/80 hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-xs' : '' }}
+                                    {{ $day['is_today'] && ! $isSelected ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-500/40' : '' }}
+                                    {{ $isSelected ? 'bg-indigo-50/90 dark:bg-indigo-950/60 border-indigo-500 dark:border-indigo-500 ring-2 ring-indigo-500 shadow-sm' : '' }}
                                 ">
                                 {{-- Day Number & Today indicator --}}
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs sm:text-sm font-bold {{ $isSelected ? 'text-indigo-600 dark:text-indigo-400 font-black' : ($day['is_today'] ? 'text-emerald-700 dark:text-emerald-300 font-black' : 'text-zinc-700 dark:text-zinc-300') }}">
-                                        {{ $day['day'] }}
-                                    </span>
                                     @if($day['is_today'])
-                                        <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-600 text-white leading-tight">
+                                        <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs">
+                                            {{ $day['day'] }}
+                                        </span>
+                                        <span class="hidden sm:inline text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-600 text-white leading-tight">
                                             Hari Ini
+                                        </span>
+                                    @elseif($isSelected)
+                                        <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs">
+                                            {{ $day['day'] }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs sm:text-sm font-bold {{ ! $day['is_current_month'] ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-700 dark:text-zinc-200' }}">
+                                            {{ $day['day'] }}
                                         </span>
                                     @endif
                                 </div>
 
                                 {{-- Mobile Micro Indicators (< sm) --}}
-                                <div class="flex sm:hidden items-center gap-1 mt-1 flex-wrap">
+                                <div class="flex sm:hidden items-center justify-center gap-1 mt-1 flex-wrap">
                                     @foreach($day['events']->take(3) as $ev)
                                         @if($ev['type'] === 'haul')
-                                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="{{ $ev['title'] }}"></span>
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
                                         @elseif($ev['type'] === 'birthday')
-                                            <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0" title="{{ $ev['title'] }}"></span>
+                                            <span class="w-2 h-2 rounded-full bg-amber-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
                                         @else
-                                            <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0" title="{{ $ev['title'] }}"></span>
+                                            <span class="w-2 h-2 rounded-full bg-indigo-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
                                         @endif
                                     @endforeach
                                     @if($day['events']->count() > 3)
-                                        <span class="text-[9px] font-bold text-zinc-500">+{{ $day['events']->count() - 3 }}</span>
+                                        <span class="text-[8px] font-black text-zinc-500 dark:text-zinc-400">+{{ $day['events']->count() - 3 }}</span>
                                     @endif
                                 </div>
 
@@ -234,7 +292,7 @@
                                                 <span class="truncate">{{ $ev['ordinal_text'] }} {{ $ev['member']?->first_name }}</span>
                                             </div>
                                         @else
-                                            <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-purple-100 text-purple-900 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1"
+                                            <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-indigo-100 text-indigo-900 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1"
                                                  title="{{ $ev['title'] }}">
                                                 <span class="shrink-0 text-[10px]">💍</span>
                                                 <span class="truncate">{{ $ev['ordinal_text'] }}</span>
@@ -251,6 +309,26 @@
                         @endforeach
                     </div>
                 @endforeach
+            </div>
+
+            {{-- Legend bar --}}
+            <div class="flex items-center justify-center gap-3 sm:gap-6 py-2 px-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 flex-wrap">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span>Haul</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span>Ulang Tahun</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    <span>Pernikahan</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 ring-2 ring-emerald-300 dark:ring-emerald-800"></span>
+                    <span>Hari Ini</span>
+                </div>
             </div>
 
             {{-- Selected Day / Month Events Detail Panel --}}
@@ -353,7 +431,7 @@
                                     <div x-data="{ copied: false }">
                                         <button
                                             type="button"
-                                            x-on:click="navigator.clipboard.writeText(@js($event['whatsapp_message'])); copied = true; setTimeout(() => copied = false, 2500)"
+                                            x-on:click="navigator.clipboard.writeText({{ json_encode($event['whatsapp_message']) }}); copied = true; setTimeout(() => copied = false, 2500)"
                                             title="Salin Teks Doa / Pesan Siaran"
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all">
                                             <span x-show="!copied">📋 Salin Teks</span>
@@ -448,7 +526,7 @@
                         <div x-data="{ copied: false }">
                             <button
                                 type="button"
-                                x-on:click="navigator.clipboard.writeText(@js($event['whatsapp_message'])); copied = true; setTimeout(() => copied = false, 2500)"
+                                x-on:click="navigator.clipboard.writeText({{ json_encode($event['whatsapp_message']) }}); copied = true; setTimeout(() => copied = false, 2500)"
                                 title="Salin Teks Doa / Pesan Siaran"
                                 class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all">
                                 <span x-show="!copied">📋 Salin Teks</span>

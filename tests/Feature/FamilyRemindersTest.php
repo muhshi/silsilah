@@ -136,7 +136,7 @@ it('renders all types of events: haul, birthday, and wedding anniversary', funct
         ->assertSee('Haul ke-10')
         ->assertSee('Ulang Tahun ke-30 Ahmad Fauzi')
         ->assertSee('Ulang Tahun Pernikahan ke-8 Joko & Siti')
-        ->assertSee('Langganan Kalender')
+        ->assertSee('Sinkron ke Kalender')
         ->assertSee('https://wa.me/?text=');
 });
 
@@ -262,7 +262,17 @@ it('can switch to reminders tab in tree settings', function () {
         ->assertSee('Agenda &amp; Pengingat', false)
         ->set('activeTab', 'reminders')
         ->assertSee('Haul ke-5')
-        ->assertSee('Langganan Kalender');
+        ->assertSee('Sinkron ke Kalender');
+});
+
+it('serves ics feed as attachment when download param is true', function () {
+    $tree = FamilyTree::factory()->create(['is_public' => true]);
+
+    $response = $this->get(route('tree.calendar.ics', ['tree' => $tree->slug, 'download' => 1]));
+
+    $response->assertOk();
+    $response->assertHeader('Content-Type', 'text/calendar; charset=utf-8');
+    expect($response->headers->get('Content-Disposition'))->toContain('attachment;');
 });
 
 it('opens modal on open-family-reminders event', function () {

@@ -47,10 +47,11 @@ class TreeCalendarController extends Controller
 
         $icsContent = $this->reminderService->generateIcsFeed($treeModel);
         $filename = "silsilah-{$treeModel->slug}.ics";
+        $disposition = $request->boolean('download') ? 'attachment' : 'inline';
 
         return response($icsContent, 200, [
             'Content-Type' => 'text/calendar; charset=utf-8',
-            'Content-Disposition' => "inline; filename=\"{$filename}\"",
+            'Content-Disposition' => "{$disposition}; filename=\"{$filename}\"",
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
         ]);
     }
