@@ -74,6 +74,14 @@ class FamilyTree extends Model
         return $this->hasMany(Member::class);
     }
 
+    /**
+     * @return HasMany<TreeSuggestion>
+     */
+    public function suggestions(): HasMany
+    {
+        return $this->hasMany(TreeSuggestion::class);
+    }
+
     public function isPremium(): bool
     {
         return (bool) $this->is_premium;

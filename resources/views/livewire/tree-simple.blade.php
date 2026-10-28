@@ -260,6 +260,9 @@ new class extends Component
                         Fitur Keluarga
                     </flux:button>
                     <flux:menu>
+                        <flux:menu.item icon="pencil-square" wire:click="$dispatch('open-contribute-modal')">
+                            Lengkapi / Usulkan Data
+                        </flux:menu.item>
                         <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
                             Cek Hubungan Kekerabatan
                         </flux:menu.item>
@@ -349,6 +352,7 @@ new class extends Component
     <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
     <livewire:relationship-calculator :tree-id="$tree->id" />
     <livewire:family-reminders :tree-id="$tree->id" />
+    <livewire:tree-contribute-modal :tree-id="$tree->id" />
     @if(!$isPublic)
         <livewire:tree-settings :tree-id="$tree->id" />
         <livewire:import-members :tree-id="$tree->id" />

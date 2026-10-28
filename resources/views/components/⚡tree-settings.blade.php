@@ -4,6 +4,8 @@ use App\Models\ActivityLog;
 use App\Models\AdminActivityLog;
 use App\Models\FamilyTree;
 use App\Models\TreeInvitation;
+use App\Models\TreeSuggestion;
+use App\Services\TreeSuggestionService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Livewire\Attributes\On;
@@ -257,6 +259,27 @@ new class extends Component
         $this->dispatch('refresh-tree');
     }
 
+    public function approveSuggestion(int $id)
+    {
+        \Illuminate\Support\Facades\Gate::authorize('update', $this->tree);
+
+        $suggestion = TreeSuggestion::where('family_tree_id', $this->treeId)->findOrFail($id);
+        app(TreeSuggestionService::class)->approve($suggestion, auth()->user());
+
+        session()->flash('success_suggestion', 'Usulan perubahan data berhasil disetujui dan diterapkan ke pohon silsilah.');
+        $this->dispatch('refresh-tree');
+    }
+
+    public function rejectSuggestion(int $id)
+    {
+        \Illuminate\Support\Facades\Gate::authorize('update', $this->tree);
+
+        $suggestion = TreeSuggestion::where('family_tree_id', $this->treeId)->findOrFail($id);
+        app(TreeSuggestionService::class)->reject($suggestion, auth()->user());
+
+        session()->flash('success_suggestion', 'Usulan perubahan data telah ditolak.');
+    }
+
     public function with()
     {
         return [
@@ -267,6 +290,13 @@ new class extends Component
                 ->where('family_tree_id', $this->treeId)
                 ->latest()
                 ->take(50)
+                ->get(),
+            'pendingSuggestionsCount' => TreeSuggestion::where('family_tree_id', $this->treeId)
+                ->where('status', 'pending')
+                ->count(),
+            'suggestions' => TreeSuggestion::with(['targetMember', 'reviewer'])
+                ->where('family_tree_id', $this->treeId)
+                ->latest()
                 ->get(),
         ];
     }
@@ -331,6 +361,15 @@ new class extends Component
                 <button type="button" wire:click="$set('activeTab', 'reminders')" class="px-3.5 py-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer {{ $activeTab === 'reminders' ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
                     <span class="material-symbols-outlined text-base">calendar_month</span>
                     <span>Agenda &amp; Pengingat</span>
+                </button>
+                <button type="button" wire:click="$set('activeTab', 'suggestions')" class="px-3.5 py-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer {{ $activeTab === 'suggestions' ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
+                    <span class="material-symbols-outlined text-base">how_to_reg</span>
+                    <span>Usulan Data</span>
+                    @if($pendingSuggestionsCount > 0)
+                        <span class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white animate-pulse">
+                            {{ $pendingSuggestionsCount }}
+                        </span>
+                    @endif
                 </button>
                 <button type="button" wire:click="$set('activeTab', 'general')" class="px-3.5 py-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer {{ $activeTab === 'general' ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
                     <span class="material-symbols-outlined text-base">settings</span>
@@ -756,6 +795,147 @@ new class extends Component
             @if($activeTab === 'reminders')
                 <div class="space-y-6 pt-2">
                     <livewire:family-reminders :tree-id="$treeId" :as-modal="false" />
+                </div>
+            @endif
+
+            {{-- Tab: Usulan Data (Crowdsourcing) --}}
+            @if($activeTab === 'suggestions')
+                <div class="space-y-4 pt-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Kotak Masuk Usulan Data Kerabat</h4>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400">Tinjau penambahan anak, pasangan, atau koreksi data yang diusulkan oleh anggota keluarga.</p>
+                        </div>
+                    </div>
+
+                    @if(session()->has('success_suggestion'))
+                        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs flex items-center gap-2">
+                            <flux:icon name="check-circle" class="size-4 shrink-0" />
+                            <span>{{ session('success_suggestion') }}</span>
+                        </div>
+                    @endif
+
+                    @if($suggestions->isEmpty())
+                        <div class="text-center py-10 px-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 space-y-3">
+                            <span class="p-3 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 inline-block text-2xl">
+                                📬
+                            </span>
+                            <div class="max-w-sm mx-auto">
+                                <h5 class="font-bold text-sm text-zinc-800 dark:text-zinc-200">Belum Ada Usulan Masuk</h5>
+                                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                    Keluarga atau kerabat dapat mengusulkan penambahan anak, pasangan, atau koreksi tanggal melalui menu publik silsilah.
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($suggestions as $sug)
+                                <div class="p-4 rounded-2xl border transition-all {{ $sug->status === 'pending' ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/60' : ($sug->status === 'approved' ? 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800' : 'bg-zinc-50/50 dark:bg-zinc-800/20 border-zinc-200/60 dark:border-zinc-800/50 opacity-70') }}">
+                                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                        <div class="space-y-2 flex-1">
+                                            {{-- Badges row --}}
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                @if($sug->type === 'add_child')
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                        👶 Tambah Anak
+                                                    </span>
+                                                @elseif($sug->type === 'add_spouse')
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                                        💍 Tambah Pasangan
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                                        ✏️ Koreksi Anggota
+                                                    </span>
+                                                @endif
+
+                                                @if($sug->status === 'pending')
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                                                        Menunggu Ditinjau
+                                                    </span>
+                                                @elseif($sug->status === 'approved')
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
+                                                        ✓ Disetujui
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white">
+                                                        ✕ Ditolak
+                                                    </span>
+                                                @endif
+
+                                                <span class="text-[11px] text-zinc-400">
+                                                    {{ $sug->created_at->diffForHumans() }}
+                                                </span>
+                                            </div>
+
+                                            {{-- Details --}}
+                                            <div>
+                                                <h5 class="text-sm font-bold text-zinc-900 dark:text-white">
+                                                    {{ $sug->data['first_name'] ?? '-' }} {{ $sug->data['last_name'] ?? '' }}
+                                                    <span class="text-xs font-normal text-zinc-500">
+                                                        ({{ ($sug->data['gender'] ?? 'male') === 'male' ? 'Laki-laki' : 'Perempuan' }})
+                                                    </span>
+                                                </h5>
+                                                
+                                                <div class="text-xs text-zinc-600 dark:text-zinc-300 mt-1 space-y-0.5">
+                                                    @if($sug->targetMember)
+                                                        <p>
+                                                            <span class="font-semibold text-zinc-500">Rujukan:</span>
+                                                            {{ $sug->targetMember->first_name }} {{ $sug->targetMember->last_name }} (#M{{ $sug->targetMember->id }})
+                                                        </p>
+                                                    @endif
+
+                                                    @if(!empty($sug->data['birth_date']))
+                                                        <p><span class="font-semibold text-zinc-500">Lahir:</span> {{ $sug->data['birth_date'] }} {{ !empty($sug->data['birth_place']) ? 'di '.$sug->data['birth_place'] : '' }}</p>
+                                                    @endif
+
+                                                    @if(isset($sug->data['is_living']) && ! $sug->data['is_living'])
+                                                        <p><span class="font-semibold text-zinc-500">Status:</span> Wafat {{ !empty($sug->data['death_date']) ? '('.$sug->data['death_date'].')' : '' }}</p>
+                                                    @endif
+
+                                                    @if($sug->notes)
+                                                        <p class="italic text-zinc-500 mt-1 bg-white/60 dark:bg-zinc-900/60 p-2 rounded-lg border border-zinc-200/50 dark:border-zinc-700/50">
+                                                            "{{ $sug->notes }}"
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            {{-- Contributor info --}}
+                                            <div class="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center gap-3">
+                                                <span>Pengusul: <strong class="text-zinc-700 dark:text-zinc-200">{{ $sug->contributor_name }}</strong></span>
+                                                @if($sug->contributor_contact)
+                                                    <span>Kontak: 
+                                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $sug->contributor_contact) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5">
+                                                            {{ $sug->contributor_contact }}
+                                                        </a>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        {{-- Actions for pending --}}
+                                        @if($sug->status === 'pending')
+                                            <div class="flex sm:flex-col gap-2 shrink-0 pt-2 sm:pt-0">
+                                                <button type="button"
+                                                        wire:click="approveSuggestion({{ $sug->id }})"
+                                                        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                                    <flux:icon name="check" class="size-3.5" />
+                                                    <span>Setujui</span>
+                                                </button>
+                                                <button type="button"
+                                                        wire:click="rejectSuggestion({{ $sug->id }})"
+                                                        class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-rose-100 hover:text-rose-700 dark:bg-zinc-800 dark:hover:bg-rose-950/40 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                                    <flux:icon name="x-mark" class="size-3.5" />
+                                                    <span>Tolak</span>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @endif
 
