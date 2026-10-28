@@ -6,13 +6,24 @@
                 <div class="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                     <flux:icon name="calendar" class="size-5" />
                 </div>
-                <flux:heading size="lg">Agenda &amp; Pengingat Keluarga</flux:heading>
+                <flux:heading size="lg">Agenda &amp; Pengingat {{ $this->tree ? 'Trah ' . $this->tree->name : 'Keluarga' }}</flux:heading>
             </div>
-            <flux:subheading>Pengingat Haul, Ulang Tahun, dan Ulang Tahun Pernikahan trah keluarga.</flux:subheading>
+            <flux:subheading>Pengingat Haul, Ulang Tahun, Hari Pernikahan, dan Acara Kumpul Trah Keluarga.</flux:subheading>
         </div>
 
-        {{-- Switcher Mode (Kalender vs Daftar) + Link ke Halaman Penuh jika modal --}}
+        {{-- Switcher Mode (Kalender vs Daftar) + Tambah Acara + Link ke Halaman Penuh jika modal --}}
         <div class="flex flex-wrap items-center gap-2 shrink-0">
+            @if($this->canManageEvents)
+                <flux:button
+                    type="button"
+                    wire:click="openCreateEventModal"
+                    icon="plus"
+                    size="sm"
+                    class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !font-bold cursor-pointer shadow-sm">
+                    Tambah Acara
+                </flux:button>
+            @endif
+
             <div class="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
                 <button
                     type="button"
@@ -156,9 +167,17 @@
             <button
                 type="button"
                 wire:click="setFilter('marriage')"
-                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 {{ $filterType === 'marriage' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300' }}">
+                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 {{ $filterType === 'marriage' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300' }}">
                 <span>💍 Pernikahan</span>
                 <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $filterType === 'marriage' ? 'bg-indigo-700 text-indigo-100' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300' }}">{{ $badgeCounts['marriage'] }}</span>
+            </button>
+
+            <button
+                type="button"
+                wire:click="setFilter('event')"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 {{ $filterType === 'event' ? 'bg-teal-600 text-white shadow-sm' : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300' }}">
+                <span>🤝 Acara Trah</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $filterType === 'event' ? 'bg-teal-700 text-teal-100' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300' }}">{{ $badgeCounts['event'] ?? 0 }}</span>
             </button>
         </div>
 
@@ -267,8 +286,10 @@
                                             <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
                                         @elseif($ev['type'] === 'birthday')
                                             <span class="w-2 h-2 rounded-full bg-amber-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
-                                        @else
+                                        @elseif($ev['type'] === 'marriage')
                                             <span class="w-2 h-2 rounded-full bg-indigo-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
+                                        @else
+                                            <span class="w-2 h-2 rounded-full bg-teal-500 shadow-2xs shrink-0" title="{{ $ev['title'] }}"></span>
                                         @endif
                                     @endforeach
                                     @if($day['events']->count() > 3)
@@ -291,11 +312,17 @@
                                                 <span class="shrink-0 text-[10px]">🎂</span>
                                                 <span class="truncate">{{ $ev['ordinal_text'] }} {{ $ev['member']?->first_name }}</span>
                                             </div>
-                                        @else
+                                        @elseif($ev['type'] === 'marriage')
                                             <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-indigo-100 text-indigo-900 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1"
                                                  title="{{ $ev['title'] }}">
                                                 <span class="shrink-0 text-[10px]">💍</span>
                                                 <span class="truncate">{{ $ev['ordinal_text'] }}</span>
+                                            </div>
+                                        @else
+                                            <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-teal-100 text-teal-900 dark:bg-teal-950/80 dark:text-teal-300 border border-teal-200 dark:border-teal-800 flex items-center gap-1"
+                                                 title="{{ $ev['title'] }}">
+                                                <span class="shrink-0 text-[10px]">{{ $ev['custom_emoji'] ?? '🤝' }}</span>
+                                                <span class="truncate">{{ $ev['title'] }}</span>
                                             </div>
                                         @endif
                                     @endforeach
@@ -324,6 +351,10 @@
                 <div class="flex items-center gap-1.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
                     <span>Pernikahan</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                    <span>Acara Trah</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 ring-2 ring-emerald-300 dark:ring-emerald-800"></span>
@@ -374,9 +405,13 @@
                                             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
                                                 🎂 {{ $event['ordinal_text'] }}
                                             </span>
-                                        @else
+                                        @elseif($event['type'] === 'marriage')
                                             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1">
                                                 💍 {{ $event['ordinal_text'] }}
+                                            </span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 flex items-center gap-1">
+                                                {{ $event['custom_emoji'] ?? '🤝' }} {{ $event['ordinal_text'] }}
                                             </span>
                                         @endif
 
@@ -415,17 +450,50 @@
                                             {{ $event['description'] }}
                                         </span>
                                     </div>
+
+                                    @if(!empty($event['start_time']) || !empty($event['location_name']) || !empty($event['contact_person']))
+                                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300 pt-1">
+                                            @if(!empty($event['start_time']))
+                                                <span class="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                                                    <span>⏰</span>
+                                                    <span>{{ \Carbon\Carbon::parse($event['start_time'])->format('H:i') }}{{ !empty($event['end_time']) ? ' - ' . \Carbon\Carbon::parse($event['end_time'])->format('H:i') : '' }} WIB</span>
+                                                </span>
+                                            @endif
+                                            @if(!empty($event['location_name']))
+                                                <span class="flex items-center gap-1">
+                                                    <span>🏠</span>
+                                                    <span>{{ $event['location_name'] }}</span>
+                                                </span>
+                                            @endif
+                                            @if(!empty($event['location_maps_url']))
+                                                <a href="{{ $event['location_maps_url'] }}" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-bold underline inline-flex items-center gap-0.5">
+                                                    <span>📍 Maps</span>
+                                                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                                                </a>
+                                            @endif
+                                            @if(!empty($event['contact_person']))
+                                                <span class="text-zinc-500 dark:text-zinc-400">
+                                                    (PIC: {{ $event['contact_person'] }})
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
 
-                                <div class="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
+                                <div class="flex items-center gap-1.5 shrink-0 pt-2 sm:pt-0">
+                                    @if($this->canManageEvents && ($event['type'] === 'event') && !empty($event['event_model']))
+                                        <flux:button type="button" wire:click="editEvent({{ $event['event_model']->id }})" size="xs" variant="subtle" icon="pencil" title="Edit Acara" class="cursor-pointer" />
+                                        <flux:button type="button" wire:click="deleteEvent({{ $event['event_model']->id }})" wire:confirm="Yakin ingin menghapus agenda acara ini?" size="xs" variant="subtle" icon="trash" class="!text-rose-600 hover:!bg-rose-50 dark:hover:!bg-rose-950/40 cursor-pointer" title="Hapus Acara" />
+                                    @endif
+
                                     <a
                                         href="{{ $event['wa_share_url'] }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        title="Kirim ke WhatsApp (Grup Keluarga)"
+                                        title="{{ $event['type'] === 'event' ? 'Kirim Undangan WhatsApp' : 'Kirim Pengingat ke WhatsApp' }}"
                                         class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1caa4f] text-white text-xs font-bold transition-all shadow-sm">
                                         <span class="text-sm leading-none">💬</span>
-                                        <span>Kirim ke WhatsApp</span>
+                                        <span>{{ $event['type'] === 'event' ? 'Undangan WA' : 'Kirim ke WhatsApp' }}</span>
                                     </a>
 
                                     <div x-data="{ copied: false }">
@@ -443,8 +511,8 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="py-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                        Tidak ada haul, ulang tahun, atau hari pernikahan pada periode/tanggal ini.
+                    <div class="py-6 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                        Tidak ada haul, ulang tahun, pernikahan, atau acara trah pada periode/tanggal ini.
                     </div>
                 @endif
             </div>
@@ -466,9 +534,13 @@
                                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
                                     🎂 {{ $event['ordinal_text'] }}
                                 </span>
-                            @else
+                            @elseif($event['type'] === 'marriage')
                                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1">
                                     💍 {{ $event['ordinal_text'] }}
+                                </span>
+                            @else
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 flex items-center gap-1">
+                                    {{ $event['custom_emoji'] ?? '🤝' }} {{ $event['ordinal_text'] }}
                                 </span>
                             @endif
 
@@ -507,19 +579,52 @@
                                 {{ $event['description'] }}
                             </span>
                         </div>
+
+                        @if(!empty($event['start_time']) || !empty($event['location_name']) || !empty($event['contact_person']))
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300 pt-1">
+                                @if(!empty($event['start_time']))
+                                    <span class="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                                        <span>⏰</span>
+                                        <span>{{ \Carbon\Carbon::parse($event['start_time'])->format('H:i') }}{{ !empty($event['end_time']) ? ' - ' . \Carbon\Carbon::parse($event['end_time'])->format('H:i') : '' }} WIB</span>
+                                    </span>
+                                @endif
+                                @if(!empty($event['location_name']))
+                                    <span class="flex items-center gap-1">
+                                        <span>🏠</span>
+                                        <span>{{ $event['location_name'] }}</span>
+                                    </span>
+                                @endif
+                                @if(!empty($event['location_maps_url']))
+                                    <a href="{{ $event['location_maps_url'] }}" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-bold underline inline-flex items-center gap-0.5">
+                                        <span>📍 Maps</span>
+                                        <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                                    </a>
+                                @endif
+                                @if(!empty($event['contact_person']))
+                                    <span class="text-zinc-500 dark:text-zinc-400">
+                                        (PIC: {{ $event['contact_person'] }})
+                                    </span>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
-                    {{-- Right: Actions (WhatsApp Sharer & Copy Text) --}}
+                    {{-- Right: Actions (WhatsApp Sharer, Edit/Delete, & Copy Text) --}}
                     <div class="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100 dark:border-zinc-800">
+                        @if($this->canManageEvents && ($event['type'] === 'event') && !empty($event['event_model']))
+                            <flux:button type="button" wire:click="editEvent({{ $event['event_model']->id }})" size="xs" variant="subtle" icon="pencil" title="Edit Acara" class="cursor-pointer" />
+                            <flux:button type="button" wire:click="deleteEvent({{ $event['event_model']->id }})" wire:confirm="Yakin ingin menghapus agenda acara ini?" size="xs" variant="subtle" icon="trash" class="!text-rose-600 hover:!bg-rose-50 dark:hover:!bg-rose-950/40 cursor-pointer" title="Hapus Acara" />
+                        @endif
+
                         {{-- 1-Click WhatsApp Button --}}
                         <a
                             href="{{ $event['wa_share_url'] }}"
                             target="_blank"
                             rel="noopener noreferrer"
-                            title="Kirim ke WhatsApp (Grup Keluarga)"
+                            title="{{ $event['type'] === 'event' ? 'Kirim Undangan WhatsApp' : 'Kirim Pengingat ke WhatsApp' }}"
                             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1caa4f] text-white text-xs font-bold transition-all shadow-sm">
                             <span class="text-sm leading-none">💬</span>
-                            <span>Kirim ke WhatsApp</span>
+                            <span>{{ $event['type'] === 'event' ? 'Undangan WA' : 'Kirim ke WhatsApp' }}</span>
                         </a>
 
                         {{-- Copy Message Button --}}
@@ -527,7 +632,7 @@
                             <button
                                 type="button"
                                 x-on:click="navigator.clipboard.writeText({{ json_encode($event['whatsapp_message']) }}); copied = true; setTimeout(() => copied = false, 2500)"
-                                title="Salin Teks Doa / Pesan Siaran"
+                                title="Salin Teks Doa / Pesan Undangan"
                                 class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all">
                                 <span x-show="!copied">📋 Salin Teks</span>
                                 <span x-show="copied" class="text-emerald-600 dark:text-emerald-400 font-bold">✓ Tersalin!</span>

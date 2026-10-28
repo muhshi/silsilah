@@ -82,6 +82,11 @@ class FamilyTree extends Model
         return $this->hasMany(TreeSuggestion::class);
     }
 
+    public function events(): HasMany
+    {
+        return $this->hasMany(FamilyEvent::class);
+    }
+
     public function isPremium(): bool
     {
         return (bool) $this->is_premium;

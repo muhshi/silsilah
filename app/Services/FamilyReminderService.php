@@ -172,6 +172,67 @@ class FamilyReminderService
             }
         }
 
+        // 3. Process Custom Family Events (Halal bi Halal, Haul Akbar, Arisan, etc.)
+        $customEvents = $tree->relationLoaded('events')
+            ? $tree->events
+            : $tree->events()->get();
+
+        foreach ($customEvents as $event) {
+            $originalDate = Carbon::parse($event->event_date)->startOfDay();
+
+            if ($event->is_recurring_yearly) {
+                $occurrence = $this->calculateUpcomingOccurrence($originalDate, $today, $daysAhead);
+                if ($occurrence) {
+                    $targetDate = $occurrence['date'];
+                    $daysUntil = $occurrence['days_until'];
+                    $ordinal = $occurrence['ordinal'];
+                } else {
+                    continue;
+                }
+            } else {
+                $targetDate = $originalDate;
+                $daysUntil = (int) $today->diffInDays($targetDate, false);
+                $ordinal = 1;
+                if ($daysUntil < 0 || $daysUntil > $daysAhead) {
+                    continue;
+                }
+            }
+
+            $title = $event->title;
+            $timeText = $event->start_time ? Carbon::parse($event->start_time)->format('H:i').($event->end_time ? ' - '.Carbon::parse($event->end_time)->format('H:i') : ' WIB') : null;
+            $description = "{$event->type_label}: {$title}".($timeText ? " ({$timeText})" : '').($event->location_name ? " di {$event->location_name}" : '');
+
+            $eventData = [
+                'id' => "event-{$event->id}",
+                'type' => 'event',
+                'event_model' => $event,
+                'custom_type' => $event->event_type,
+                'custom_label' => $event->type_label,
+                'custom_emoji' => $event->type_emoji,
+                'title' => $title,
+                'member' => null,
+                'spouse' => null,
+                'date' => $targetDate,
+                'original_date' => $originalDate,
+                'days_until' => $daysUntil,
+                'ordinal' => $ordinal,
+                'ordinal_text' => $event->type_label,
+                'description' => $description,
+                'start_time' => $event->start_time,
+                'end_time' => $event->end_time,
+                'location_name' => $event->location_name,
+                'location_maps_url' => $event->location_maps_url,
+                'contact_person' => $event->contact_person,
+                'is_recurring_yearly' => (bool) $event->is_recurring_yearly,
+            ];
+
+            $waMessage = $this->formatWhatsAppMessage($eventData, $tree);
+            $eventData['whatsapp_message'] = $waMessage;
+            $eventData['wa_share_url'] = 'https://wa.me/?text='.rawurlencode($waMessage);
+
+            $events->push($eventData);
+        }
+
         return $events->sortBy('days_until')->values();
     }
 
@@ -350,6 +411,68 @@ class FamilyReminderService
             }
         }
 
+        // 3. Process Custom Family Events
+        $customEvents = $tree->relationLoaded('events')
+            ? $tree->events
+            : $tree->events()->get();
+
+        foreach ($customEvents as $event) {
+            $originalDate = Carbon::parse($event->event_date)->startOfDay();
+            $matches = false;
+            $targetDate = null;
+
+            if ($event->is_recurring_yearly) {
+                if ($originalDate->month === $month && $originalDate->year <= $year) {
+                    $day = min($originalDate->day, $daysInTargetMonth);
+                    $targetDate = Carbon::create($year, $month, $day)->startOfDay();
+                    $matches = true;
+                }
+            } else {
+                if ($originalDate->year === $year && $originalDate->month === $month) {
+                    $targetDate = $originalDate;
+                    $matches = true;
+                }
+            }
+
+            if ($matches && $targetDate) {
+                $daysUntil = (int) $today->diffInDays($targetDate, false);
+                $ordinal = max(1, $year - $originalDate->year);
+                $title = $event->title;
+                $timeText = $event->start_time ? Carbon::parse($event->start_time)->format('H:i').($event->end_time ? ' - '.Carbon::parse($event->end_time)->format('H:i') : ' WIB') : null;
+                $description = "{$event->type_label}: {$title}".($timeText ? " ({$timeText})" : '').($event->location_name ? " di {$event->location_name}" : '');
+
+                $eventData = [
+                    'id' => "event-{$event->id}",
+                    'type' => 'event',
+                    'event_model' => $event,
+                    'custom_type' => $event->event_type,
+                    'custom_label' => $event->type_label,
+                    'custom_emoji' => $event->type_emoji,
+                    'title' => $title,
+                    'member' => null,
+                    'spouse' => null,
+                    'date' => $targetDate,
+                    'original_date' => $originalDate,
+                    'days_until' => $daysUntil,
+                    'ordinal' => $ordinal,
+                    'ordinal_text' => $event->type_label,
+                    'description' => $description,
+                    'start_time' => $event->start_time,
+                    'end_time' => $event->end_time,
+                    'location_name' => $event->location_name,
+                    'location_maps_url' => $event->location_maps_url,
+                    'contact_person' => $event->contact_person,
+                    'is_recurring_yearly' => (bool) $event->is_recurring_yearly,
+                ];
+
+                $waMessage = $this->formatWhatsAppMessage($eventData, $tree);
+                $eventData['whatsapp_message'] = $waMessage;
+                $eventData['wa_share_url'] = 'https://wa.me/?text='.rawurlencode($waMessage);
+
+                $events->push($eventData);
+            }
+        }
+
         return $events->sortBy(fn ($e) => $e['date']->timestamp)->values();
     }
 
@@ -435,6 +558,27 @@ class FamilyReminderService
                     ."Barakallahu laka wa baraka 'alaika wa jama'a bainakuma fii khoir. Semoga menjadi keluarga yang senantiasa sakinah, mawaddah, warahmah, selalu rukun, bahagia, dan penuh berkah hingga akhir hayat. Aamiin ya Rabbal 'Alamin. 🤲💐\n\n"
                     ."Bagan Silsilah: {$treeUrl}";
 
+            case 'event':
+                $dayName = Carbon::parse($event['date'])->locale('id')->translatedFormat('l');
+                $timeStr = ! empty($event['start_time'])
+                    ? Carbon::parse($event['start_time'])->format('H:i').(! empty($event['end_time']) ? ' - '.Carbon::parse($event['end_time'])->format('H:i') : '').' WIB'
+                    : 'Waktu menyusul';
+                $location = ! empty($event['location_name']) ? $event['location_name'] : '-';
+                $maps = ! empty($event['location_maps_url']) ? "\n📍 Google Maps: {$event['location_maps_url']}" : '';
+                $pic = ! empty($event['contact_person']) ? "\n📞 Narahubung / PIC: {$event['contact_person']}" : '';
+                $desc = ! empty($event['event_model']?->description) ? "\n\nCatatan:\n".$event['event_model']->description : '';
+
+                return "Assalamu'alaikum wr. wb.\n\n"
+                    ."Undangan Agenda Keluarga Besar Trah {$tree->name}:\n\n"
+                    ."*{$event['title']}*\n"
+                    ."({$event['ordinal_text']})\n\n"
+                    ."🗓 Hari / Tgl: {$dayName}, {$dateFormatted}\n"
+                    ."⏰ Waktu: {$timeStr}\n"
+                    ."🏠 Tempat: {$location}{$maps}{$pic}{$desc}\n\n"
+                    ."Kehadiran dan doa restu keluarga besar sangat kami harapkan demi mempererat tali silaturahmi & ukhuwah kekeluargaan.\n\n"
+                    ."Wassalamu'alaikum wr. wb.\n\n"
+                    ."Bagan Silsilah: {$treeUrl}";
+
             default:
                 return "Assalamu'alaikum wr. wb.\n\n"
                     ."Mengingatkan agenda keluarga besar Trah {$tree->name}: {$event['title']} pada {$daysText} ({$dateFormatted}).\n\n"
@@ -466,15 +610,34 @@ class FamilyReminderService
 
         foreach ($events as $event) {
             $uid = ($event['id'] ?? uniqid('event-')).'@silsilah.family';
-            $dtstart = Carbon::parse($event['date'])->format('Ymd');
             $summary = $this->escapeIcsText($event['title'] ?? 'Agenda Keluarga');
             $description = $this->escapeIcsText($event['description'] ?? '');
 
             $lines[] = 'BEGIN:VEVENT';
             $lines[] = "UID:{$uid}";
             $lines[] = "DTSTAMP:{$dtstamp}";
-            $lines[] = "DTSTART;VALUE=DATE:{$dtstart}";
-            $lines[] = 'RRULE:FREQ=YEARLY';
+
+            if (! empty($event['start_time'])) {
+                $dateStr = Carbon::parse($event['date'])->format('Ymd');
+                $timeStr = Carbon::parse($event['start_time'])->format('His');
+                $lines[] = "DTSTART;TZID=Asia/Jakarta:{$dateStr}T{$timeStr}";
+                if (! empty($event['end_time'])) {
+                    $endTimeStr = Carbon::parse($event['end_time'])->format('His');
+                    $lines[] = "DTEND;TZID=Asia/Jakarta:{$dateStr}T{$endTimeStr}";
+                }
+            } else {
+                $dtstart = Carbon::parse($event['date'])->format('Ymd');
+                $lines[] = "DTSTART;VALUE=DATE:{$dtstart}";
+            }
+
+            if (($event['type'] ?? '') !== 'event' || ! empty($event['is_recurring_yearly'])) {
+                $lines[] = 'RRULE:FREQ=YEARLY';
+            }
+
+            if (! empty($event['location_name'])) {
+                $lines[] = 'LOCATION:'.$this->escapeIcsText($event['location_name']);
+            }
+
             $lines[] = "SUMMARY:{$summary}";
             $lines[] = "DESCRIPTION:{$description}";
             $lines[] = 'END:VEVENT';

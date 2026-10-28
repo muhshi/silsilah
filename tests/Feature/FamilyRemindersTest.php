@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\FamilyEvent;
 use App\Models\FamilyTree;
 use App\Models\Marriage;
 use App\Models\Member;
@@ -239,7 +240,7 @@ it('renders in embedded mode without modal wrapper', function () {
     Livewire::test('⚡family-reminders', ['treeId' => $tree->id, 'asModal' => false])
         ->assertSee('Haul ke-5')
         ->assertSee('Kirim ke WhatsApp')
-        ->assertDontSee('data-flux-modal');
+        ->assertDontSee('md:w-[58rem]');
 });
 
 it('can switch to reminders tab in tree settings', function () {
@@ -286,4 +287,106 @@ it('opens modal on open-family-reminders event', function () {
         ->assertSet('showModal', false)
         ->dispatch('open-family-reminders')
         ->assertSet('showModal', true);
+});
+
+it('renders custom family events like halal bi halal in calendar and upcoming lists', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Bani Abdurrahman']);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    FamilyEvent::create([
+        'family_tree_id' => $tree->id,
+        'created_by' => $owner->id,
+        'title' => 'Halal bi Halal Akbar 1448 H',
+        'event_type' => 'halal_bi_halal',
+        'event_date' => '2026-11-10',
+        'start_time' => '09:00:00',
+        'end_time' => '13:00:00',
+        'location_name' => 'Kediaman Bpk. Ahmad',
+        'location_maps_url' => 'https://maps.app.goo.gl/test',
+        'description' => 'Membawa pakaian muslim nuansa hijau.',
+        'contact_person' => 'Budi (08123456789)',
+    ]);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡family-reminders', ['treeId' => $tree->id])
+        ->assertSee('Halal bi Halal Akbar 1448 H')
+        ->assertSee('Kediaman Bpk. Ahmad')
+        ->assertSee('09:00')
+        ->assertSee('Budi (08123456789)')
+        ->assertSee('Undangan WA');
+});
+
+it('allows tree managers to create, edit, and delete family events', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Bani Abdurrahman']);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    $component = Livewire::test('⚡family-reminders', ['treeId' => $tree->id])
+        ->call('openCreateEventModal')
+        ->assertSet('showEventModal', true)
+        ->set('eventTitle', 'Pertemuan Arisan Trah')
+        ->set('eventType', 'arisan')
+        ->set('eventDate', '2026-11-15')
+        ->set('startTime', '10:00')
+        ->set('locationName', 'Aula Graha Keluarga')
+        ->call('saveEvent')
+        ->assertHasNoErrors()
+        ->assertSet('showEventModal', false);
+
+    $event = FamilyEvent::where('family_tree_id', $tree->id)->first();
+    expect($event)->not->toBeNull();
+    expect($event->title)->toBe('Pertemuan Arisan Trah');
+    expect($event->event_type)->toBe('arisan');
+
+    // Edit event
+    $component->call('editEvent', $event->id)
+        ->assertSet('showEventModal', true)
+        ->assertSet('eventTitle', 'Pertemuan Arisan Trah')
+        ->set('eventTitle', 'Pertemuan Arisan Trah Periode 2')
+        ->call('saveEvent')
+        ->assertHasNoErrors();
+
+    expect($event->fresh()->title)->toBe('Pertemuan Arisan Trah Periode 2');
+
+    // Delete event
+    $component->call('deleteEvent', $event->id);
+    expect(FamilyEvent::find($event->id))->toBeNull();
+});
+
+it('includes custom events in ics calendar feed with location and proper time', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Bani Mochtar',
+        'slug' => 'bani-mochtar-custom',
+        'is_public' => true,
+    ]);
+
+    FamilyEvent::create([
+        'family_tree_id' => $tree->id,
+        'title' => 'Haul Akbar Jam\'i Masyayikh',
+        'event_type' => 'haul_akbar',
+        'event_date' => '2026-11-20',
+        'start_time' => '19:30:00',
+        'end_time' => '22:00:00',
+        'location_name' => 'Masjid Jami',
+        'is_recurring_yearly' => false,
+    ]);
+
+    $response = $this->get(route('tree.calendar.ics', $tree->slug));
+    $response->assertOk();
+    $content = $response->getContent();
+
+    expect($content)->toContain('SUMMARY:Haul Akbar Jam\'i Masyayikh')
+        ->toContain('LOCATION:Masjid Jami')
+        ->toContain('DTSTART;TZID=Asia/Jakarta:20261120T193000')
+        ->toContain('DTEND;TZID=Asia/Jakarta:20261120T220000');
 });
