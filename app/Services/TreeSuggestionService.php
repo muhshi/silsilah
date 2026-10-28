@@ -16,9 +16,18 @@ class TreeSuggestionService
      */
     public function approve(TreeSuggestion $suggestion, ?User $reviewer = null): Member
     {
+        if (! $suggestion->isPending()) {
+            throw new \DomainException('Usulan data ini telah ditinjau sebelumnya.');
+        }
+
         return DB::transaction(function () use ($suggestion, $reviewer) {
             $data = $suggestion->data ?? [];
             $target = $suggestion->target_member_id ? Member::find($suggestion->target_member_id) : null;
+
+            if ($target && (int) $target->family_tree_id !== (int) $suggestion->family_tree_id) {
+                throw new \InvalidArgumentException('Anggota target tidak sesuai dengan pohon silsilah.');
+            }
+
             $member = null;
 
             if ($suggestion->type === 'add_child') {
@@ -135,6 +144,10 @@ class TreeSuggestionService
      */
     public function reject(TreeSuggestion $suggestion, ?User $reviewer = null): void
     {
+        if (! $suggestion->isPending()) {
+            throw new \DomainException('Usulan data ini telah ditinjau sebelumnya.');
+        }
+
         $suggestion->update([
             'status' => 'rejected',
             'reviewed_by' => $reviewer?->id ?? auth()->id(),

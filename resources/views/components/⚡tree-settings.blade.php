@@ -905,8 +905,14 @@ new class extends Component
                                             <div class="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center gap-3">
                                                 <span>Pengusul: <strong class="text-zinc-700 dark:text-zinc-200">{{ $sug->contributor_name }}</strong></span>
                                                 @if($sug->contributor_contact)
+                                                    @php
+                                                        $waNumber = preg_replace('/[^0-9]/', '', $sug->contributor_contact);
+                                                        if (str_starts_with($waNumber, '0')) {
+                                                            $waNumber = '62' . substr($waNumber, 1);
+                                                        }
+                                                    @endphp
                                                     <span>Kontak: 
-                                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $sug->contributor_contact) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5">
+                                                        <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5">
                                                             {{ $sug->contributor_contact }}
                                                         </a>
                                                     </span>

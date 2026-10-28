@@ -100,7 +100,10 @@ new class extends Component
     protected function rules(): array
     {
         return [
-            'targetMemberId' => ['required', 'exists:members,id'],
+            'targetMemberId' => [
+                'required',
+                \Illuminate\Validation\Rule::exists('members', 'id')->where('family_tree_id', $this->treeId),
+            ],
             'suggestionType' => ['required', 'in:add_child,add_spouse,edit_member'],
             'firstName' => ['required', 'string', 'max:255'],
             'lastName' => ['nullable', 'string', 'max:255'],
