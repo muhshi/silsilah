@@ -453,9 +453,20 @@ class TreeExportService
         $spousesByMember = [];
         foreach ($allMembers as $m) {
             foreach ($m->marriagesAsHusband as $mr) {
-                $spousesByMember[$m->id][] = $mr->wife_id;
-                $spousesByMember[$mr->wife_id][] = $m->id;
+                if ($mr->wife_id) {
+                    $spousesByMember[$m->id][] = $mr->wife_id;
+                    $spousesByMember[$mr->wife_id][] = $m->id;
+                }
             }
+            foreach ($m->marriagesAsWife as $mr) {
+                if ($mr->husband_id) {
+                    $spousesByMember[$m->id][] = $mr->husband_id;
+                    $spousesByMember[$mr->husband_id][] = $m->id;
+                }
+            }
+        }
+        foreach ($spousesByMember as $k => $v) {
+            $spousesByMember[$k] = array_values(array_unique($v));
         }
 
         // 2. BFS Generation Assignment
@@ -518,27 +529,128 @@ class TreeExportService
             }
         }
 
-        // 3. Group members by Generation and sort meaningfully
+        // 3. Group members by Generation and sort hierarchically:
+        // Sibling order (anak ke-1, ke-2...), followed immediately by their spouse(s)
         $maxGen = count($memberGen) > 0 ? max($memberGen) : 1;
         $membersByGen = collect();
         $generationLabels = [];
 
+        $siblingComparator = function ($a, $b) {
+            // 1. Explicit order if set (anak ke-1, ke-2, dst)
+            $orderA = ($a->order !== null && (int) $a->order > 0) ? (int) $a->order : 999;
+            $orderB = ($b->order !== null && (int) $b->order > 0) ? (int) $b->order : 999;
+            if ($orderA !== $orderB) {
+                return $orderA <=> $orderB;
+            }
+
+            // 2. Birth date (earliest birth date first)
+            $birthA = $a->birth_date ? $a->birth_date->timestamp : PHP_INT_MAX;
+            $birthB = $b->birth_date ? $b->birth_date->timestamp : PHP_INT_MAX;
+            if ($birthA !== $birthB) {
+                return $birthA <=> $birthB;
+            }
+
+            // 3. Fallback to ID
+            return $a->id <=> $b->id;
+        };
+
         for ($g = 1; $g <= $maxGen; $g++) {
             $genMembers = $allMembers->filter(fn ($m) => ($memberGen[$m->id] ?? 1) === $g);
 
-            if ($genMembers->isNotEmpty()) {
-                // Sort siblings together, then by birth date / order
-                $sorted = $genMembers->sortBy([
-                    fn ($a, $b) => ($a->father_id ?? 0) <=> ($b->father_id ?? 0),
-                    fn ($a, $b) => ($a->mother_id ?? 0) <=> ($b->mother_id ?? 0),
-                    fn ($a, $b) => ($a->birth_date ? $a->birth_date->timestamp : PHP_INT_MAX) <=> ($b->birth_date ? $b->birth_date->timestamp : PHP_INT_MAX),
-                    fn ($a, $b) => ($a->order ?? 999) <=> ($b->order ?? 999),
-                    fn ($a, $b) => $a->id <=> $b->id,
-                ])->values();
-
-                $membersByGen->put($g, $sorted);
-                $generationLabels[$g] = $this->getGenerationTerm($g);
+            if ($genMembers->isEmpty()) {
+                continue;
             }
+
+            $orderedGenMembers = collect();
+            $placedIds = [];
+
+            if ($g === 1) {
+                // For Generation 1: Primary roots first (males first or older), followed immediately by spouse(s)
+                $rootsInGen = $genMembers->filter(fn ($m) => $m->father_id === null && $m->mother_id === null)
+                    ->sort(function ($a, $b) {
+                        if ($a->gender !== $b->gender) {
+                            return $a->gender === 'male' ? -1 : 1;
+                        }
+                        $bA = $a->birth_date ? $a->birth_date->timestamp : PHP_INT_MAX;
+                        $bB = $b->birth_date ? $b->birth_date->timestamp : PHP_INT_MAX;
+                        if ($bA !== $bB) {
+                            return $bA <=> $bB;
+                        }
+
+                        return $a->id <=> $b->id;
+                    });
+
+                foreach ($rootsInGen as $root) {
+                    if (isset($placedIds[$root->id])) {
+                        continue;
+                    }
+                    $orderedGenMembers->push($root);
+                    $placedIds[$root->id] = true;
+
+                    // Place root's spouses who are also in Gen 1 immediately after root
+                    foreach ($spousesByMember[$root->id] ?? [] as $spId) {
+                        $sp = $genMembers->firstWhere('id', $spId);
+                        if ($sp && ! isset($placedIds[$sp->id])) {
+                            $orderedGenMembers->push($sp);
+                            $placedIds[$sp->id] = true;
+                        }
+                    }
+                }
+            } else {
+                // For Generation g >= 2:
+                // Traverse parents from Gen g-1 in their ordered sequence!
+                $prevGenOrdered = $membersByGen->get($g - 1, collect());
+
+                foreach ($prevGenOrdered as $parent) {
+                    // Find children of this parent belonging to Gen g not yet placed
+                    $children = $genMembers->filter(function ($c) use ($parent, $placedIds) {
+                        if (isset($placedIds[$c->id])) {
+                            return false;
+                        }
+
+                        return $c->father_id === $parent->id || $c->mother_id === $parent->id;
+                    })->sort($siblingComparator);
+
+                    foreach ($children as $child) {
+                        if (isset($placedIds[$child->id])) {
+                            continue;
+                        }
+                        // 1. Place the child (anak ke-1, ke-2, dst)
+                        $orderedGenMembers->push($child);
+                        $placedIds[$child->id] = true;
+
+                        // 2. Place any spouse(s) of this child immediately after the child
+                        foreach ($spousesByMember[$child->id] ?? [] as $spId) {
+                            $sp = $genMembers->firstWhere('id', $spId);
+                            if ($sp && ! isset($placedIds[$sp->id])) {
+                                $orderedGenMembers->push($sp);
+                                $placedIds[$sp->id] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Place any remaining members of Gen g (e.g. disconnected nodes or in-laws)
+            $remaining = $genMembers->filter(fn ($m) => ! isset($placedIds[$m->id]))->sort($siblingComparator);
+            foreach ($remaining as $rem) {
+                if (isset($placedIds[$rem->id])) {
+                    continue;
+                }
+                $orderedGenMembers->push($rem);
+                $placedIds[$rem->id] = true;
+
+                foreach ($spousesByMember[$rem->id] ?? [] as $spId) {
+                    $sp = $genMembers->firstWhere('id', $spId);
+                    if ($sp && ! isset($placedIds[$sp->id])) {
+                        $orderedGenMembers->push($sp);
+                        $placedIds[$sp->id] = true;
+                    }
+                }
+            }
+
+            $membersByGen->put($g, $orderedGenMembers);
+            $generationLabels[$g] = $this->getGenerationTerm($g);
         }
 
         // 4. Alphabetical index

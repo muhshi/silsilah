@@ -454,6 +454,15 @@
                                             <span style="font-size: 8pt; font-family: monospace; color: #64748b; margin-left: 6px;">
                                                 #M{{ $m->id }}
                                             </span>
+                                            @if($m->order && (int)$m->order > 0)
+                                                <span style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 7pt; font-weight: 700; padding: 1.5px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; white-space: nowrap;">
+                                                    Anak ke-{{ $m->order }}
+                                                </span>
+                                            @elseif($genNumber > 1 && !$father && !$mother && $spouses->isNotEmpty())
+                                                <span style="background: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; font-size: 7pt; font-weight: 600; padding: 1.5px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle; white-space: nowrap;">
+                                                    Pasangan / Menantu
+                                                </span>
+                                            @endif
                                         </td>
                                         <td style="text-align: right; vertical-align: middle; padding-bottom: 4px;">
                                             @if($m->is_living)
@@ -497,8 +506,15 @@
                                                 Ayah: <strong>{{ $father ? trim($father->first_name . ' ' . $father->last_name) : '-' }}</strong>
                                                 &nbsp;|&nbsp;
                                                 Ibu: <strong>{{ $mother ? trim($mother->first_name . ' ' . $mother->last_name) : '-' }}</strong>
+                                                @if($m->order && (int)$m->order > 0)
+                                                    <span style="color: #059669; font-weight: 700; margin-left: 4px;">(Anak ke-{{ $m->order }})</span>
+                                                @endif
                                             @else
-                                                <span style="color: #94a3b8; font-style: italic;">Leluhur Utama / Tidak tercatat</span>
+                                                @if($spouses->isNotEmpty() && $genNumber > 1)
+                                                    <span style="color: #64748b; font-style: italic;">Pasangan dari <strong>{{ trim($spouses->first()['member']->first_name . ' ' . $spouses->first()['member']->last_name) }}</strong></span>
+                                                @else
+                                                    <span style="color: #94a3b8; font-style: italic;">Leluhur Utama / Generasi Awal</span>
+                                                @endif
                                             @endif
                                         </td>
                                     </tr>

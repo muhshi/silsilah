@@ -185,3 +185,78 @@ test('tree export service accurately calculates generations for book format', fu
         ->and($bookData['memberGenerations'][$anak->id])->toBe(2)
         ->and($bookData['memberGenerations'][$cucu->id])->toBe(3);
 });
+
+test('tree export book format orders generation members as child followed by spouse then next child', function () {
+    $tree = FamilyTree::factory()->create(['name' => 'Trah Sukses', 'is_premium' => true]);
+
+    // Gen 1: Kakek & Nenek
+    $kakek = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Kakek',
+        'gender' => 'male',
+    ]);
+    $nenek = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Nenek',
+        'gender' => 'female',
+    ]);
+    Marriage::create(['husband_id' => $kakek->id, 'wife_id' => $nenek->id, 'is_current' => true]);
+
+    // Gen 2:
+    // Anak 1: Budi (order 1) married to Siti
+    $budi = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Budi',
+        'father_id' => $kakek->id,
+        'mother_id' => $nenek->id,
+        'order' => 1,
+        'gender' => 'male',
+    ]);
+    $siti = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Siti',
+        'gender' => 'female',
+    ]);
+    Marriage::create(['husband_id' => $budi->id, 'wife_id' => $siti->id, 'is_current' => true]);
+
+    // Anak 2: Dewi (order 2) married to Joko
+    $dewi = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Dewi',
+        'father_id' => $kakek->id,
+        'mother_id' => $nenek->id,
+        'order' => 2,
+        'gender' => 'female',
+    ]);
+    $joko = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Joko',
+        'gender' => 'male',
+    ]);
+    Marriage::create(['husband_id' => $joko->id, 'wife_id' => $dewi->id, 'is_current' => true]);
+
+    // Anak 3: Rudi (order 3, single)
+    $rudi = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Rudi',
+        'father_id' => $kakek->id,
+        'mother_id' => $nenek->id,
+        'order' => 3,
+        'gender' => 'male',
+    ]);
+
+    $service = new TreeExportService;
+    $treeModel = $service->findTree($tree->id);
+    $bookData = $service->prepareBookData($treeModel);
+
+    $gen2Names = $bookData['membersByGen'][2]->pluck('first_name')->all();
+
+    // Must be strictly ordered: Anak 1 (Budi) -> Istri (Siti) -> Anak 2 (Dewi) -> Suami (Joko) -> Anak 3 (Rudi)
+    expect($gen2Names)->toBe([
+        'Budi',
+        'Siti',
+        'Dewi',
+        'Joko',
+        'Rudi',
+    ]);
+});
