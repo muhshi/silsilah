@@ -260,6 +260,21 @@ new class extends Component
                 <flux:button size="sm" icon="plus" wire:click="$dispatch('create-member')" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-bold !rounded-full shadow-md shadow-emerald-600/20">
                     Anggota Baru
                 </flux:button>
+            @else
+                {{-- Fitur Keluarga untuk Publik --}}
+                <flux:dropdown>
+                    <flux:button size="sm" icon="sparkles" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
+                        Fitur Keluarga
+                    </flux:button>
+                    <flux:menu>
+                        <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
+                            Cek Hubungan Kekerabatan
+                        </flux:menu.item>
+                        <flux:menu.item icon="calendar" wire:click="$dispatch('open-family-reminders')">
+                            Agenda &amp; Pengingat Keluarga
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
             @endif
         </div>
     </div>

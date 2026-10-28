@@ -5,11 +5,13 @@ use App\Services\FamilyReminderService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
+    #[Locked]
     public int|string|null $treeId = null;
 
     public int $daysAhead = 30;

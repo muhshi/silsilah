@@ -21,7 +21,7 @@ class TreeCalendarController extends Controller
         $treeModel = $this->resolveTree($tree);
 
         // Authorization check:
-        // Public trees can be subscribed by anyone.
+        // Public trees can be subscribed by anyone (unless protected by view_password).
         // Private trees require authenticated tree owner/collaborator or admin.
         if (! $treeModel->is_public) {
             if (! auth()->check()) {
@@ -34,6 +34,14 @@ class TreeCalendarController extends Controller
 
             if (! $hasAccess) {
                 abort(403, 'Anda tidak memiliki hak akses ke kalender silsilah ini.');
+            }
+        } elseif (! empty($treeModel->view_password)) {
+            $user = auth()->user();
+            $hasAccess = ($user && ($user->isAdmin() || $treeModel->users()->where('users.id', $user->id)->exists()))
+                || session("tree_unlocked_{$treeModel->id}");
+
+            if (! $hasAccess) {
+                abort(403, 'Pohon dilindungi kata sandi.');
             }
         }
 

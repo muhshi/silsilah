@@ -4,11 +4,13 @@ use App\Models\FamilyTree;
 use App\Models\Member;
 use App\Services\RelationshipService;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
+    #[Locked]
     public int|string|null $treeId = null;
 
     public ?int $personAId = null;
