@@ -18,11 +18,29 @@ it('renders relationship calculator modal and calculates kinship between two mem
 
     Livewire::test('⚡relationship-calculator', ['treeId' => $tree->id])
         ->assertSee('Cek Hubungan Kekerabatan')
+        ->assertSee('Mochtar')
         ->set('personAId', $son1->id)
         ->set('personBId', $son2->id)
         ->call('calculate')
         ->assertSee('Saudara Kandung')
         ->assertSee('Bagikan ke WhatsApp');
+});
+
+it('calculates self relationship when same member is selected for both persons', function () {
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $person = Member::factory()->create(['family_tree_id' => $tree->id, 'gender' => 'male', 'first_name' => 'Budi']);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡relationship-calculator', ['treeId' => $tree->id])
+        ->set('personAId', $person->id)
+        ->set('personBId', $person->id)
+        ->call('calculate')
+        ->assertSee('Diri Sendiri')
+        ->assertSee('Ini adalah profil Anda sendiri.');
 });
 
 it('allows swapping persons and recalculating', function () {
