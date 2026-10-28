@@ -3,24 +3,25 @@
 use App\Models\FamilyTree;
 use App\Models\Member;
 use App\Services\RelationshipService;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
-    public $treeId;
+    public int|string|null $treeId = null;
 
-    public $personAId = null;
+    public ?int $personAId = null;
 
-    public $personBId = null;
+    public ?int $personBId = null;
 
-    public $result = null;
+    public ?array $result = null;
 
-    public $showModal = false;
+    public bool $showModal = false;
 
-    public $searchA = '';
+    public string $searchA = '';
 
-    public $searchB = '';
+    public string $searchB = '';
 
     public function mount($treeId)
     {
@@ -31,10 +32,10 @@ new class extends Component
     public function openModal($memberA = null, $memberB = null)
     {
         if ($memberA !== null) {
-            $this->personAId = $memberA;
+            $this->personAId = $memberA ? (int) $memberA : null;
         }
         if ($memberB !== null) {
-            $this->personBId = $memberB;
+            $this->personBId = $memberB ? (int) $memberB : null;
         }
 
         $this->showModal = true;
@@ -54,8 +55,8 @@ new class extends Component
             'personBId.required' => 'Pilih anggota kedua terlebih dahulu.',
         ]);
 
-        $personA = Member::find($this->personAId);
-        $personB = Member::find($this->personBId);
+        $personA = Member::where('family_tree_id', $this->treeId)->find($this->personAId);
+        $personB = Member::where('family_tree_id', $this->treeId)->find($this->personBId);
 
         if (! $personA || ! $personB) {
             $this->result = null;
@@ -85,8 +86,8 @@ new class extends Component
             return '#';
         }
 
-        $personA = Member::find($this->personAId);
-        $personB = Member::find($this->personBId);
+        $personA = Member::where('family_tree_id', $this->treeId)->find($this->personAId);
+        $personB = Member::where('family_tree_id', $this->treeId)->find($this->personBId);
 
         if (! $personA || ! $personB) {
             return '#';
@@ -102,19 +103,22 @@ new class extends Component
         return 'https://wa.me/?text='.rawurlencode($text);
     }
 
-    public function getMembersProperty()
+    #[Computed]
+    public function members()
     {
         if (! $this->treeId) {
             return collect();
         }
 
         return Member::where('family_tree_id', $this->treeId)
+            ->select(['id', 'first_name', 'last_name', 'gender', 'family_tree_id'])
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get();
     }
 
-    public function getMembersAProperty()
+    #[Computed]
+    public function membersA()
     {
         if (empty($this->searchA)) {
             return $this->members;
@@ -129,7 +133,8 @@ new class extends Component
         );
     }
 
-    public function getMembersBProperty()
+    #[Computed]
+    public function membersB()
     {
         if (empty($this->searchB)) {
             return $this->members;

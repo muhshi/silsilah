@@ -484,11 +484,18 @@ class RelationshipService
 
         // 5. Besan: $from and $to are parents of a married couple
         $childrenOfFrom = $allMembers->filter(fn ($m) => $m->father_id === $from->id || $m->mother_id === $from->id);
-        foreach ($childrenOfFrom as $child) {
-            $childSpouses = Marriage::where('husband_id', $child->id)->pluck('wife_id')
-                ->concat(Marriage::where('wife_id', $child->id)->pluck('husband_id'));
-            foreach ($childSpouses as $cSpId) {
+        if ($childrenOfFrom->isNotEmpty()) {
+            $childIds = $childrenOfFrom->pluck('id')->all();
+            $marriages = Marriage::whereIn('husband_id', $childIds)
+                ->orWhereIn('wife_id', $childIds)
+                ->get();
+
+            foreach ($marriages as $marriage) {
+                $childId = in_array($marriage->husband_id, $childIds) ? $marriage->husband_id : $marriage->wife_id;
+                $child = $allMembers->get($childId);
+                $cSpId = $marriage->husband_id === $childId ? $marriage->wife_id : $marriage->husband_id;
                 $cSp = $allMembers->get($cSpId) ?? Member::find($cSpId);
+
                 if ($cSp && ($cSp->father_id === $to->id || $cSp->mother_id === $to->id)) {
                     return [
                         'title' => 'Besan',
@@ -497,9 +504,9 @@ class RelationshipService
                         'lineage_side' => 'Besan',
                         'degree' => 3,
                         'generational_diff' => 0,
-                        'path' => [$from->first_name, $child->first_name, $cSp->first_name, $to->first_name],
+                        'path' => [$from->first_name, $child?->first_name ?? 'Anak', $cSp->first_name, $to->first_name],
                         'is_blood' => false,
-                        'description' => "{$from->first_name} dan {$to->first_name} adalah besan (orang tua dari pasangan suami-istri {$child->first_name} dan {$cSp->first_name}).",
+                        'description' => "{$from->first_name} dan {$to->first_name} adalah besan (orang tua dari pasangan suami-istri {$child?->first_name} dan {$cSp->first_name}).",
                     ];
                 }
             }
