@@ -183,16 +183,32 @@ new class extends Component
                     Ekspor
                 </flux:button>
                 <flux:menu>
-                    <flux:menu.item icon="photo" href="{{ route('tree.export', ['tree' => $tree, 'format' => 'png', 'view' => 'simple']) }}">
+                    <flux:menu.item icon="book-open"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'book']) }}', title: 'Buku Silsilah (PDF)' } }))">
+                        <div class="flex items-center justify-between w-full gap-2">
+                            <span>Buku Silsilah (PDF)</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Rekomendasi</span>
+                        </div>
+                    </flux:menu.item>
+                    <flux:menu.item icon="photo"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'png', 'view' => 'simple']) }}', title: 'Gambar Silsilah (PNG)' } }))">
                         Export Gambar (PNG)
                     </flux:menu.item>
-                    <flux:menu.item icon="document-arrow-down" href="{{ route('tree.export', ['tree' => $tree, 'format' => 'pdf', 'view' => 'simple']) }}">
-                        Export Dokumen (PDF)
+                    <flux:menu.item icon="document-arrow-down"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'pdf', 'view' => 'simple']) }}', title: 'Bagan Canvas (PDF)' } }))">
+                        Export Bagan Canvas (PDF)
                     </flux:menu.item>
-                    <flux:menu.item icon="sparkles" href="{{ route('tree.export', ['tree' => $tree, 'format' => 'prompt']) }}">
+                    <flux:menu.item icon="sparkles"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'prompt']) }}', title: 'Prompt AI (.md)' } }))">
                         Export Prompt AI (.md)
                     </flux:menu.item>
-                    <flux:menu.item icon="code-bracket" href="{{ route('tree.export', ['tree' => $tree, 'format' => 'json']) }}">
+                    <flux:menu.item icon="code-bracket"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'json']) }}', title: 'Data Silsilah (JSON)' } }))">
                         Export Data (JSON)
                     </flux:menu.item>
                 </flux:menu>
@@ -306,6 +322,9 @@ new class extends Component
         </svg>
         <span>Memuat data...</span>
     </div>
+
+    {{-- Export Loading Progress Modal & Minimizable Pill --}}
+    <x-export-progress-modal />
 </div>
 
 @script

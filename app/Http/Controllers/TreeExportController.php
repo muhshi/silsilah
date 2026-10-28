@@ -23,8 +23,15 @@ class TreeExportController extends Controller
             abort(403);
         }
 
-        $viewType = $request->query('view', 'horizontal');
         $treeModel = $this->exportService->findTree($tree);
+
+        if ($request->query('format') === 'book') {
+            $bookData = $this->exportService->prepareBookData($treeModel);
+
+            return view('tree.export-book', $bookData);
+        }
+
+        $viewType = $request->query('view', 'horizontal');
         $rootMembers = $this->exportService->getRootMembers($treeModel);
         $allMembers = $treeModel->members;
 
@@ -37,12 +44,12 @@ class TreeExportController extends Controller
     }
 
     /**
-     * Export trigger for PNG, PDF, JSON, or Prompt AI
+     * Export trigger for PNG, PDF, Book PDF, JSON, or Prompt AI
      */
     public function export(Request $request, string|int $tree, string $format): Response|JsonResponse
     {
         set_time_limit(120);
-        abort_unless(in_array($format, ['png', 'pdf', 'json', 'prompt']), 400);
+        abort_unless(in_array($format, ['png', 'pdf', 'json', 'prompt', 'book']), 400);
 
         $treeModel = $this->exportService->findTree($tree);
         $viewType = $request->query('view', 'horizontal');
@@ -52,6 +59,7 @@ class TreeExportController extends Controller
             'json' => $this->exportService->exportJson($treeModel),
             'pdf' => $this->exportService->exportPdf($treeModel, $viewType),
             'png' => $this->exportService->exportPng($treeModel, $viewType),
+            'book' => $this->exportService->exportBookPdf($treeModel),
         };
     }
 }

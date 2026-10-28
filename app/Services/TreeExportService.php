@@ -405,4 +405,199 @@ class TreeExportService
             ->header('Content-Type', 'image/png')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}.png\"");
     }
+
+    /**
+     * Map generation number to traditional Indonesian genealogical terms
+     */
+    public function getGenerationTerm(int $gen): string
+    {
+        return match ($gen) {
+            1 => 'Generasi I — Leluhur Pendiri (Kakek/Nenek Buyut)',
+            2 => 'Generasi II — Putera / Puteri (Anak)',
+            3 => 'Generasi III — Cucu (Grandchildren)',
+            4 => 'Generasi IV — Cicit (Great-Grandchildren)',
+            5 => 'Generasi V — Canggah',
+            6 => 'Generasi VI — Wareng',
+            7 => 'Generasi VII — Udheg-udheg',
+            8 => 'Generasi VIII — Gantung Siwur',
+            9 => 'Generasi IX — Gropak Senthe',
+            default => "Generasi {$gen} — Keturunan Penerus",
+        };
+    }
+
+    /**
+     * Prepare structured book data grouped by generations with statistics and alphabetical index
+     *
+     * @return array<string, mixed>
+     */
+    public function prepareBookData(FamilyTree $treeModel): array
+    {
+        $allMembers = $treeModel->members;
+        $rootMembers = $this->getRootMembers($treeModel);
+
+        $marriages = Marriage::whereIn('husband_id', $allMembers->pluck('id'))
+            ->orWhereIn('wife_id', $allMembers->pluck('id'))
+            ->get();
+
+        // 1. Build children and spouse lookups
+        $childrenByParent = [];
+        foreach ($allMembers as $m) {
+            if ($m->father_id) {
+                $childrenByParent[$m->father_id][] = $m->id;
+            }
+            if ($m->mother_id) {
+                $childrenByParent[$m->mother_id][] = $m->id;
+            }
+        }
+
+        $spousesByMember = [];
+        foreach ($allMembers as $m) {
+            foreach ($m->marriagesAsHusband as $mr) {
+                $spousesByMember[$m->id][] = $mr->wife_id;
+                $spousesByMember[$mr->wife_id][] = $m->id;
+            }
+        }
+
+        // 2. BFS Generation Assignment
+        $memberGen = [];
+        $queue = [];
+
+        // Roots start at Gen 1
+        foreach ($rootMembers as $root) {
+            $memberGen[$root->id] = 1;
+            $queue[] = $root->id;
+
+            // Spouses of root who have no parents also belong to Gen 1
+            foreach ($spousesByMember[$root->id] ?? [] as $spId) {
+                $sp = $allMembers->firstWhere('id', $spId);
+                if ($sp && $sp->father_id === null && $sp->mother_id === null && ! isset($memberGen[$spId])) {
+                    $memberGen[$spId] = 1;
+                    $queue[] = $spId;
+                }
+            }
+        }
+
+        // Propagate down the tree
+        $iterations = 0;
+        while (! empty($queue) && $iterations++ < 3000) {
+            $currId = array_shift($queue);
+            $currGen = $memberGen[$currId] ?? 1;
+
+            // Children get Gen + 1
+            foreach ($childrenByParent[$currId] ?? [] as $childId) {
+                $childGen = $currGen + 1;
+                if (! isset($memberGen[$childId]) || $memberGen[$childId] < $childGen) {
+                    $memberGen[$childId] = $childGen;
+                    $queue[] = $childId;
+
+                    // Spouses of this child with no parents in tree inherit the same Gen
+                    foreach ($spousesByMember[$childId] ?? [] as $spId) {
+                        $sp = $allMembers->firstWhere('id', $spId);
+                        if ($sp && $sp->father_id === null && $sp->mother_id === null && ! isset($memberGen[$spId])) {
+                            $memberGen[$spId] = $childGen;
+                            $queue[] = $spId;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Assign any remaining unvisited members (disconnected nodes)
+        foreach ($allMembers as $m) {
+            if (! isset($memberGen[$m->id])) {
+                // Check if spouse has generation assigned
+                foreach ($spousesByMember[$m->id] ?? [] as $spId) {
+                    if (isset($memberGen[$spId])) {
+                        $memberGen[$m->id] = $memberGen[$spId];
+                        break;
+                    }
+                }
+                if (! isset($memberGen[$m->id])) {
+                    $memberGen[$m->id] = 1;
+                }
+            }
+        }
+
+        // 3. Group members by Generation and sort meaningfully
+        $maxGen = count($memberGen) > 0 ? max($memberGen) : 1;
+        $membersByGen = collect();
+        $generationLabels = [];
+
+        for ($g = 1; $g <= $maxGen; $g++) {
+            $genMembers = $allMembers->filter(fn ($m) => ($memberGen[$m->id] ?? 1) === $g);
+
+            if ($genMembers->isNotEmpty()) {
+                // Sort siblings together, then by birth date / order
+                $sorted = $genMembers->sortBy([
+                    fn ($a, $b) => ($a->father_id ?? 0) <=> ($b->father_id ?? 0),
+                    fn ($a, $b) => ($a->mother_id ?? 0) <=> ($b->mother_id ?? 0),
+                    fn ($a, $b) => ($a->birth_date ? $a->birth_date->timestamp : PHP_INT_MAX) <=> ($b->birth_date ? $b->birth_date->timestamp : PHP_INT_MAX),
+                    fn ($a, $b) => ($a->order ?? 999) <=> ($b->order ?? 999),
+                    fn ($a, $b) => $a->id <=> $b->id,
+                ])->values();
+
+                $membersByGen->put($g, $sorted);
+                $generationLabels[$g] = $this->getGenerationTerm($g);
+            }
+        }
+
+        // 4. Alphabetical index
+        $indexMembers = $allMembers->sortBy([
+            fn ($a, $b) => strcasecmp($a->first_name, $b->first_name),
+            fn ($a, $b) => strcasecmp($a->last_name ?? '', $b->last_name ?? ''),
+        ])->values();
+
+        // 5. Statistics summary
+        $stats = [
+            'total_members' => $allMembers->count(),
+            'total_generations' => $membersByGen->count(),
+            'total_male' => $allMembers->where('gender', 'male')->count(),
+            'total_female' => $allMembers->where('gender', 'female')->count(),
+            'total_living' => $allMembers->where('is_living', true)->count(),
+            'total_deceased' => $allMembers->where('is_living', false)->count(),
+            'total_marriages' => $marriages->count(),
+            'printed_at' => Carbon::now()->locale('id')->isoFormat('D MMMM Y'),
+        ];
+
+        return [
+            'tree' => $treeModel,
+            'stats' => $stats,
+            'rootMembers' => $rootMembers,
+            'membersByGen' => $membersByGen,
+            'generationLabels' => $generationLabels,
+            'memberGenerations' => $memberGen,
+            'allMembers' => $allMembers,
+            'indexMembers' => $indexMembers,
+            'marriages' => $marriages,
+        ];
+    }
+
+    /**
+     * Export tree as an elegant Multi-Page Genealogy Book PDF via Browsershot
+     */
+    public function exportBookPdf(FamilyTree $treeModel): Response
+    {
+        $filename = Str::slug($treeModel->name).'-Buku-Silsilah';
+        $bookData = $this->prepareBookData($treeModel);
+
+        $html = view('tree.export-book', $bookData)->render();
+        $html = $this->inlineImagesForExport($html);
+        $chromePath = $this->resolveChromePath();
+
+        $browsershot = Browsershot::html($html)
+            ->setChromePath($chromePath)
+            ->noSandbox()
+            ->setOption('waitUntil', 'domcontentloaded')
+            ->timeout(120)
+            ->setDelay(500)
+            ->format('A4')
+            ->margins(0, 0, 0, 0)
+            ->showBackground();
+
+        $pdfContent = $browsershot->pdf();
+
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}.pdf\"");
+    }
 }
