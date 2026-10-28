@@ -14,12 +14,29 @@ test('authenticated user can visit dock variant view (Option 2)', function () {
     $response->assertOk()
         ->assertSee('Bani Soekamto')
         ->assertSee('tree-view')
-        ->assertSee('Standar')
         ->assertSee('Bagan')
         ->assertSee('Fokus')
         ->assertSee('Simpel')
         ->assertSee('Kalender')
-        ->assertSee('bottom-4 sm:bottom-6');
+        ->assertSee('bottom-3 sm:bottom-6');
+});
+
+test('authenticated user visiting tree.show receives dock view as default', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Bani Soekamto']);
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('tree.show', ['tree' => $tree, 'view' => 'canvas']));
+    $response->assertOk()
+        ->assertSee('Bani Soekamto')
+        ->assertSee('tree-view')
+        ->assertSee('Bagan')
+        ->assertSee('Fokus')
+        ->assertSee('Simpel')
+        ->assertSee('Kalender')
+        ->assertSee('bottom-3 sm:bottom-6');
 });
 
 test('public tree can be viewed with dock variant', function () {
@@ -32,11 +49,10 @@ test('public tree can be viewed with dock variant', function () {
     $response = $this->get(route('tree.public.dock', $tree->slug));
     $response->assertOk()
         ->assertSee('Keluarga Publik')
-        ->assertSee('Standar')
         ->assertSee('Bagan')
         ->assertSee('Fokus')
         ->assertSee('Simpel')
-        ->assertSee('bottom-4 sm:bottom-6');
+        ->assertSee('bottom-3 sm:bottom-6');
 });
 
 test('password protected public tree redirects to password page on dock route', function () {

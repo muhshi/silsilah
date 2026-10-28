@@ -132,7 +132,7 @@
     {{-- Main Tree Canvas --}}
     <main class="flex-1 w-full">
         @if(($viewType ?? 'horizontal') === 'horizontal')
-            <livewire:tree-view :id="$tree->id" :is-public="true" :public-slug="$tree->slug" />
+            <livewire:tree-view :id="$tree->id" :is-public="true" :public-slug="$tree->slug" :dock="true" />
         @elseif(($viewType ?? 'horizontal') === 'simple')
             <livewire:tree-simple :id="$tree->id" :is-public="true" :public-slug="$tree->slug" />
         @elseif(($viewType ?? 'horizontal') === 'vertical')

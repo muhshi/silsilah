@@ -105,36 +105,37 @@ new class extends Component
 <div class="w-full max-w-[100vw] tree-view" data-component="tree-view" x-data="canvasTree()">
     {{-- Header --}}
     @if($dock)
-        {{-- FLOATING PILL TOOLBAR / DOCK (OPSI 2) - macOS Dock Style at Bottom Center --}}
-        <div class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl sm:rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-zinc-200/90 dark:border-zinc-700/80 shadow-2xl max-w-[96vw] overflow-x-auto no-scrollbar select-none"
+        {{-- FLOATING PILL TOOLBAR / DOCK (macOS Dock Style at Bottom Center) --}}
+        <div class="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 sm:gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-zinc-200/90 dark:border-zinc-700/80 shadow-2xl max-w-[calc(100vw-1.5rem)] sm:max-w-none select-none"
              @mousedown.stop
              @touchstart.stop
              @click.stop>
-            {{-- Tree Identity --}}
-            <a href="{{ $isPublic ? url('/') : route('dashboard') }}" class="flex items-center gap-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:text-emerald-600 transition-all shrink-0 hover:scale-105 active:scale-95">
+            {{-- Tree Identity (Hidden on narrow mobile <sm to prevent dock overflow) --}}
+            <a href="{{ $isPublic ? url('/') : route('dashboard') }}" class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:text-emerald-600 transition-all shrink-0 hover:scale-105 active:scale-95" title="Dashboard">
                 <span class="text-base">🌳</span>
-                <span class="truncate max-w-[90px] xs:max-w-[130px] sm:max-w-[200px]">{{ $tree->name }}</span>
+                <span class="truncate max-w-[120px] md:max-w-[200px]">{{ $tree->name }}</span>
             </a>
 
-            <div class="h-4 w-px bg-zinc-200 dark:bg-zinc-700 shrink-0"></div>
+            <div class="hidden sm:block h-4 w-px bg-zinc-200 dark:bg-zinc-700 shrink-0"></div>
 
             {{-- Mode Switcher Pills --}}
-            <div class="flex items-center gap-1 text-xs shrink-0">
-                <button class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-bold shadow-xs cursor-default">
+            <div class="flex items-center gap-0.5 sm:gap-1 text-xs shrink-0">
+                <button class="px-2 sm:px-2.5 py-1 rounded-full bg-emerald-600 text-white font-bold text-[11px] sm:text-xs shadow-xs cursor-default">
                     Bagan
                 </button>
                 <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#') : route('tree.vertical', $tree) }}"
                    wire:navigate
-                   class="px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold transition-all hover:scale-105 active:scale-95">
+                   class="px-2 sm:px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold text-[11px] sm:text-xs transition-all hover:scale-105 active:scale-95">
                     Fokus
                 </a>
                 <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#') : route('tree.simple', $tree) }}"
                    wire:navigate
-                   class="px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold transition-all hover:scale-105 active:scale-95">
+                   class="px-2 sm:px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold text-[11px] sm:text-xs transition-all hover:scale-105 active:scale-95">
                     Simpel
                 </a>
                 <button wire:click="$dispatch('open-family-reminders')"
-                        class="px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold transition-all flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer">
+                        class="px-2 sm:px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold text-[11px] sm:text-xs transition-all flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer"
+                        title="Agenda & Pengingat Keluarga">
                     <span>🗓️</span>
                     <span class="hidden sm:inline">Kalender</span>
                 </button>
@@ -143,24 +144,24 @@ new class extends Component
             <div class="h-4 w-px bg-zinc-200 dark:bg-zinc-700 shrink-0"></div>
 
             {{-- Actions --}}
-            <div class="flex items-center gap-1 shrink-0">
+            <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 {{-- Share --}}
                 @if($tree->slug)
                     <button type="button"
                             x-data="treeShare({{ json_encode(url('/public/tree/' . $tree->slug)) }}, {{ json_encode($tree->name) }})"
                             @click="share()"
-                            class="p-1.5 rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                            class="p-1.5 rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center"
                             title="Bagikan Silsilah">
-                        <span class="material-symbols-outlined text-base" x-show="!shared">share</span>
-                        <span class="material-symbols-outlined text-base text-emerald-600" x-show="shared">check</span>
+                        <span class="material-symbols-outlined text-[18px] sm:text-base" x-show="!shared">share</span>
+                        <span class="material-symbols-outlined text-[18px] sm:text-base text-emerald-600" x-show="shared">check</span>
                     </button>
                 @endif
 
                 {{-- Export Dropdown (opens upward above bottom dock) --}}
                 <flux:dropdown position="top" align="center">
-                    <button class="p-1.5 rounded-full hover:bg-purple-50 dark:hover:bg-purple-950/40 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    <button class="p-1.5 rounded-full hover:bg-purple-50 dark:hover:bg-purple-950/40 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center"
                             title="Ekspor Bagan">
-                        <span class="material-symbols-outlined text-base">download</span>
+                        <span class="material-symbols-outlined text-[18px] sm:text-base">download</span>
                     </button>
                     <flux:menu class="!w-64">
                         <flux:menu.item icon="photo"
@@ -193,20 +194,32 @@ new class extends Component
                                         @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'json']) }}', title: 'Data Silsilah (JSON)' } }))">
                             Export Data (JSON)
                         </flux:menu.item>
+
+                        @if(!$isPublic)
+                            <flux:menu.separator />
+                            <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
+                                Kelola Pohon (Dashboard &amp; Statistik)
+                            </flux:menu.item>
+                            <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
+                                Import CSV/GEDCOM
+                            </flux:menu.item>
+                        @else
+                            <flux:menu.separator />
+                            <flux:menu.item icon="pencil-square" wire:click="$dispatch('open-contribute-modal')">
+                                Lengkapi / Usulkan Data
+                            </flux:menu.item>
+                            <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
+                                Cek Hubungan Kekerabatan
+                            </flux:menu.item>
+                        @endif
                     </flux:menu>
                 </flux:dropdown>
-
-                {{-- Option to Switch back to Option 1 --}}
-                <a href="{{ $isPublic ? route('tree.public', $tree->slug) : route('tree.show', $tree) }}"
-                   class="px-2 py-1 rounded-full text-[11px] font-bold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-all hover:scale-105 active:scale-95 shrink-0"
-                   title="Kembali ke Tampilan Standar (Opsi 1)">
-                    Standar
-                </a>
 
                 {{-- Add Member CTA --}}
                 @if(!$isPublic)
                     <button wire:click="$dispatch('create-member')"
-                            class="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1 shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all">
+                            class="px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] sm:text-xs shadow-xs flex items-center gap-1 shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                            title="Tambah Anggota">
                         <span class="material-symbols-outlined text-sm">add</span>
                         <span class="hidden sm:inline">Anggota</span>
                     </button>
@@ -558,19 +571,19 @@ new class extends Component
             </div>
 
             {{-- Material 3 Floating Zoom Controls --}}
-            <div class="fixed md:absolute {{ $dock ? 'bottom-20 sm:bottom-6 right-4 sm:right-6' : 'bottom-20 md:bottom-5 right-4' }} z-30 flex flex-col items-center bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800 gap-1 select-none" @touchstart.stop @click.stop>
-                <button @click="zoomIn()" title="Zoom In" class="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <div class="fixed md:absolute {{ $dock ? 'bottom-16 sm:bottom-6 right-3 sm:right-6' : 'bottom-20 md:bottom-5 right-4' }} z-30 flex flex-col items-center bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800 gap-0.5 sm:gap-1 select-none" @touchstart.stop @click.stop>
+                <button @click="zoomIn()" title="Zoom In" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
 
-                <div class="text-[10px] font-extrabold text-zinc-500 dark:text-zinc-400 py-0.5" x-text="Math.round(scale * 100) + '%'"></div>
+                <div class="text-[9px] sm:text-[10px] font-extrabold text-zinc-500 dark:text-zinc-400 py-0.5" x-text="Math.round(scale * 100) + '%'"></div>
 
-                <button @click="resetView()" title="Fit to Screen / Pusatkan" class="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                <button @click="resetView()" title="Fit to Screen / Pusatkan" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" class="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
                 </button>
 
-                <button @click="zoomOut()" title="Zoom Out" class="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <button @click="zoomOut()" title="Zoom Out" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
             </div>
         </div>
