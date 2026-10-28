@@ -134,3 +134,25 @@ it('renders full-bleed canvas with unified tabs and utility actions on tree-view
         ->assertSee('Buku Silsilah (PDF)')
         ->assertSee('Anggota Baru');
 });
+
+it('renders unified desktop navigation tabs and mobile toolbar on tree-vertical', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Keluarga Hasan',
+        'slug' => 'keluarga-hasan',
+        'is_premium' => true,
+    ]);
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('tree-vertical', ['id' => $tree->id]);
+
+    $component->assertSee('Bagan Canvas')
+        ->assertSee('Fokus Explorer')
+        ->assertSee('Buku Simpel')
+        ->assertSee('Kalender Acara')
+        ->assertSee('Poster Pigura (A1/A0)')
+        ->assertSee('Buku Silsilah (PDF)')
+        ->assertSee('Bagikan');
+});
