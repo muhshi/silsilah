@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\AdminActivityLog;
+use App\Models\FamilyTree;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Voucher;
@@ -47,6 +49,8 @@ class DuitkuService
         ?string $referralCode = null,
         ?int $referrerId = null,
         bool $isCustomQuota = false,
+        ?int $targetTreeId = null,
+        string $orderType = 'quota',
     ): Order {
         if (empty($this->merchantCode) || empty($this->apiKey)) {
             throw new Exception('Kredensial Duitku (Merchant Code / API Key) belum dikonfigurasi di server.');
@@ -57,6 +61,8 @@ class DuitkuService
         $order = Order::create([
             'user_id' => $user->id,
             'package_id' => $packageId,
+            'target_tree_id' => $targetTreeId,
+            'order_type' => $orderType,
             'order_id' => $orderId,
             'amount' => $amount,
             'original_amount' => $originalAmount ?? $amount,
@@ -77,9 +83,14 @@ class DuitkuService
         $callbackUrl = route('duitku.callback');
         $returnUrl = route('dashboard', ['order_id' => $orderId]);
 
-        $productDetails = $packageId && $order->package
-            ? $order->package->name
-            : "Kuota {$quotaCount} Pohon Silsilah";
+        if ($orderType === 'tree_upgrade') {
+            $treeName = $order->targetTree ? $order->targetTree->name : 'Pohon';
+            $productDetails = "Upgrade Pohon ke Premium: {$treeName}";
+        } elseif ($packageId && $order->package) {
+            $productDetails = $order->package->name;
+        } else {
+            $productDetails = "Kuota {$quotaCount} Pohon Silsilah";
+        }
 
         $payload = [
             'paymentAmount' => $amount,
@@ -178,8 +189,35 @@ class DuitkuService
                 'payload' => array_merge($order->payload ?? [], ['callback' => $callbackData]),
             ]);
 
-            // 1. Add tree quota to purchasing user
-            $order->user->increment('tree_quota', $order->quota_count);
+            // 1. Deliver Purchase: Upgrade Tree or Add Tree Quota
+            if ($order->order_type === 'tree_upgrade' && $order->target_tree_id) {
+                $tree = FamilyTree::find($order->target_tree_id);
+                if ($tree) {
+                    $tree->update(['is_premium' => true]);
+
+                    ActivityLog::log(
+                        $tree->id,
+                        'tree_upgraded',
+                        'Pohon ini telah resmi ditingkatkan menjadi Pohon Premium!'
+                    );
+
+                    AdminActivityLog::log(
+                        action: 'tree_upgraded_premium',
+                        description: "Upgrade Pohon: '{$tree->name}' berhasil di-upgrade ke Premium oleh {$order->user->name} ({$order->order_id})",
+                        targetType: 'FamilyTree',
+                        targetId: $tree->id,
+                        properties: [
+                            'user_id' => $order->user_id,
+                            'order_id' => $order->order_id,
+                            'amount' => $order->amount,
+                        ]
+                    );
+
+                    Log::info("Tree Upgrade Success: Tree #{$tree->id} upgraded to premium for User #{$order->user_id}");
+                }
+            } else {
+                $order->user->increment('tree_quota', $order->quota_count);
+            }
 
             // 2. Handle Referral Reward for Referrer (+1 tree quota if this is referee's first paid order)
             if ($order->referrer_id) {

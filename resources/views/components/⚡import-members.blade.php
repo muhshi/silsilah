@@ -73,6 +73,29 @@ new class extends Component
 
             public function array(array $array)
             {
+                $tree = FamilyTree::find($this->treeId);
+
+                // Count prospective valid rows
+                $prospectiveCount = 0;
+                foreach ($array as $idx => $r) {
+                    if ($idx === 0 || count($r) < 3) {
+                        continue;
+                    }
+                    $isNewFmt = is_numeric($r[0] ?? null);
+                    $fn = trim((string) ($isNewFmt ? ($r[1] ?? '') : ($r[0] ?? '')));
+                    if (! empty($fn)) {
+                        $prospectiveCount++;
+                    }
+                }
+
+                if ($tree && ! $tree->canAddMembers($prospectiveCount)) {
+                    $current = $tree->members()->count();
+                    $rem = $tree->remainingMemberSlots();
+                    session()->flash('error', "Gagal import: Pohon gratis dibatasi maksimal 100 anggota. Pohon ini memiliki {$current} anggota (sisa {$rem} slot), sedangkan file berisi {$prospectiveCount} anggota. Silakan upgrade ke Pohon Premium seharga Rp 5.000 untuk import tanpa batas.");
+
+                    return;
+                }
+
                 $count = 0;
                 $isHeader = true;
                 $createdMembersByRef = [];

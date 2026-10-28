@@ -13,6 +13,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'package_id',
+        'target_tree_id',
+        'order_type',
         'order_id',
         'amount',
         'original_amount',
@@ -37,6 +39,7 @@ class Order extends Model
     {
         return [
             'package_id' => 'integer',
+            'target_tree_id' => 'integer',
             'amount' => 'integer',
             'original_amount' => 'integer',
             'discount_amount' => 'integer',
@@ -72,8 +75,21 @@ class Order extends Model
         return $this->belongsTo(PricingPackage::class, 'package_id');
     }
 
+    /**
+     * @return BelongsTo<FamilyTree, Order>
+     */
+    public function targetTree(): BelongsTo
+    {
+        return $this->belongsTo(FamilyTree::class, 'target_tree_id');
+    }
+
     public function isPaid(): bool
     {
         return in_array($this->status, ['paid', 'success']);
+    }
+
+    public function isTreeUpgrade(): bool
+    {
+        return $this->order_type === 'tree_upgrade';
     }
 }

@@ -8,11 +8,31 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
-it('allows owner to send collaboration invitation', function () {
+it('blocks collaboration invitation for non-premium free tree', function () {
     Mail::fake();
 
     $owner = User::factory()->create();
-    $tree = FamilyTree::factory()->create();
+    $tree = FamilyTree::factory()->create(['is_premium' => false]);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
+        ->set('activeTab', 'collab')
+        ->assertSee('Fitur Kolaborasi Khusus Pohon Premium')
+        ->set('inviteEmail', 'kolaborator@example.com')
+        ->call('sendInvite');
+
+    expect(TreeInvitation::where('family_tree_id', $tree->id)->count())->toBe(0);
+    Mail::assertNothingSent();
+    Mail::assertNothingSent();
+});
+
+it('allows owner to send collaboration invitation on premium tree', function () {
+    Mail::fake();
+
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->premium()->create();
     $tree->users()->attach($owner->id, ['role' => 'owner']);
 
     $this->actingAs($owner);
@@ -120,9 +140,9 @@ it('records activity log when members are added and edited', function () {
         ->and($log->description)->toContain('Budi Santoso');
 });
 
-it('allows creating direct link invitation without email', function () {
+it('allows creating direct link invitation without email on premium tree', function () {
     $owner = User::factory()->create();
-    $tree = FamilyTree::factory()->create();
+    $tree = FamilyTree::factory()->premium()->create();
     $tree->users()->attach($owner->id, ['role' => 'owner']);
 
     $this->actingAs($owner);

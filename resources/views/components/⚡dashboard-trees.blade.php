@@ -39,10 +39,14 @@ new class extends Component
             'name' => 'required|string|max:255',
         ]);
 
+        $isFirstTree = $user->ownedTreesCount() === 0;
+        $isPremium = ! $isFirstTree;
+
         $tree = FamilyTree::create([
             'name' => $this->name,
             'description' => $this->description,
             'is_public' => $this->is_public,
+            'is_premium' => $isPremium,
             'view_password' => $this->view_password ? Hash::make($this->view_password) : null,
         ]);
 
@@ -95,7 +99,11 @@ new class extends Component
                 ->first();
         }
 
-        $pricingPackages = \App\Models\PricingPackage::active()->get();
+        $pricingPackages = \App\Models\PricingPackage::active()->where('tree_quota', '>', 0)->get();
+        $targetUpgradeTree = null;
+        if (request()->filled('upgrade_tree')) {
+            $targetUpgradeTree = $user->familyTrees()->find(request('upgrade_tree'));
+        }
 
         return [
             'trees' => $trees,
@@ -110,6 +118,7 @@ new class extends Component
             'hasAvailableQuota' => $hasAvailableQuota,
             'recentOrder' => $recentOrder,
             'pricingPackages' => $pricingPackages,
+            'targetUpgradeTree' => $targetUpgradeTree,
         ];
     }
 
@@ -132,7 +141,11 @@ new class extends Component
                 <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">check_circle</span>
                 <div>
                     <span class="font-bold text-sm block">Pembayaran Berhasil!</span>
-                    <span class="text-xs">Alhamdulillah, pembayaran untuk pesanan <strong>{{ $recentOrder->order_id }}</strong> berhasil diverifikasi dan kuota pohon silsilah Anda telah bertambah.</span>
+                    @if($recentOrder->isTreeUpgrade())
+                        <span class="text-xs">Alhamdulillah, pembayaran untuk upgrade pohon <strong>{{ $recentOrder->targetTree?->name ?? 'Pohon Silsilah' }}</strong> berhasil diverifikasi! Pohon ini sekarang adalah <strong>👑 Pohon Premium</strong> dengan kapasitas anggota unlimited dan kolaborasi keluarga aktif.</span>
+                    @else
+                        <span class="text-xs">Alhamdulillah, pembayaran untuk pesanan <strong>{{ $recentOrder->order_id }}</strong> berhasil diverifikasi dan kuota pohon silsilah Anda telah bertambah.</span>
+                    @endif
                 </div>
             </div>
         @elseif($recentOrder->status === 'pending')
@@ -369,8 +382,12 @@ new class extends Component
                             @endif
 
                             @if($tree->is_premium)
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
                                     👑 PREMIUM
+                                </span>
+                            @else
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-zinc-100 dark:bg-zinc-700/60 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-600 flex items-center gap-1">
+                                    STANDAR
                                 </span>
                             @endif
                         </div>
@@ -390,7 +407,8 @@ new class extends Component
                     <div class="flex items-center justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400 pb-5 border-b border-zinc-100 dark:border-zinc-700/60 mb-5">
                         <div class="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700/50 px-3 py-1.5 rounded-full">
                             <span>👥</span>
-                            <span class="text-zinc-800 dark:text-zinc-200 font-bold">{{ $tree->members_count }}</span> Anggota
+                            <span class="text-zinc-800 dark:text-zinc-200 font-bold">{{ $tree->members_count }}</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ $tree->is_premium ? 'Anggota' : '/ 100 Anggota' }}</span>
                         </div>
                         <div class="text-[11px]">
                             {{ $tree->created_at->diffForHumans() }}
@@ -404,6 +422,15 @@ new class extends Component
                             <span>Buka Silsilah</span>
                             <span>➔</span>
                         </button>
+                        @if(!$tree->is_premium)
+                            <button type="button"
+                                    onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('open-upgrade-modal', { detail: { id: {{ $tree->id }}, name: '{{ addslashes($tree->name) }}' } }))"
+                                    class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-sm shadow-amber-500/20 transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                                    title="Upgrade ke Pohon Premium (Rp 5.000)">
+                                <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                                <span>Upgrade 5K</span>
+                            </button>
+                        @endif
                         <a href="{{ route('tree.vertical', $tree) }}"
                            onclick="event.stopPropagation();"
                            wire:navigate
@@ -803,6 +830,195 @@ new class extends Component
             <div class="flex justify-center">
                 <flux:modal.close>
                     <flux:button variant="ghost" size="sm" class="cursor-pointer">Nanti Saja</flux:button>
+                </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
+
+    <!-- Modal: Upgrade Spesifik Pohon ke Premium (5K) -->
+    <flux:modal name="upgrade-tree-modal" class="md:w-[32rem]">
+        <div x-data="{
+            treeId: null,
+            treeName: '',
+            promoInput: '',
+            appliedCode: '',
+            discountAmount: 0,
+            isCheckingPromo: false,
+            promoMessage: '',
+            promoError: '',
+            basePrice: 5000,
+            init() {
+                window.addEventListener('open-upgrade-modal', (e) => {
+                    this.treeId = e.detail.id;
+                    this.treeName = e.detail.name;
+                    this.removePromo();
+                    $flux.modal('upgrade-tree-modal').show();
+                });
+                @if(request()->filled('upgrade_tree') && $targetUpgradeTree)
+                    this.treeId = {{ $targetUpgradeTree->id }};
+                    this.treeName = '{{ addslashes($targetUpgradeTree->name) }}';
+                    this.$nextTick(() => {
+                        $flux.modal('upgrade-tree-modal').show();
+                    });
+                @endif
+            },
+            async validatePromo() {
+                if (!this.promoInput.trim()) return;
+                this.isCheckingPromo = true;
+                this.promoError = '';
+                this.promoMessage = '';
+                try {
+                    const res = await fetch('{{ route('orders.validate-code') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            code: this.promoInput.trim(),
+                            target_tree_id: this.treeId
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.valid) {
+                        this.appliedCode = data.code;
+                        this.discountAmount = data.discount;
+                        this.promoMessage = data.message;
+                    } else {
+                        this.promoError = data.message || 'Kode promo tidak valid';
+                    }
+                } catch (err) {
+                    this.promoError = 'Gagal memvalidasi kode promo.';
+                } finally {
+                    this.isCheckingPromo = false;
+                }
+            },
+            removePromo() {
+                this.appliedCode = '';
+                this.promoInput = '';
+                this.discountAmount = 0;
+                this.promoMessage = '';
+                this.promoError = '';
+            },
+            get finalPrice() {
+                return Math.max(1000, this.basePrice - this.discountAmount);
+            },
+            get formattedFinalPrice() {
+                return new Intl.NumberFormat('id-ID').format(this.finalPrice);
+            },
+            get formattedDiscount() {
+                return new Intl.NumberFormat('id-ID').format(this.discountAmount);
+            }
+        }" class="space-y-6">
+            <div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl mb-3 shadow-xs">
+                    👑
+                </div>
+                <flux:heading size="lg">Upgrade ke Pohon Premium</flux:heading>
+                <flux:subheading>
+                    Tingkatkan pohon <strong class="text-zinc-900 dark:text-white" x-text="treeName"></strong> menjadi Pohon Premium selamanya.
+                </flux:subheading>
+            </div>
+
+            <!-- Manfaat Premium -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/60 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-200/80 dark:border-amber-800/50 space-y-2.5 text-xs">
+                <h4 class="font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                    <span>Keuntungan Pohon Premium:</span>
+                </h4>
+                <div class="space-y-2 text-zinc-700 dark:text-zinc-300">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-sm">check_circle</span>
+                        <span><strong>Kapasitas Anggota Tanpa Batas</strong> (Bebas limit 100 orang)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-sm">check_circle</span>
+                        <span><strong>Fitur Kolaborasi Editor</strong> (Undang kerabat ikut mengedit silsilah)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-sm">check_circle</span>
+                        <span><strong>Riwayat Perubahan Lengkap</strong> & badge mahkota emas 👑</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-sm">check_circle</span>
+                        <span><strong>Sekali bayar selamanya</strong> (Tidak ada biaya langganan bulanan)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voucher Input -->
+            <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2">
+                <label class="block text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    🏷️ Punya Kode Promo atau Referral?
+                </label>
+                <div class="flex items-center gap-2">
+                    <input type="text"
+                           x-model="promoInput"
+                           placeholder="Contoh: SILSILAH15"
+                           :disabled="!!appliedCode"
+                           @keydown.enter.prevent="validatePromo"
+                           class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-xs font-mono uppercase tracking-wider text-zinc-900 dark:text-white placeholder-zinc-400">
+                    <template x-if="!appliedCode">
+                        <button type="button"
+                                @click="validatePromo"
+                                :disabled="isCheckingPromo"
+                                class="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shrink-0 cursor-pointer disabled:opacity-60">
+                            <span x-show="!isCheckingPromo">Terapkan</span>
+                            <span x-show="isCheckingPromo">Cek...</span>
+                        </button>
+                    </template>
+                    <template x-if="appliedCode">
+                        <button type="button"
+                                @click="removePromo"
+                                class="h-9 px-3 rounded-xl bg-zinc-200 hover:bg-red-50 text-zinc-700 hover:text-red-600 text-xs font-bold transition-all shrink-0 cursor-pointer">
+                            Hapus
+                        </button>
+                    </template>
+                </div>
+                <template x-if="promoMessage">
+                    <div class="p-2.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between">
+                        <span x-text="promoMessage"></span>
+                        <span class="font-bold font-mono" x-text="'-Rp ' + formattedDiscount"></span>
+                    </div>
+                </template>
+                <template x-if="promoError">
+                    <p class="text-xs text-red-500 font-medium" x-text="promoError"></p>
+                </template>
+            </div>
+
+            <!-- Summary & Checkout Button -->
+            <div class="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-3.5 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+                    <span>Biaya Upgrade Pohon:</span>
+                    <span class="font-bold text-zinc-900 dark:text-white">Rp 5.000</span>
+                </div>
+                <template x-if="discountAmount > 0">
+                    <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                        <span>Diskon Promo / Referral:</span>
+                        <span x-text="'-Rp ' + formattedDiscount"></span>
+                    </div>
+                </template>
+                <div class="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-sm">
+                    <span class="font-extrabold text-zinc-900 dark:text-white">Total Pembayaran QRIS:</span>
+                    <span class="text-lg font-black text-amber-600 dark:text-amber-400 font-mono" x-text="'Rp ' + formattedFinalPrice"></span>
+                </div>
+            </div>
+
+            <form action="{{ route('orders.checkout') }}" method="POST" class="space-y-3">
+                @csrf
+                <input type="hidden" name="target_tree_id" :value="treeId">
+                <input type="hidden" name="code" :value="appliedCode">
+
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white py-3.5 px-6 rounded-2xl font-bold shadow-lg shadow-amber-500/25 hover:shadow-amber-500/35 transition-all text-sm cursor-pointer hover:scale-[1.01] active:scale-[0.99]">
+                    <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+                    <span>Bayar Rp <span x-text="formattedFinalPrice"></span> via QRIS</span>
+                </button>
+            </form>
+
+            <div class="flex justify-center">
+                <flux:modal.close>
+                    <flux:button variant="ghost" size="sm" class="cursor-pointer">Batal</flux:button>
                 </flux:modal.close>
             </div>
         </div>

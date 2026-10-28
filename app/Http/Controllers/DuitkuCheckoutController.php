@@ -23,6 +23,7 @@ class DuitkuCheckoutController extends Controller
     {
         $request->validate([
             'package_id' => ['nullable', 'exists:pricing_packages,id'],
+            'target_tree_id' => ['nullable', 'exists:family_trees,id'],
             'custom_quota' => ['nullable', 'integer', 'min:1', 'max:500'],
             'code' => ['nullable', 'string', 'max:50'],
         ]);
@@ -34,8 +35,42 @@ class DuitkuCheckoutController extends Controller
         $quotaCount = 1;
         $amount = 10000;
         $packageId = null;
+        $targetTreeId = null;
+        $orderType = 'quota';
 
-        if ($request->filled('custom_quota')) {
+        if ($request->filled('target_tree_id')) {
+            $targetTree = $user->familyTrees()->where('family_trees.id', $request->input('target_tree_id'))->first();
+            if (! $targetTree) {
+                $msg = 'Anda tidak memiliki hak akses pemilik untuk pohon ini.';
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                    ], 403);
+                }
+
+                return back()->with('error', $msg);
+            }
+
+            if ($targetTree->is_premium) {
+                $msg = 'Pohon silsilah ini sudah berstatus Premium.';
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                    ], 422);
+                }
+
+                return back()->with('error', $msg);
+            }
+
+            $package = PricingPackage::where('slug', 'upgrade-pohon')->first();
+            $packageId = $package?->id;
+            $orderType = 'tree_upgrade';
+            $targetTreeId = $targetTree->id;
+            $quotaCount = 0;
+            $amount = $package ? $package->price : 5000;
+        } elseif ($request->filled('custom_quota')) {
             $quotaCount = (int) $request->input('custom_quota');
             $amount = PricingService::calculateCustomQuotaPrice($quotaCount);
             $isCustomQuota = true;
@@ -130,6 +165,8 @@ class DuitkuCheckoutController extends Controller
                 referralCode: $referralCode,
                 referrerId: $referrerId,
                 isCustomQuota: $isCustomQuota,
+                targetTreeId: $targetTreeId,
+                orderType: $orderType,
             );
 
             if ($request->wantsJson()) {
@@ -165,6 +202,7 @@ class DuitkuCheckoutController extends Controller
         $request->validate([
             'code' => ['required', 'string', 'max:50'],
             'package_id' => ['nullable', 'exists:pricing_packages,id'],
+            'target_tree_id' => ['nullable', 'exists:family_trees,id'],
             'custom_quota' => ['nullable', 'integer', 'min:1', 'max:500'],
         ]);
 
@@ -172,7 +210,10 @@ class DuitkuCheckoutController extends Controller
         $package = null;
         $amount = 10000;
 
-        if ($request->filled('custom_quota')) {
+        if ($request->filled('target_tree_id')) {
+            $package = PricingPackage::where('slug', 'upgrade-pohon')->first();
+            $amount = $package ? $package->price : 5000;
+        } elseif ($request->filled('custom_quota')) {
             $amount = PricingService::calculateCustomQuotaPrice((int) $request->input('custom_quota'));
         } elseif ($request->filled('package_id')) {
             $package = PricingPackage::find($request->input('package_id'));

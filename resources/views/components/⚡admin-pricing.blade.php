@@ -74,7 +74,7 @@ new class extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'tree_quota' => 'required|integer|min:1',
+            'tree_quota' => 'required|integer|min:0',
             'price' => 'required|integer|min:0',
             'original_price' => 'nullable|integer|min:0',
             'badge' => 'nullable|string|max:50',
@@ -188,8 +188,8 @@ new class extends Component
 
                             <!-- Tree Quota -->
                             <td class="py-3.5 px-4">
-                                <span class="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60 text-xs">
-                                    +{{ $pkg->tree_quota }} Pohon
+                                <span class="inline-flex items-center gap-1 font-bold {{ $pkg->tree_quota > 0 ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200/60 dark:border-emerald-800/60' : 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border-amber-200/60 dark:border-amber-800/60' }} px-2.5 py-1 rounded-lg border text-xs">
+                                    {{ $pkg->tree_quota > 0 ? "+{$pkg->tree_quota} Pohon" : '⭐ Upgrade Status' }}
                                 </span>
                             </td>
 
@@ -297,7 +297,7 @@ new class extends Component
             <flux:input wire:model="name" label="Nama Paket" placeholder="Misal: Promo Idul Fitri" required />
 
             <div class="grid grid-cols-2 gap-3">
-                <flux:input type="number" wire:model="tree_quota" label="Kuota Pohon" min="1" required />
+                <flux:input type="number" wire:model="tree_quota" label="Kuota Pohon" min="0" required />
                 <flux:input type="number" wire:model="price" label="Harga (Rp)" min="0" step="1000" required />
             </div>
 

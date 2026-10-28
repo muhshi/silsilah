@@ -150,6 +150,7 @@ new class extends Component
 
     public function with()
     {
+        $tree = FamilyTree::find($this->treeId);
         $targetMember = null;
         $targetSpouses = collect();
         $availableMembers = collect();
@@ -181,6 +182,10 @@ new class extends Component
         }
 
         return [
+            'tree' => $tree,
+            'hasReachedLimit' => $tree ? $tree->hasReachedMemberLimit() : false,
+            'isPremium' => $tree ? $tree->is_premium : false,
+            'membersCount' => $tree ? $tree->members()->count() : 0,
             'targetMember' => $targetMember,
             'targetSpouses' => $targetSpouses,
             'availableMembers' => $availableMembers,
@@ -189,7 +194,16 @@ new class extends Component
 
     public function save()
     {
-        \Illuminate\Support\Facades\Gate::authorize('editMembers', FamilyTree::findOrFail($this->treeId));
+        $tree = FamilyTree::findOrFail($this->treeId);
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
+
+        if (! $this->memberId && ! $tree->canAddMembers(1)) {
+            $this->addError('first_name', 'Batas maksimal 100 anggota untuk pohon gratis telah tercapai. Silakan upgrade pohon ini ke Premium seharga Rp 5.000 untuk menambah anggota tanpa batas.');
+            session()->flash('limit_error', 'Batas maksimal 100 anggota untuk pohon gratis telah tercapai. Silakan upgrade pohon ini ke Premium seharga Rp 5.000 untuk menambah anggota tanpa batas.');
+
+            return;
+        }
+
         $this->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -476,6 +490,26 @@ new class extends Component
                 @endif
             </div>
 
+            @if(!$memberId && $hasReachedLimit)
+                <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-2">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-sm">Batas Maksimal 100 Anggota Tercapai</h4>
+                            <p class="text-xs text-on-surface-variant leading-relaxed">
+                                Pohon standar dibatasi hingga 100 anggota keluarga. Tingkatkan pohon ini menjadi <strong>👑 Pohon Premium</strong> seharga <strong>Rp 5.000</strong> untuk membuka kuota anggota tanpa batas (unlimited) dan kolaborasi editor.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-1">
+                        <a href="{{ route('dashboard', ['upgrade_tree' => $treeId]) }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs">
+                            <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                            <span>Upgrade ke Premium (Rp 5.000)</span>
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             {{-- Tab: Pribadi --}}
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -618,16 +652,23 @@ new class extends Component
                     <flux:modal.close>
                         <flux:button variant="ghost">Tutup</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" wire:loading.attr="disabled" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 font-medium">
-                        <span wire:loading.remove wire:target="save">Simpan</span>
-                        <span wire:loading wire:target="save" class="inline-flex items-center gap-1.5">
-                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span>Menyimpan...</span>
-                        </span>
-                    </flux:button>
+                    @if(!$memberId && $hasReachedLimit)
+                        <a href="{{ route('dashboard', ['upgrade_tree' => $treeId]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs">
+                            <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                            <span>Upgrade ke Premium (Rp 5.000)</span>
+                        </a>
+                    @else
+                        <flux:button type="submit" wire:loading.attr="disabled" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 font-medium">
+                            <span wire:loading.remove wire:target="save">Simpan</span>
+                            <span wire:loading wire:target="save" class="inline-flex items-center gap-1.5">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Menyimpan...</span>
+                            </span>
+                        </flux:button>
+                    @endif
                 </div>
             </div>
         </form>

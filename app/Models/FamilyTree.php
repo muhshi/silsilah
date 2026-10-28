@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 
 class FamilyTree extends Model
 {
+    public const FREE_MEMBER_LIMIT = 100;
+
     /** @use HasFactory<FamilyTreeFactory> */
     use HasFactory;
 
@@ -68,5 +70,42 @@ class FamilyTree extends Model
     public function members(): HasMany
     {
         return $this->hasMany(Member::class);
+    }
+
+    public function isPremium(): bool
+    {
+        return (bool) $this->is_premium;
+    }
+
+    public function maxMembersLimit(): ?int
+    {
+        return $this->isPremium() ? null : self::FREE_MEMBER_LIMIT;
+    }
+
+    public function hasReachedMemberLimit(): bool
+    {
+        if ($this->isPremium()) {
+            return false;
+        }
+
+        return $this->members()->count() >= self::FREE_MEMBER_LIMIT;
+    }
+
+    public function canAddMembers(int $count = 1): bool
+    {
+        if ($this->isPremium()) {
+            return true;
+        }
+
+        return ($this->members()->count() + $count) <= self::FREE_MEMBER_LIMIT;
+    }
+
+    public function remainingMemberSlots(): ?int
+    {
+        if ($this->isPremium()) {
+            return null;
+        }
+
+        return max(0, self::FREE_MEMBER_LIMIT - $this->members()->count());
     }
 }

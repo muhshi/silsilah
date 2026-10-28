@@ -97,6 +97,12 @@ new class extends Component
     {
         \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
 
+        if (! $this->tree->is_premium) {
+            session()->flash('error', 'Fitur kolaborasi hanya tersedia untuk Pohon Premium. Silakan upgrade pohon ini seharga Rp 5.000.');
+
+            return;
+        }
+
         $this->validate([
             'inviteEmail' => 'required|email'
         ]);
@@ -135,6 +141,12 @@ new class extends Component
     public function createLinkInvite()
     {
         \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
+
+        if (! $this->tree->is_premium) {
+            session()->flash('error', 'Fitur kolaborasi hanya tersedia untuk Pohon Premium. Silakan upgrade pohon ini seharga Rp 5.000.');
+
+            return;
+        }
 
         $token = Str::random(40);
         $invitation = TreeInvitation::create([
@@ -211,6 +223,29 @@ new class extends Component
 
             @if($activeTab === 'general')
                 <div class="space-y-6 pt-4">
+                    {{-- Status Pohon Card --}}
+                    <div class="p-3.5 rounded-2xl flex items-center justify-between {{ $tree->is_premium ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60' : 'bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/80' }}">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-2xl {{ $tree->is_premium ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-500' }}">
+                                {{ $tree->is_premium ? 'workspace_premium' : 'account_tree' }}
+                            </span>
+                            <div>
+                                <span class="text-xs font-bold text-zinc-900 dark:text-white block">
+                                    {{ $tree->is_premium ? '👑 Pohon Premium' : 'Pohon Standar (Gratis)' }}
+                                </span>
+                                <span class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                                    {{ $tree->is_premium ? 'Anggota unlimited & kolaborasi aktif' : $tree->members()->count() . ' / 100 Anggota terisi' }}
+                                </span>
+                            </div>
+                        </div>
+                        @if(!$tree->is_premium)
+                            <a href="{{ route('dashboard', ['upgrade_tree' => $tree->id]) }}" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                                <span>Upgrade Rp 5K</span>
+                            </a>
+                        @endif
+                    </div>
+
                     <form wire:submit="saveGeneralSettings" class="space-y-4">
                         <flux:input wire:model="name" label="Nama Pohon Silsilah *" placeholder="Contoh: Keluarga Trah Mangun" required />
                         <flux:textarea wire:model="description" label="Deskripsi" placeholder="Keterangan singkat silsilah keluarga" rows="2" />
@@ -267,8 +302,54 @@ new class extends Component
             @endif
 
             @if($activeTab === 'collab')
-                <div class="space-y-6 pt-4">
-                    <!-- Collaboration Settings -->
+                @if(!$tree->is_premium)
+                    <div class="pt-4">
+                        <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-200 space-y-4">
+                            <div class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-3xl shrink-0 mt-0.5">workspace_premium</span>
+                                <div>
+                                    <h4 class="font-bold text-sm text-zinc-900 dark:text-white">Fitur Kolaborasi Khusus Pohon Premium</h4>
+                                    <p class="text-xs text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
+                                        Undang sanak saudara dan kerabat keluarga besar sebagai editor untuk melengkapi nama, foto, dan cerita silsilah bersama-sama.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-zinc-700 dark:text-zinc-300 font-medium pt-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">check_circle</span>
+                                    <span>Undang editor keluarga tanpa batas</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">check_circle</span>
+                                    <span>Kapasitas anggota unlimited (bebas batas 100)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">check_circle</span>
+                                    <span>Riwayat aktivitas kolaborasi tersimpan</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">check_circle</span>
+                                    <span>Cukup Rp 5.000 sekali bayar untuk selamanya</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-amber-200/80 dark:border-amber-800/40">
+                                <div>
+                                    <span class="text-[11px] text-zinc-500 dark:text-zinc-400 block">Biaya Upgrade Sekali Bayar:</span>
+                                    <span class="text-base font-extrabold text-amber-600 dark:text-amber-400 font-mono">Rp 5.000</span>
+                                </div>
+                                <a href="{{ route('dashboard', ['upgrade_tree' => $tree->id]) }}"
+                                   class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold shadow-md shadow-amber-500/20 transition-all cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                                    <span>Upgrade ke Premium Sekarang (Rp 5.000)</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="space-y-6 pt-4">
+                        <!-- Collaboration Settings -->
                     <div class="space-y-3">
                         <div>
                             <h4 class="font-bold text-sm text-zinc-900 dark:text-white mb-1">Undang Kolaborator (Editor)</h4>
@@ -376,6 +457,7 @@ new class extends Component
                     </div>
                     @endif
                 </div>
+                @endif
             @endif
 
             @if($activeTab === 'logs')
