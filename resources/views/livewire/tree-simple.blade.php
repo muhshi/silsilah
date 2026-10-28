@@ -206,6 +206,11 @@ new class extends Component
                     @endif
                     <flux:menu.item icon="photo"
                                     href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'banner']) }}', title: 'Poster Silsilah Pigura (A1/A0)' } }))">
+                        Cetak Poster Pigura (A1/A0)
+                    </flux:menu.item>
+                    <flux:menu.item icon="photo"
+                                    href="#"
                                     @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'png', 'view' => 'simple']) }}', title: 'Gambar Silsilah (PNG)' } }))">
                         Export Gambar (PNG)
                     </flux:menu.item>

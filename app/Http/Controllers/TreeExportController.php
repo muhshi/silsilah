@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\TreeBannerExportService;
 use App\Services\TreeExportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -11,7 +12,8 @@ use Illuminate\Http\Response;
 class TreeExportController extends Controller
 {
     public function __construct(
-        protected TreeExportService $exportService
+        protected TreeExportService $exportService,
+        protected TreeBannerExportService $bannerExportService
     ) {}
 
     /**
@@ -33,6 +35,12 @@ class TreeExportController extends Controller
             return view('tree.export-book', $bookData);
         }
 
+        if ($request->query('format') === 'banner') {
+            $bannerData = $this->bannerExportService->prepareBannerData($treeModel);
+
+            return view('tree.export-banner', $bannerData);
+        }
+
         $viewType = $request->query('view', 'horizontal');
         $rootMembers = $this->exportService->getRootMembers($treeModel);
         $allMembers = $treeModel->members;
@@ -46,12 +54,12 @@ class TreeExportController extends Controller
     }
 
     /**
-     * Export trigger for PNG, PDF, Book PDF, JSON, or Prompt AI
+     * Export trigger for PNG, PDF, Book PDF, Banner PDF, JSON, or Prompt AI
      */
     public function export(Request $request, string|int $tree, string $format): Response|JsonResponse
     {
         set_time_limit(120);
-        abort_unless(in_array($format, ['png', 'pdf', 'json', 'prompt', 'book']), 400);
+        abort_unless(in_array($format, ['png', 'pdf', 'json', 'prompt', 'book', 'banner']), 400);
 
         $treeModel = $this->exportService->findTree($tree);
         $viewType = $request->query('view', 'horizontal');
@@ -66,6 +74,7 @@ class TreeExportController extends Controller
             'pdf' => $this->exportService->exportPdf($treeModel, $viewType),
             'png' => $this->exportService->exportPng($treeModel, $viewType),
             'book' => $this->exportService->exportBookPdf($treeModel),
+            'banner' => $this->bannerExportService->exportBannerPdf($treeModel),
         };
     }
 }

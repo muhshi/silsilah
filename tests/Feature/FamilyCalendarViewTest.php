@@ -20,6 +20,7 @@ it('retrieves accurate month events from FamilyReminderService for specified mon
         'last_name' => 'Dahlan',
         'gender' => 'male',
         'is_living' => false,
+        'birth_date' => '1950-01-01',
         'death_date' => '2021-11-05',
     ]);
 
@@ -39,12 +40,14 @@ it('retrieves accurate month events from FamilyReminderService for specified mon
         'first_name' => 'Ali',
         'gender' => 'male',
         'is_living' => true,
+        'birth_date' => '1990-02-02',
     ]);
     $wife = Member::factory()->create([
         'family_tree_id' => $tree->id,
         'first_name' => 'Zahra',
         'gender' => 'female',
         'is_living' => true,
+        'birth_date' => '1992-03-03',
     ]);
     $marriage = Marriage::create([
         'husband_id' => $husband->id,
