@@ -3,6 +3,7 @@
 use App\Models\FamilyTree;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -81,5 +82,19 @@ test('landing page falls back to demo slug if no public tree exists in database'
 
     $response->assertOk();
     $response->assertSee('Lihat Demo Interaktif');
+    $response->assertSee(route('tree.public', 'demo'));
+});
+
+test('landing page falls back to demo slug if public tree has null slug', function () {
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Keluarga Tanpa Slug',
+        'is_public' => true,
+        'view_password' => null,
+    ]);
+    DB::table('family_trees')->where('id', $tree->id)->update(['slug' => null]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
     $response->assertSee(route('tree.public', 'demo'));
 });

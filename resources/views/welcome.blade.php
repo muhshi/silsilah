@@ -1,6 +1,6 @@
 @php
-    $demoTree = $demoTree ?? \App\Models\FamilyTree::where('is_public', true)->whereNull('view_password')->first();
-    $demoUrl = $demoTree ? route('tree.public', $demoTree->slug) : route('tree.public', 'demo');
+    $demoTree = $demoTree ?? \App\Models\FamilyTree::where('is_public', true)->whereNull('view_password')->whereNotNull('slug')->select(['id', 'slug'])->first();
+    $demoUrl = ! empty($demoTree?->slug) ? route('tree.public', $demoTree->slug) : route('tree.public', 'demo');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">

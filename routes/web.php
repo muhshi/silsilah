@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     $demoTree = FamilyTree::where('is_public', true)
         ->whereNull('view_password')
+        ->whereNotNull('slug')
+        ->select(['id', 'slug', 'name', 'is_public', 'view_password'])
         ->first();
 
     return view('welcome', compact('demoTree'));
