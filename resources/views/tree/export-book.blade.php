@@ -261,59 +261,62 @@
                 </p>
             </div>
 
-            {{-- Executive Statistics Grid (Infographic) --}}
+            {{-- Executive Statistics Grid (Infographic Table) --}}
             <div style="margin-bottom: 26px;">
                 <h3 style="font-size: 11pt; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 6px;">
                     📊 Ringkasan Statistik Keluarga
                 </h3>
 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-                    {{-- Stat 1 --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Anggota</div>
-                        <div style="font-size: 18pt; font-weight: 800; color: #0f172a; margin-top: 2px;">{{ $stats['total_members'] }}</div>
-                        <div style="font-size: 8pt; color: #94a3b8;">Orang Terdata</div>
-                    </div>
+                <table style="width: 100%; border-collapse: separate; border-spacing: 10px; margin: 0 -10px;">
+                    <tr>
+                        {{-- Stat 1 --}}
+                        <td style="width: 33.33%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Anggota</div>
+                            <div style="font-size: 18pt; font-weight: 800; color: #0f172a; margin-top: 2px;">{{ $stats['total_members'] }}</div>
+                            <div style="font-size: 8pt; color: #94a3b8;">Orang Terdata</div>
+                        </td>
 
-                    {{-- Stat 2 --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Rentang Generasi</div>
-                        <div style="font-size: 18pt; font-weight: 800; color: #059669; margin-top: 2px;">{{ $stats['total_generations'] }}</div>
-                        <div style="font-size: 8pt; color: #94a3b8;">Tingkatan Generasi</div>
-                    </div>
+                        {{-- Stat 2 --}}
+                        <td style="width: 33.33%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Rentang Generasi</div>
+                            <div style="font-size: 18pt; font-weight: 800; color: #059669; margin-top: 2px;">{{ $stats['total_generations'] }}</div>
+                            <div style="font-size: 8pt; color: #94a3b8;">Tingkatan Generasi</div>
+                        </td>
 
-                    {{-- Stat 3 --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Pernikahan</div>
-                        <div style="font-size: 18pt; font-weight: 800; color: #d97706; margin-top: 2px;">{{ $stats['total_marriages'] }}</div>
-                        <div style="font-size: 8pt; color: #94a3b8;">Pasangan Terdaftar</div>
-                    </div>
+                        {{-- Stat 3 --}}
+                        <td style="width: 33.33%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Pernikahan</div>
+                            <div style="font-size: 18pt; font-weight: 800; color: #d97706; margin-top: 2px;">{{ $stats['total_marriages'] }}</div>
+                            <div style="font-size: 8pt; color: #94a3b8;">Pasangan Terdaftar</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        {{-- Stat 4 --}}
+                        <td style="width: 33.33%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Komposisi Gender</div>
+                            <div style="font-size: 12pt; font-weight: 800; color: #0284c7; margin-top: 4px;">
+                                {{ $stats['total_male'] }} <span style="font-size: 8.5pt; font-weight: 500; color: #64748b;">Pria</span> • {{ $stats['total_female'] }} <span style="font-size: 8.5pt; font-weight: 500; color: #64748b;">Wanita</span>
+                            </div>
+                            <div style="font-size: 8pt; color: #94a3b8;">Keseimbangan Garis</div>
+                        </td>
 
-                    {{-- Stat 4 --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Komposisi Gender</div>
-                        <div style="font-size: 13pt; font-weight: 800; color: #0284c7; margin-top: 4px;">
-                            {{ $stats['total_male'] }} <span style="font-size: 9pt; font-weight: 500; color: #64748b;">Pria</span> • {{ $stats['total_female'] }} <span style="font-size: 9pt; font-weight: 500; color: #64748b;">Wanita</span>
-                        </div>
-                        <div style="font-size: 8pt; color: #94a3b8;">Keseimbangan Garis</div>
-                    </div>
+                        {{-- Stat 5 --}}
+                        <td style="width: 33.33%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Status Keberadaan</div>
+                            <div style="font-size: 12pt; font-weight: 800; color: #16a34a; margin-top: 4px;">
+                                {{ $stats['total_living'] }} <span style="font-size: 8.5pt; font-weight: 500; color: #64748b;">Hidup</span> • {{ $stats['total_deceased'] }} <span style="font-size: 8.5pt; font-weight: 500; color: #64748b;">Wafat</span>
+                            </div>
+                            <div style="font-size: 8pt; color: #94a3b8;">Semoga Diberkahi &amp; Dirahmati</div>
+                        </td>
 
-                    {{-- Stat 5 --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Status Keberadaan</div>
-                        <div style="font-size: 13pt; font-weight: 800; color: #16a34a; margin-top: 4px;">
-                            {{ $stats['total_living'] }} <span style="font-size: 9pt; font-weight: 500; color: #64748b;">Hidup</span> • {{ $stats['total_deceased'] }} <span style="font-size: 9pt; font-weight: 500; color: #64748b;">Wafat</span>
-                        </div>
-                        <div style="font-size: 8pt; color: #94a3b8;">Semoga Diberkahi & Dirahmati</div>
-                    </div>
-
-                    {{-- Stat 6 --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                        <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Penerbitan</div>
-                        <div style="font-size: 11pt; font-weight: 700; color: #475569; margin-top: 6px;">{{ $stats['printed_at'] }}</div>
-                        <div style="font-size: 8pt; color: #94a3b8;">Edisi Resmi Cetak</div>
-                    </div>
-                </div>
+                        {{-- Stat 6 --}}
+                        <td style="width: 33.33%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 8pt; font-weight: 700; color: #64748b; text-transform: uppercase;">Penerbitan</div>
+                            <div style="font-size: 10.5pt; font-weight: 700; color: #475569; margin-top: 6px;">{{ $stats['printed_at'] }}</div>
+                            <div style="font-size: 8pt; color: #94a3b8;">Edisi Resmi Cetak</div>
+                        </td>
+                    </tr>
+                </table>
             </div>
 
             {{-- Showcase Leluhur Pendiri (Root Ancestors) --}}
@@ -358,134 +361,137 @@
             </div>
 
             <div style="padding-top: 8mm;">
-                {{-- Generation Chapter Banner --}}
-                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 16px;">
-                    <div>
-                        <span style="font-size: 8.5pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.1em;">
-                            Bab {{ $genNumber }}
-                        </span>
-                        <h2 class="serif-title" style="font-size: 16pt; font-weight: 800; color: #0f172a; margin: 2px 0 0 0;">
-                            {{ $generationLabels[$genNumber] ?? "Generasi {$genNumber}" }}
-                        </h2>
-                    </div>
-                    <div style="background: #f1f5f9; border-radius: 999px; padding: 4px 12px; font-size: 9pt; font-weight: 600; color: #475569;">
-                        {{ $members->count() }} Anggota
-                    </div>
-                </div>
+                {{-- Generation Chapter Banner Table --}}
+                <table style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #0f172a; margin-bottom: 16px; padding-bottom: 6px;">
+                    <tr>
+                        <td style="vertical-align: bottom; padding-bottom: 6px;">
+                            <div style="font-size: 8.5pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.1em;">
+                                Bab {{ $genNumber }}
+                            </div>
+                            <h2 class="serif-title" style="font-size: 16pt; font-weight: 800; color: #0f172a; margin: 2px 0 0 0;">
+                                {{ $generationLabels[$genNumber] ?? "Generasi {$genNumber}" }}
+                            </h2>
+                        </td>
+                        <td style="vertical-align: bottom; text-align: right; padding-bottom: 6px;">
+                            <span style="background: #f1f5f9; border-radius: 999px; padding: 4px 12px; font-size: 9pt; font-weight: 600; color: #475569; display: inline-block; white-space: nowrap;">
+                                {{ $members->count() }} Anggota
+                            </span>
+                        </td>
+                    </tr>
+                </table>
 
-                {{-- Member Cards Grid (Avoid Break to prevent awkward splits) --}}
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    @foreach($members as $m)
-                        @php
-                            $fullName = trim("{$m->first_name} {$m->last_name}");
-                            
-                            // Avatar resolution
-                            $avatarUrl = null;
-                            if ($m->photo) {
-                                $avatarUrl = str_starts_with($m->photo, 'http') ? $m->photo : asset('storage/' . $m->photo);
-                            } elseif ($m->avatar_id) {
-                                $avatarUrl = asset('images/avatar/' . $m->avatar_id);
+                {{-- Member Cards (Pure Table-Based Architecture for Bulletproof Print Layout) --}}
+                @foreach($members as $m)
+                    @php
+                        $fullName = trim("{$m->first_name} {$m->last_name}");
+                        
+                        // Avatar resolution
+                        $avatarUrl = null;
+                        if ($m->photo) {
+                            $avatarUrl = str_starts_with($m->photo, 'http') ? $m->photo : asset('storage/' . $m->photo);
+                        } elseif ($m->avatar_id) {
+                            $avatarUrl = asset('images/avatar/' . $m->avatar_id);
+                        }
+
+                        // Parents
+                        $father = $m->father_id ? $allMembers->firstWhere('id', $m->father_id) : null;
+                        $mother = $m->mother_id ? $allMembers->firstWhere('id', $m->mother_id) : null;
+
+                        // Spouses
+                        $spouses = collect();
+                        if ($m->gender === 'male') {
+                            foreach ($m->marriagesAsHusband as $mr) {
+                                $w = $allMembers->firstWhere('id', $mr->wife_id);
+                                if ($w) $spouses->push(['member' => $w, 'marriage' => $mr]);
                             }
-
-                            // Parents
-                            $father = $m->father_id ? $allMembers->firstWhere('id', $m->father_id) : null;
-                            $mother = $m->mother_id ? $allMembers->firstWhere('id', $m->mother_id) : null;
-
-                            // Spouses
-                            $spouses = collect();
-                            if ($m->gender === 'male') {
-                                foreach ($m->marriagesAsHusband as $mr) {
-                                    $w = $allMembers->firstWhere('id', $mr->wife_id);
-                                    if ($w) $spouses->push(['member' => $w, 'marriage' => $mr]);
-                                }
-                            } else {
-                                foreach ($m->marriagesAsWife as $mr) {
-                                    $h = $allMembers->firstWhere('id', $mr->husband_id);
-                                    if ($h) $spouses->push(['member' => $h, 'marriage' => $mr]);
-                                }
+                        } else {
+                            foreach ($m->marriagesAsWife as $mr) {
+                                $h = $allMembers->firstWhere('id', $mr->husband_id);
+                                if ($h) $spouses->push(['member' => $h, 'marriage' => $mr]);
                             }
+                        }
 
-                            // Children
-                            $childField = $m->gender === 'male' ? 'father_id' : 'mother_id';
-                            $children = $allMembers->where($childField, $m->id)
-                                ->sortBy([
-                                    fn ($a, $b) => ($a->birth_date ? $a->birth_date->timestamp : PHP_INT_MAX) <=> ($b->birth_date ? $b->birth_date->timestamp : PHP_INT_MAX),
-                                    fn ($a, $b) => ($a->order ?? 999) <=> ($b->order ?? 999),
-                                    fn ($a, $b) => $a->id <=> $b->id,
-                                ]);
-                        @endphp
+                        // Children
+                        $childField = $m->gender === 'male' ? 'father_id' : 'mother_id';
+                        $children = $allMembers->where($childField, $m->id)
+                            ->sortBy([
+                                fn ($a, $b) => ($a->birth_date ? $a->birth_date->timestamp : PHP_INT_MAX) <=> ($b->birth_date ? $b->birth_date->timestamp : PHP_INT_MAX),
+                                fn ($a, $b) => ($a->order ?? 999) <=> ($b->order ?? 999),
+                                fn ($a, $b) => $a->id <=> $b->id,
+                            ]);
+                    @endphp
 
-                        <div class="avoid-break" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                            <div style="display: flex; gap: 14px; align-items: flex-start;">
-                                
-                                {{-- Left: Avatar & Gender --}}
-                                <div style="flex-shrink: 0; text-align: center; width: 56px;">
-                                    <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 2px solid {{ $m->gender === 'male' ? '#38bdf8' : '#f472b6' }}; background: #f8fafc; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                                        @if($avatarUrl)
-                                            <img src="{{ $avatarUrl }}" alt="{{ $fullName }}" style="width: 100%; height: 100%; object-fit: cover;" />
-                                        @else
-                                            <span style="font-size: 18px; font-weight: 700; color: {{ $m->gender === 'male' ? '#0284c7' : '#db2777' }};">
-                                                {{ mb_substr($m->first_name, 0, 1) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <div style="margin-top: 4px;">
-                                        <span style="font-size: 7.5pt; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: {{ $m->gender === 'male' ? '#e0f2fe' : '#fce7f3' }}; color: {{ $m->gender === 'male' ? '#0369a1' : '#be185d' }};">
-                                            {{ $m->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}
+                    <table class="avoid-break" style="width: 100%; border-collapse: separate; border-spacing: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                        <tr>
+                            {{-- Kolom Kiri: Avatar & Gender Badge --}}
+                            <td style="width: 82px; vertical-align: top; text-align: center; padding: 12px 6px 12px 10px; background: #f8fafc; border-right: 1px solid #e2e8f0; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <div style="width: 58px; height: 58px; border-radius: 50%; overflow: hidden; border: 2.5px solid {{ $m->gender === 'male' ? '#38bdf8' : '#f472b6' }}; background: #ffffff; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                                    @if($avatarUrl)
+                                        <img src="{{ $avatarUrl }}" alt="{{ $fullName }}" style="width: 58px; height: 58px; object-fit: cover; display: block;" />
+                                    @else
+                                        <span style="font-size: 20px; font-weight: 700; color: {{ $m->gender === 'male' ? '#0284c7' : '#db2777' }};">
+                                            {{ mb_substr($m->first_name, 0, 1) }}
                                         </span>
-                                    </div>
+                                    @endif
                                 </div>
+                                <div style="margin-top: 8px;">
+                                    <span style="font-size: 7pt; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block; white-space: nowrap; background: {{ $m->gender === 'male' ? '#e0f2fe' : '#fce7f3' }}; color: {{ $m->gender === 'male' ? '#0369a1' : '#be185d' }};">
+                                        {{ $m->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}
+                                    </span>
+                                </div>
+                            </td>
 
-                                {{-- Right: Details --}}
-                                <div style="flex-grow: 1;">
-                                    {{-- Name & Status Bar --}}
-                                    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 6px;">
-                                        <div>
-                                            <span style="font-size: 11pt; font-weight: 800; color: #0f172a;">
+                            {{-- Kolom Kanan: Rincian Lengkap Data --}}
+                            <td style="vertical-align: top; padding: 10px 14px 12px 14px;">
+                                
+                                {{-- Header Nama & Status --}}
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9;">
+                                    <tr>
+                                        <td style="vertical-align: middle; padding-bottom: 4px;">
+                                            <span style="font-size: 11.5pt; font-weight: 800; color: #0f172a;">
                                                 {{ $fullName }}
                                             </span>
                                             <span style="font-size: 8pt; font-family: monospace; color: #64748b; margin-left: 6px;">
                                                 #M{{ $m->id }}
                                             </span>
-                                        </div>
-                                        <div>
+                                        </td>
+                                        <td style="text-align: right; vertical-align: middle; padding-bottom: 4px;">
                                             @if($m->is_living)
-                                                <span style="background: #dcfce7; color: #15803d; font-size: 7.5pt; font-weight: 700; padding: 2px 8px; border-radius: 999px;">
+                                                <span style="background: #dcfce7; color: #15803d; font-size: 7.5pt; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap;">
                                                     ● Masih Hidup
                                                 </span>
                                             @else
-                                                <span style="background: #f1f5f9; color: #475569; font-size: 7.5pt; font-weight: 700; padding: 2px 8px; border-radius: 999px;">
+                                                <span style="background: #f1f5f9; color: #475569; font-size: 7.5pt; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap;">
                                                     ✝ Wafat (Rahimahullah)
                                                 </span>
                                             @endif
-                                        </div>
-                                    </div>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                                    {{-- Key Attributes Grid --}}
-                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; font-size: 8.5pt; line-height: 1.45; color: #334155;">
-                                        
-                                        {{-- Lahir / Wafat --}}
-                                        <div>
+                                {{-- Table Detail Atribut 2 Kolom --}}
+                                <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt; line-height: 1.5; color: #334155;">
+                                    <tr>
+                                        <td style="width: 50%; vertical-align: top; padding: 2px 6px 2px 0;">
                                             <span style="color: #64748b;">Kelahiran:</span>
                                             <strong>{{ $m->birth_date ? $m->birth_date->locale('id')->isoFormat('D MMMM Y') : '-' }}</strong>
                                             @if($m->birth_place) <span style="color: #64748b;">di {{ $m->birth_place }}</span> @endif
-                                        </div>
-
-                                        @if(!$m->is_living)
-                                            <div>
+                                        </td>
+                                        <td style="width: 50%; vertical-align: top; padding: 2px 0 2px 6px;">
+                                            @if(!$m->is_living)
                                                 <span style="color: #64748b;">Wafat:</span>
                                                 <strong>{{ $m->death_date ? $m->death_date->locale('id')->isoFormat('D MMMM Y') : '-' }}</strong>
                                                 @if($m->death_place) <span style="color: #64748b;">di {{ $m->death_place }}</span> @endif
-                                            </div>
-                                        @else
-                                            <div>
+                                            @else
                                                 <span style="color: #64748b;">Profesi:</span>
                                                 <strong>{{ $m->profession ?: '-' }}</strong>
-                                            </div>
-                                        @endif
+                                            @endif
+                                        </td>
+                                    </tr>
 
-                                        {{-- Orang Tua --}}
-                                        <div style="grid-column: span 2;">
+                                    {{-- Baris Orang Tua --}}
+                                    <tr>
+                                        <td colspan="2" style="vertical-align: top; padding: 2px 0;">
                                             <span style="color: #64748b;">Orang Tua:</span>
                                             @if($father || $mother)
                                                 Ayah: <strong>{{ $father ? trim($father->first_name . ' ' . $father->last_name) : '-' }}</strong>
@@ -494,25 +500,30 @@
                                             @else
                                                 <span style="color: #94a3b8; font-style: italic;">Leluhur Utama / Tidak tercatat</span>
                                             @endif
-                                        </div>
+                                        </td>
+                                    </tr>
 
-                                        {{-- Pasangan --}}
-                                        @if($spouses->isNotEmpty())
-                                            <div style="grid-column: span 2;">
-                                                <span style="color: #64748b;">Pasangan:</span>
-                                                @foreach($spouses as $sp)
-                                                    <strong>{{ trim($sp['member']->first_name . ' ' . $sp['member']->last_name) }}</strong>
-                                                    @if($sp['marriage']->marriage_date)
-                                                        <span style="color: #64748b;">(Nikah: {{ \Carbon\Carbon::parse($sp['marriage']->marriage_date)->format('Y') }})</span>
-                                                    @endif
-                                                    @if(!$loop->last), @endif
-                                                @endforeach
-                                            </div>
-                                        @endif
+                                    {{-- Baris Pasangan --}}
+                                    @if($spouses->isNotEmpty())
+                                    <tr>
+                                        <td colspan="2" style="vertical-align: top; padding: 2px 0;">
+                                            <span style="color: #64748b;">Pasangan:</span>
+                                            @foreach($spouses as $sp)
+                                                <strong>{{ trim($sp['member']->first_name . ' ' . $sp['member']->last_name) }}</strong>
+                                                @if($sp['marriage']->marriage_date)
+                                                    <span style="color: #64748b;">(Nikah: {{ \Carbon\Carbon::parse($sp['marriage']->marriage_date)->format('Y') }})</span>
+                                                @endif
+                                                @if(!$loop->last), @endif
+                                            @endforeach
+                                        </td>
+                                    </tr>
+                                    @endif
 
-                                        {{-- Anak-anak --}}
-                                        @if($children->isNotEmpty())
-                                            <div style="grid-column: span 2; background: #f8fafc; border-radius: 6px; padding: 4px 8px; margin-top: 2px;">
+                                    {{-- Baris Anak-anak --}}
+                                    @if($children->isNotEmpty())
+                                    <tr>
+                                        <td colspan="2" style="vertical-align: top; padding-top: 4px;">
+                                            <div style="background: #f8fafc; border-radius: 6px; padding: 5px 8px; border: 1px solid #e2e8f0;">
                                                 <span style="color: #64748b; font-weight: 600;">Putera/Puteri ({{ $children->count() }} orang):</span>
                                                 <div style="margin-top: 2px; color: #1e293b;">
                                                     @foreach($children as $cIdx => $child)
@@ -523,23 +534,25 @@
                                                     @endforeach
                                                 </div>
                                             </div>
-                                        @endif
+                                        </td>
+                                    </tr>
+                                    @endif
 
-                                        {{-- Bio / Notes if present --}}
-                                        @if($m->bio || $m->address)
-                                            <div style="grid-column: span 2; font-size: 8pt; color: #475569; margin-top: 2px;">
-                                                @if($m->address) <span style="color: #64748b;">Domisili: {{ $m->address }}</span> @endif
-                                                @if($m->bio) &bull; <span style="font-style: italic;">"{{ Str::limit($m->bio, 120) }}"</span> @endif
-                                            </div>
-                                        @endif
+                                    {{-- Baris Catatan / Domisili --}}
+                                    @if($m->bio || $m->address)
+                                    <tr>
+                                        <td colspan="2" style="vertical-align: top; padding-top: 3px; font-size: 8pt; color: #475569;">
+                                            @if($m->address) <span style="color: #64748b;">Domisili: {{ $m->address }}</span> @endif
+                                            @if($m->bio) &bull; <span style="font-style: italic;">"{{ Str::limit($m->bio, 120) }}"</span> @endif
+                                        </td>
+                                    </tr>
+                                    @endif
+                                </table>
 
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+                            </td>
+                        </tr>
+                    </table>
+                @endforeach
             </div>
 
             {{-- Running Footer --}}
