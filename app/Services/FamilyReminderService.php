@@ -179,6 +179,7 @@ class FamilyReminderService
 
         foreach ($customEvents as $event) {
             $originalDate = Carbon::parse($event->event_date)->startOfDay();
+            $originalEndDate = $event->event_end_date ? Carbon::parse($event->event_end_date)->startOfDay() : null;
 
             if ($event->is_recurring_yearly) {
                 $occurrence = $this->calculateUpcomingOccurrence($originalDate, $today, $daysAhead);
@@ -186,14 +187,19 @@ class FamilyReminderService
                     $targetDate = $occurrence['date'];
                     $daysUntil = $occurrence['days_until'];
                     $ordinal = $occurrence['ordinal'];
+                    $targetEndDate = $originalEndDate ? $targetDate->copy()->addDays($originalDate->diffInDays($originalEndDate)) : null;
                 } else {
                     continue;
                 }
             } else {
                 $targetDate = $originalDate;
+                $targetEndDate = $originalEndDate;
                 $daysUntil = (int) $today->diffInDays($targetDate, false);
                 $ordinal = 1;
-                if ($daysUntil < 0 || $daysUntil > $daysAhead) {
+
+                if ($daysUntil < 0 && $targetEndDate && $today->lte($targetEndDate)) {
+                    $daysUntil = 0; // Ongoing event
+                } elseif ($daysUntil < 0 || $daysUntil > $daysAhead) {
                     continue;
                 }
             }
@@ -213,6 +219,7 @@ class FamilyReminderService
                 'member' => null,
                 'spouse' => null,
                 'date' => $targetDate,
+                'end_date' => $targetEndDate,
                 'original_date' => $originalDate,
                 'days_until' => $daysUntil,
                 'ordinal' => $ordinal,
@@ -418,24 +425,38 @@ class FamilyReminderService
 
         foreach ($customEvents as $event) {
             $originalDate = Carbon::parse($event->event_date)->startOfDay();
+            $originalEndDate = $event->event_end_date ? Carbon::parse($event->event_end_date)->startOfDay() : null;
             $matches = false;
             $targetDate = null;
+            $targetEndDate = null;
 
             if ($event->is_recurring_yearly) {
                 if ($originalDate->month === $month && $originalDate->year <= $year) {
                     $day = min($originalDate->day, $daysInTargetMonth);
                     $targetDate = Carbon::create($year, $month, $day)->startOfDay();
+                    if ($originalEndDate) {
+                        $diff = $originalDate->diffInDays($originalEndDate);
+                        $targetEndDate = $targetDate->copy()->addDays($diff);
+                    }
                     $matches = true;
                 }
             } else {
-                if ($originalDate->year === $year && $originalDate->month === $month) {
+                $monthStart = Carbon::create($year, $month, 1)->startOfDay();
+                $monthEnd = Carbon::create($year, $month, $daysInTargetMonth)->endOfDay();
+                $eventEnd = $originalEndDate ?? $originalDate;
+
+                if ($originalDate->lte($monthEnd) && $eventEnd->gte($monthStart)) {
                     $targetDate = $originalDate;
+                    $targetEndDate = $originalEndDate;
                     $matches = true;
                 }
             }
 
             if ($matches && $targetDate) {
                 $daysUntil = (int) $today->diffInDays($targetDate, false);
+                if ($daysUntil < 0 && $targetEndDate && $today->lte($targetEndDate)) {
+                    $daysUntil = 0;
+                }
                 $ordinal = max(1, $year - $originalDate->year);
                 $title = $event->title;
                 $timeText = $event->start_time ? Carbon::parse($event->start_time)->format('H:i').($event->end_time ? ' - '.Carbon::parse($event->end_time)->format('H:i') : ' WIB') : null;
@@ -452,6 +473,7 @@ class FamilyReminderService
                     'member' => null,
                     'spouse' => null,
                     'date' => $targetDate,
+                    'end_date' => $targetEndDate,
                     'original_date' => $originalDate,
                     'days_until' => $daysUntil,
                     'ordinal' => $ordinal,
@@ -560,6 +582,13 @@ class FamilyReminderService
 
             case 'event':
                 $dayName = Carbon::parse($event['date'])->locale('id')->translatedFormat('l');
+                if (! empty($event['end_date']) && ! $event['date']->isSameDay($event['end_date'])) {
+                    $endDayName = Carbon::parse($event['end_date'])->locale('id')->translatedFormat('l');
+                    $endDateFormatted = Carbon::parse($event['end_date'])->locale('id')->translatedFormat('d F Y');
+                    $dateLine = "{$dayName}, {$dateFormatted} s.d. {$endDayName}, {$endDateFormatted}";
+                } else {
+                    $dateLine = "{$dayName}, {$dateFormatted}";
+                }
                 $timeStr = ! empty($event['start_time'])
                     ? Carbon::parse($event['start_time'])->format('H:i').(! empty($event['end_time']) ? ' - '.Carbon::parse($event['end_time'])->format('H:i') : '').' WIB'
                     : 'Waktu menyusul';
@@ -572,7 +601,7 @@ class FamilyReminderService
                     ."Undangan Agenda Keluarga Besar Trah {$tree->name}:\n\n"
                     ."*{$event['title']}*\n"
                     ."({$event['ordinal_text']})\n\n"
-                    ."🗓 Hari / Tgl: {$dayName}, {$dateFormatted}\n"
+                    ."🗓 Hari / Tgl: {$dateLine}\n"
                     ."⏰ Waktu: {$timeStr}\n"
                     ."🏠 Tempat: {$location}{$maps}{$pic}{$desc}\n\n"
                     ."Kehadiran dan doa restu keluarga besar sangat kami harapkan demi mempererat tali silaturahmi & ukhuwah kekeluargaan.\n\n"
@@ -621,13 +650,22 @@ class FamilyReminderService
                 $dateStr = Carbon::parse($event['date'])->format('Ymd');
                 $timeStr = Carbon::parse($event['start_time'])->format('His');
                 $lines[] = "DTSTART;TZID=Asia/Jakarta:{$dateStr}T{$timeStr}";
+                $endDate = ! empty($event['end_date']) ? Carbon::parse($event['end_date']) : Carbon::parse($event['date']);
+                $endDateStr = $endDate->format('Ymd');
                 if (! empty($event['end_time'])) {
                     $endTimeStr = Carbon::parse($event['end_time'])->format('His');
-                    $lines[] = "DTEND;TZID=Asia/Jakarta:{$dateStr}T{$endTimeStr}";
+                    $lines[] = "DTEND;TZID=Asia/Jakarta:{$endDateStr}T{$endTimeStr}";
+                } elseif (! empty($event['end_date']) && ! $event['date']->isSameDay($event['end_date'])) {
+                    $lines[] = "DTEND;TZID=Asia/Jakarta:{$endDateStr}T{$timeStr}";
                 }
             } else {
                 $dtstart = Carbon::parse($event['date'])->format('Ymd');
                 $lines[] = "DTSTART;VALUE=DATE:{$dtstart}";
+                if (! empty($event['end_date']) && ! $event['date']->isSameDay($event['end_date'])) {
+                    // All-day DTEND is exclusive
+                    $dtend = Carbon::parse($event['end_date'])->addDay()->format('Ymd');
+                    $lines[] = "DTEND;VALUE=DATE:{$dtend}";
+                }
             }
 
             if (($event['type'] ?? '') !== 'event' || ! empty($event['is_recurring_yearly'])) {

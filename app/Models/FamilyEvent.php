@@ -16,6 +16,7 @@ class FamilyEvent extends Model
         'title',
         'event_type',
         'event_date',
+        'event_end_date',
         'start_time',
         'end_time',
         'location_name',
@@ -29,6 +30,7 @@ class FamilyEvent extends Model
     {
         return [
             'event_date' => 'date',
+            'event_end_date' => 'date',
             'is_recurring_yearly' => 'boolean',
         ];
     }

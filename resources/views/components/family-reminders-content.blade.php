@@ -200,25 +200,46 @@
     @if($viewMode === 'calendar')
         {{-- ==================== CALENDAR GRID VIEW ==================== --}}
         <div class="space-y-4">
-            {{-- Month Navigation Toolbar --}}
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60">
-                <div class="flex items-center gap-2">
-                    <flux:button type="button" wire:click="prevMonth" size="sm" icon="chevron-left" variant="subtle" class="min-h-[40px]">
-                        Bulan Lalu
-                    </flux:button>
-                    <flux:button type="button" wire:click="goToToday" size="sm" variant="subtle" class="font-bold min-h-[40px]">
+            {{-- Month & Year Navigation Toolbar --}}
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 sm:p-3.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60">
+                {{-- Quick Step Buttons --}}
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button type="button" wire:click="prevMonth" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-600 border border-zinc-200 dark:border-zinc-600 text-xs font-bold text-zinc-700 dark:text-zinc-200 flex items-center gap-1 cursor-pointer shadow-2xs">
+                        <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        <span class="hidden sm:inline">Bulan Lalu</span>
+                    </button>
+                    <button type="button" wire:click="goToToday" class="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-600 border border-zinc-200 dark:border-zinc-600 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 cursor-pointer shadow-2xs">
                         Bulan Ini
-                    </flux:button>
-                    <flux:button type="button" wire:click="nextMonth" size="sm" icon-trailing="chevron-right" variant="subtle" class="min-h-[40px]">
-                        Bulan Depan
-                    </flux:button>
+                    </button>
+                    <button type="button" wire:click="nextMonth" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-600 border border-zinc-200 dark:border-zinc-600 text-xs font-bold text-zinc-700 dark:text-zinc-200 flex items-center gap-1 cursor-pointer shadow-2xs">
+                        <span class="hidden sm:inline">Bulan Depan</span>
+                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
                 </div>
 
-                <div class="text-base sm:text-lg font-black text-zinc-900 dark:text-white capitalize flex items-center gap-2">
-                    <span>🗓️</span>
-                    <span>{{ $this->monthTitle }}</span>
+                {{-- Direct Month & Year Jumper --}}
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="flex items-center gap-1 bg-white dark:bg-zinc-700/90 p-1 rounded-xl border border-zinc-200 dark:border-zinc-600 shadow-2xs">
+                        <span class="text-xs pl-2 text-zinc-400">🗓️</span>
+                        {{-- Select Month --}}
+                        <select wire:model.live="currentMonth" class="bg-transparent text-xs sm:text-sm font-black text-zinc-900 dark:text-white border-0 focus:ring-0 cursor-pointer py-1 pr-6 pl-1">
+                            @foreach($this->monthOptions as $mNum => $mName)
+                                <option value="{{ $mNum }}" class="text-zinc-900 dark:text-white bg-white dark:bg-zinc-800">{{ $mName }}</option>
+                            @endforeach
+                        </select>
+
+                        <div class="h-4 w-px bg-zinc-200 dark:bg-zinc-600"></div>
+
+                        {{-- Select Year --}}
+                        <select wire:model.live="currentYear" class="bg-transparent text-xs sm:text-sm font-black text-zinc-900 dark:text-white border-0 focus:ring-0 cursor-pointer py-1 pr-6 pl-1">
+                            @foreach($this->yearOptions as $yr)
+                                <option value="{{ $yr }}" class="text-zinc-900 dark:text-white bg-white dark:bg-zinc-800">{{ $yr }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     @if($this->monthCounts['all'] > 0)
-                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
                             {{ $this->monthCounts['all'] }} agenda
                         </span>
                     @endif
@@ -253,29 +274,41 @@
                                     role="button"
                                     tabindex="0"
                                 @endif
-                                class="min-h-[58px] sm:min-h-[96px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none
+                                class="group min-h-[58px] sm:min-h-[96px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none
                                     {{ ! $day['is_current_month'] ? 'opacity-25 bg-zinc-50/50 dark:bg-zinc-900/30 border-dashed border-zinc-200 dark:border-zinc-800 cursor-not-allowed' : 'cursor-pointer' }}
                                     {{ $day['is_current_month'] && ! $isSelected && ! $day['is_today'] ? 'bg-white dark:bg-zinc-800/90 border-zinc-200 dark:border-zinc-700/80 hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-xs' : '' }}
                                     {{ $day['is_today'] && ! $isSelected ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-500/40' : '' }}
                                     {{ $isSelected ? 'bg-indigo-50/90 dark:bg-indigo-950/60 border-indigo-500 dark:border-indigo-500 ring-2 ring-indigo-500 shadow-sm' : '' }}
                                 ">
-                                {{-- Day Number & Today indicator --}}
+                                {{-- Day Number & Today indicator & Quick Add button --}}
                                 <div class="flex items-center justify-between">
-                                    @if($day['is_today'])
-                                        <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs">
-                                            {{ $day['day'] }}
-                                        </span>
-                                        <span class="hidden sm:inline text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-600 text-white leading-tight">
-                                            Hari Ini
-                                        </span>
-                                    @elseif($isSelected)
-                                        <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs">
-                                            {{ $day['day'] }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs sm:text-sm font-bold {{ ! $day['is_current_month'] ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-700 dark:text-zinc-200' }}">
-                                            {{ $day['day'] }}
-                                        </span>
+                                    <div class="flex items-center gap-1">
+                                        @if($day['is_today'])
+                                            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs">
+                                                {{ $day['day'] }}
+                                            </span>
+                                            <span class="hidden md:inline text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-600 text-white leading-tight">
+                                                Hari Ini
+                                            </span>
+                                        @elseif($isSelected)
+                                            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs">
+                                                {{ $day['day'] }}
+                                            </span>
+                                        @else
+                                            <span class="text-xs sm:text-sm font-bold {{ ! $day['is_current_month'] ? 'text-zinc-400 dark:text-zinc-600' : 'text-zinc-700 dark:text-zinc-200' }}">
+                                                {{ $day['day'] }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    @if($day['is_current_month'] && $this->canManageEvents)
+                                        <button
+                                            type="button"
+                                            wire:click.stop="openCreateEventModal('{{ $day['date']->format('Y-m-d') }}')"
+                                            class="opacity-0 group-hover:opacity-100 focus:opacity-100 hover:!opacity-100 w-5 h-5 rounded-md bg-emerald-100 hover:bg-emerald-600 text-emerald-800 hover:text-white dark:bg-emerald-950/80 dark:text-emerald-300 dark:hover:bg-emerald-600 dark:hover:text-white transition-all flex items-center justify-center text-xs font-black cursor-pointer shadow-2xs"
+                                            title="Tambah acara pada tanggal {{ $day['day'] }} {{ $this->monthTitle }}">
+                                            +
+                                        </button>
                                     @endif
                                 </div>
 
@@ -384,11 +417,25 @@
                             {{ $eventsToShow->count() }} Agenda
                         </span>
                     </div>
-                    @if($isDaySelected)
-                        <flux:button type="button" wire:click="selectDay(null)" size="xs" variant="subtle">
-                            Tampilkan Semua Bulan Ini
-                        </flux:button>
-                    @endif
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        @if($isDaySelected && $this->canManageEvents)
+                            <flux:button
+                                type="button"
+                                wire:click="openCreateEventModal('{{ \Carbon\Carbon::create($currentYear, $currentMonth, $selectedDay)->format('Y-m-d') }}')"
+                                size="xs"
+                                icon="plus"
+                                class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !font-bold cursor-pointer shadow-sm">
+                                + Tambah Acara di Tanggal Ini
+                            </flux:button>
+                        @endif
+
+                        @if($isDaySelected)
+                            <flux:button type="button" wire:click="selectDay(null)" size="xs" variant="subtle">
+                                Tampilkan Semua Bulan Ini
+                            </flux:button>
+                        @endif
+                    </div>
                 </div>
 
                 @if($eventsToShow->isNotEmpty())
@@ -443,7 +490,11 @@
                                     </h4>
                                     <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                                         <span class="font-medium text-zinc-700 dark:text-zinc-300">
-                                            📅 {{ \Carbon\Carbon::parse($event['date'])->locale('id')->translatedFormat('l, d F Y') }}
+                                            @if(!empty($event['end_date']) && !$event['date']->isSameDay($event['end_date']))
+                                                📅 {{ \Carbon\Carbon::parse($event['date'])->locale('id')->translatedFormat('d M') }} s.d. {{ \Carbon\Carbon::parse($event['end_date'])->locale('id')->translatedFormat('d M Y') }}
+                                            @else
+                                                📅 {{ \Carbon\Carbon::parse($event['date'])->locale('id')->translatedFormat('l, d F Y') }}
+                                            @endif
                                         </span>
                                         <span>•</span>
                                         <span class="truncate max-w-xs sm:max-w-md">
@@ -511,8 +562,22 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="py-6 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                        Tidak ada haul, ulang tahun, pernikahan, atau acara trah pada periode/tanggal ini.
+                    <div class="py-8 text-center space-y-2.5">
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                            {{ $isDaySelected ? 'Belum ada agenda pada tanggal ini.' : 'Tidak ada haul, ulang tahun, pernikahan, atau acara trah pada bulan ini.' }}
+                        </p>
+                        @if($isDaySelected && $this->canManageEvents)
+                            <div>
+                                <flux:button
+                                    type="button"
+                                    wire:click="openCreateEventModal('{{ \Carbon\Carbon::create($currentYear, $currentMonth, $selectedDay)->format('Y-m-d') }}')"
+                                    size="sm"
+                                    icon="plus"
+                                    class="!bg-emerald-600 hover:!bg-emerald-700 !text-white !font-bold cursor-pointer shadow-sm">
+                                    + Buat Acara pada Tanggal Ini
+                                </flux:button>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -572,7 +637,11 @@
                         {{-- Formatted Date & Subtext --}}
                         <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                             <span class="font-medium text-zinc-700 dark:text-zinc-300">
-                                📅 {{ \Carbon\Carbon::parse($event['date'])->locale('id')->translatedFormat('l, d F Y') }}
+                                @if(!empty($event['end_date']) && !$event['date']->isSameDay($event['end_date']))
+                                    📅 {{ \Carbon\Carbon::parse($event['date'])->locale('id')->translatedFormat('d M') }} s.d. {{ \Carbon\Carbon::parse($event['end_date'])->locale('id')->translatedFormat('d M Y') }}
+                                @else
+                                    📅 {{ \Carbon\Carbon::parse($event['date'])->locale('id')->translatedFormat('l, d F Y') }}
+                                @endif
                             </span>
                             <span>•</span>
                             <span class="truncate max-w-xs sm:max-w-md">

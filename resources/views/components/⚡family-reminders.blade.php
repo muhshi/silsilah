@@ -43,6 +43,8 @@ new class extends Component
 
     public ?string $eventDate = null;
 
+    public ?string $eventEndDate = null;
+
     public ?string $startTime = null;
 
     public ?string $endTime = null;
@@ -202,14 +204,71 @@ new class extends Component
     }
 
     /**
-     * Grouped by day of month (1 to 31).
+     * Grouped by day of month (1 to 31), properly mapping multi-day events across all their active days.
      *
      * @return Collection<int, Collection<int, array<string, mixed>>>
      */
     #[Computed]
     public function monthEventsByDay(): Collection
     {
-        return $this->filteredMonthEvents->groupBy(fn ($e) => (int) $e['date']->day);
+        $byDay = collect();
+        for ($d = 1; $d <= 31; $d++) {
+            $byDay->put($d, collect());
+        }
+
+        $daysInMonth = Carbon::create($this->currentYear, $this->currentMonth, 1)->daysInMonth;
+
+        foreach ($this->filteredMonthEvents as $ev) {
+            $evDate = $ev['date'];
+            $evEndDate = $ev['end_date'] ?? null;
+
+            // Start day within this month
+            $startDay = ($evDate->year === $this->currentYear && $evDate->month === $this->currentMonth)
+                ? (int) $evDate->day
+                : 1;
+
+            // End day within this month
+            $endDay = ($evEndDate && $evEndDate->year === $this->currentYear && $evEndDate->month === $this->currentMonth)
+                ? (int) $evEndDate->day
+                : ($evEndDate && $evEndDate->gt(Carbon::create($this->currentYear, $this->currentMonth, $daysInMonth)) ? $daysInMonth : (int) $evDate->day);
+
+            for ($d = max(1, $startDay); $d <= min($daysInMonth, $endDay); $d++) {
+                $byDay->get($d)->push($ev);
+            }
+        }
+
+        return $byDay;
+    }
+
+    #[Computed]
+    public function monthOptions(): array
+    {
+        return [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+    }
+
+    #[Computed]
+    public function yearOptions(): array
+    {
+        $current = Carbon::now()->year;
+        $years = [];
+        for ($y = $current - 5; $y <= $current + 10; $y++) {
+            $years[] = $y;
+        }
+
+        return $years;
     }
 
     /**
@@ -377,7 +436,7 @@ new class extends Component
             || $this->tree->users()->where('users.id', $user->id)->exists();
     }
 
-    public function openCreateEventModal(?string $defaultDate = null): void
+    public function openCreateEventModal(?string $defaultDate = null, ?string $defaultEndDate = null): void
     {
         if (! $this->canManageEvents) {
             return;
@@ -387,6 +446,7 @@ new class extends Component
 
         if ($defaultDate) {
             $this->eventDate = $defaultDate;
+            $this->eventEndDate = $defaultEndDate ?: null;
         } elseif ($this->selectedDay) {
             $this->eventDate = Carbon::create($this->currentYear, $this->currentMonth, $this->selectedDay)->format('Y-m-d');
         } else {
@@ -411,6 +471,7 @@ new class extends Component
         $this->eventTitle = $event->title;
         $this->eventType = $event->event_type;
         $this->eventDate = $event->event_date?->format('Y-m-d');
+        $this->eventEndDate = $event->event_end_date?->format('Y-m-d');
         $this->startTime = $event->start_time;
         $this->endTime = $event->end_time;
         $this->locationName = $event->location_name;
@@ -432,6 +493,7 @@ new class extends Component
             'eventTitle' => 'required|string|max:150',
             'eventType' => 'required|string|in:halal_bi_halal,haul_akbar,arisan,pertemuan,ziarah,lainnya',
             'eventDate' => 'required|date',
+            'eventEndDate' => 'nullable|date|after_or_equal:eventDate',
             'startTime' => 'nullable|string|max:10',
             'endTime' => 'nullable|string|max:10',
             'locationName' => 'nullable|string|max:200',
@@ -450,6 +512,7 @@ new class extends Component
             'title' => trim($this->eventTitle),
             'event_type' => $this->eventType,
             'event_date' => $this->eventDate,
+            'event_end_date' => $this->eventEndDate ?: null,
             'start_time' => $this->startTime ? trim($this->startTime) : null,
             'end_time' => $this->endTime ? trim($this->endTime) : null,
             'location_name' => $this->locationName ? trim($this->locationName) : null,
@@ -487,6 +550,7 @@ new class extends Component
         $this->eventTitle = '';
         $this->eventType = 'halal_bi_halal';
         $this->eventDate = null;
+        $this->eventEndDate = null;
         $this->startTime = null;
         $this->endTime = null;
         $this->locationName = null;
@@ -527,24 +591,31 @@ new class extends Component
                     <flux:error name="eventTitle" />
                 </flux:field>
 
+                <flux:field>
+                    <flux:label>Jenis Acara</flux:label>
+                    <flux:select wire:model="eventType">
+                        <flux:select.option value="halal_bi_halal">🤝 Halal bi Halal</flux:select.option>
+                        <flux:select.option value="haul_akbar">🕌 Haul Akbar / Jam'i</flux:select.option>
+                        <flux:select.option value="arisan">☕ Arisan Trah</flux:select.option>
+                        <flux:select.option value="pertemuan">👥 Pertemuan Keluarga</flux:select.option>
+                        <flux:select.option value="ziarah">🤲 Ziarah Bersama</flux:select.option>
+                        <flux:select.option value="lainnya">📌 Acara Lainnya</flux:select.option>
+                    </flux:select>
+                    <flux:error name="eventType" />
+                </flux:field>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <flux:field>
-                        <flux:label>Jenis Acara</flux:label>
-                        <flux:select wire:model="eventType">
-                            <flux:select.option value="halal_bi_halal">🤝 Halal bi Halal</flux:select.option>
-                            <flux:select.option value="haul_akbar">🕌 Haul Akbar / Jam'i</flux:select.option>
-                            <flux:select.option value="arisan">☕ Arisan Trah</flux:select.option>
-                            <flux:select.option value="pertemuan">👥 Pertemuan Keluarga</flux:select.option>
-                            <flux:select.option value="ziarah">🤲 Ziarah Bersama</flux:select.option>
-                            <flux:select.option value="lainnya">📌 Acara Lainnya</flux:select.option>
-                        </flux:select>
-                        <flux:error name="eventType" />
+                        <flux:label>Tanggal Mulai</flux:label>
+                        <flux:input type="date" wire:model="eventDate" required />
+                        <flux:error name="eventDate" />
                     </flux:field>
 
                     <flux:field>
-                        <flux:label>Tanggal Acara</flux:label>
-                        <flux:input type="date" wire:model="eventDate" required />
-                        <flux:error name="eventDate" />
+                        <flux:label>Tanggal Selesai (opsional)</flux:label>
+                        <flux:input type="date" wire:model="eventEndDate" />
+                        <flux:description>Isi jika acara berlangsung beberapa hari.</flux:description>
+                        <flux:error name="eventEndDate" />
                     </flux:field>
                 </div>
 

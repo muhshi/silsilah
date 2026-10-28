@@ -390,3 +390,70 @@ it('includes custom events in ics calendar feed with location and proper time', 
         ->toContain('DTSTART;TZID=Asia/Jakarta:20261120T193000')
         ->toContain('DTEND;TZID=Asia/Jakarta:20261120T220000');
 });
+
+it('can navigate directly to any month and year via dropdown selector', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Bani Abdurrahman']);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    FamilyEvent::create([
+        'family_tree_id' => $tree->id,
+        'title' => 'Reuni Akbar 2028',
+        'event_type' => 'pertemuan',
+        'event_date' => '2028-04-15',
+    ]);
+
+    $this->actingAs($owner);
+
+    $component = Livewire::test('⚡family-reminders', ['treeId' => $tree->id])
+        ->assertDontSee('Reuni Akbar 2028')
+        ->set('currentMonth', 4)
+        ->set('currentYear', 2028)
+        ->assertSee('Reuni Akbar 2028');
+});
+
+it('pre-fills clicked date when opening create event modal for a specific day', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Bani Abdurrahman']);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡family-reminders', ['treeId' => $tree->id])
+        ->call('openCreateEventModal', '2026-11-25')
+        ->assertSet('showEventModal', true)
+        ->assertSet('eventDate', '2026-11-25');
+});
+
+it('supports multi-day date range events and maps them across all spanned days', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['name' => 'Bani Abdurrahman']);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    $component = Livewire::test('⚡family-reminders', ['treeId' => $tree->id])
+        ->call('openCreateEventModal', '2026-11-12')
+        ->set('eventTitle', 'Kemah Akbar Trah 3 Hari')
+        ->set('eventType', 'pertemuan')
+        ->set('eventDate', '2026-11-12')
+        ->set('eventEndDate', '2026-11-14')
+        ->call('saveEvent')
+        ->assertHasNoErrors();
+
+    $event = FamilyEvent::where('family_tree_id', $tree->id)->first();
+    expect($event)->not->toBeNull();
+    expect($event->event_date->format('Y-m-d'))->toBe('2026-11-12');
+    expect($event->event_end_date->format('Y-m-d'))->toBe('2026-11-14');
+
+    // Verify it appears when selecting day 12, 13, and 14
+    $component->call('selectDay', 12)->assertSee('Kemah Akbar Trah 3 Hari');
+    $component->call('selectDay', 13)->assertSee('Kemah Akbar Trah 3 Hari');
+    $component->call('selectDay', 14)->assertSee('Kemah Akbar Trah 3 Hari');
+});
