@@ -133,7 +133,7 @@ new class extends Component
     {
         $ownedSubquery = '(SELECT COUNT(*) FROM family_tree_user WHERE family_tree_user.user_id = users.id AND family_tree_user.role = "owner")';
 
-        $query = User::withCount(['familyTrees as owned_trees_count' => fn ($q) => $q->wherePivot('role', 'owner')])->latest();
+        $query = User::withCount(['familyTrees as owned_trees_count' => fn ($q) => $q->where('family_tree_user.role', 'owner')])->latest();
 
         if ($this->search) {
             $term = trim($this->search);
