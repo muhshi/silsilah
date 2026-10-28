@@ -156,3 +156,24 @@ it('renders unified desktop navigation tabs and mobile toolbar on tree-vertical'
         ->assertSee('Buku Silsilah (PDF)')
         ->assertSee('Bagikan');
 });
+
+it('renders unified desktop navigation tabs and mobile toolbar on tree-simple', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Keluarga Sudirman',
+        'slug' => 'keluarga-sudirman',
+        'is_premium' => true,
+    ]);
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('tree-simple', ['id' => $tree->id]);
+
+    $component->assertSee('Bagan Canvas')
+        ->assertSee('Fokus Explorer')
+        ->assertSee('Buku Simpel')
+        ->assertSee('Kalender Acara')
+        ->assertSee('Poster Pigura (A1/A0)')
+        ->assertSee('Buku Silsilah (PDF)');
+});
