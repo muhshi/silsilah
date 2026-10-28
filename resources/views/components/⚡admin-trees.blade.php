@@ -46,7 +46,7 @@ new class extends Component
     public function openOverrideModal(int $treeId): void
     {
         $this->selectedTreeId = $treeId;
-        $this->selectedTree = FamilyTree::findOrFail($treeId);
+        $this->selectedTree = FamilyTree::with(['users' => fn ($q) => $q->wherePivot('role', 'owner')])->findOrFail($treeId);
         $this->targetIsPremium = ! $this->selectedTree->is_premium;
         $this->overrideReason = 'cash_cod';
         $this->overrideNotes = '';
@@ -66,6 +66,7 @@ new class extends Component
         abort_unless(auth()->check() && auth()->user()->isAdmin(), 403);
 
         $this->validate([
+            'selectedTreeId' => 'required|exists:family_trees,id',
             'overrideReason' => 'required|string|in:cash_cod,bank_transfer,gateway_issue,special_promo,other',
             'overrideNotes' => 'nullable|string|max:200',
         ]);
@@ -84,32 +85,34 @@ new class extends Component
         $notesText = trim($this->overrideNotes ?? '');
         $fullDescription = 'Super Admin '.auth()->user()->name.($isPremium ? ' mengaktifkan status Premium manual' : ' mengembalikan status Standar')." (Metode: {$reasonLabel}".($notesText ? " - {$notesText}" : '').')';
 
-        $tree->update(['is_premium' => $isPremium]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($tree, $isPremium, $fullDescription) {
+            $tree->update(['is_premium' => $isPremium]);
 
-        ActivityLog::log(
-            $tree->id,
-            'admin_override_premium',
-            $fullDescription,
-            [
-                'admin_id' => auth()->id(),
-                'admin_name' => auth()->user()->name,
-                'is_premium' => $isPremium,
-                'reason' => $this->overrideReason,
-                'notes' => $this->overrideNotes,
-            ]
-        );
+            ActivityLog::log(
+                $tree->id,
+                'admin_override_premium',
+                $fullDescription,
+                [
+                    'admin_id' => auth()->id(),
+                    'admin_name' => auth()->user()->name,
+                    'is_premium' => $isPremium,
+                    'reason' => $this->overrideReason,
+                    'notes' => $this->overrideNotes,
+                ]
+            );
 
-        AdminActivityLog::log(
-            'tree_premium_override',
-            Str::limit($fullDescription, 245),
-            'FamilyTree',
-            $tree->id,
-            [
-                'is_premium' => $isPremium,
-                'reason' => $this->overrideReason,
-                'notes' => $this->overrideNotes,
-            ]
-        );
+            AdminActivityLog::log(
+                'tree_premium_override',
+                Str::limit($fullDescription, 245),
+                'FamilyTree',
+                $tree->id,
+                [
+                    'is_premium' => $isPremium,
+                    'reason' => $this->overrideReason,
+                    'notes' => $this->overrideNotes,
+                ]
+            );
+        });
 
         $this->showOverrideModal = false;
         $this->selectedTree = null;
