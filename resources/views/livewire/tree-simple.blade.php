@@ -237,8 +237,8 @@ new class extends Component
                         <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
                             Import Data CSV/GEDCOM
                         </flux:menu.item>
-                        <flux:menu.item icon="cog-6-tooth" wire:click="$dispatch('open-tree-settings')">
-                            Pengaturan Silsilah
+                        <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
+                            Kelola Pohon (Dashboard &amp; Statistik)
                         </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
@@ -326,6 +326,13 @@ new class extends Component
     </nav>
 
     <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
+    @if(!$isPublic)
+        <livewire:tree-settings :tree-id="$tree->id" />
+        <livewire:import-members :tree-id="$tree->id" />
+        @if(request()->boolean('manage') || request()->boolean('settings'))
+            <div x-init="$wire.dispatch('open-tree-settings')"></div>
+        @endif
+    @endif
 
     {{-- Floating Loading Indicator --}}
     <div wire:loading.flex class="fixed bottom-20 md:bottom-6 right-6 bg-zinc-900/90 text-white px-4 py-2.5 rounded-full shadow-2xl items-center gap-3 text-sm font-medium z-50 border border-zinc-700/50 backdrop-blur-md">

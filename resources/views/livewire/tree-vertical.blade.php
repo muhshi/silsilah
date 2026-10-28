@@ -405,6 +405,9 @@ new class extends Component
                         <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
                             Import Data CSV/GEDCOM
                         </flux:menu.item>
+                        <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
+                            Kelola Pohon (Dashboard &amp; Statistik)
+                        </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
 
@@ -840,6 +843,10 @@ new class extends Component
     <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
     @if(!$isPublic)
         <livewire:import-members :tree-id="$tree->id" />
+        <livewire:tree-settings :tree-id="$tree->id" />
+        @if(request()->boolean('manage') || request()->boolean('settings'))
+            <div x-init="$wire.dispatch('open-tree-settings')"></div>
+        @endif
     @endif
 
     {{-- Floating Loading Indicator --}}

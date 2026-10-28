@@ -445,6 +445,15 @@ new class extends Component
                            title="Mode Fokus Smartphone (Vertikal)">
                             <span class="material-symbols-outlined text-lg">smartphone</span>
                         </a>
+
+                        <!-- Management Hub: Kelola Pohon (Height 40px) -->
+                        <a href="{{ route('tree.show', ['tree' => $tree, 'manage' => 1]) }}"
+                           onclick="event.stopPropagation();"
+                           wire:navigate
+                           class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 hover:text-emerald-700 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                           title="Kelola Pohon (Dashboard &amp; Statistik)">
+                            <span class="material-symbols-outlined text-lg">tune</span>
+                        </a>
                     </div>
                 </div>
 

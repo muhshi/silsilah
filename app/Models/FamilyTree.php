@@ -136,8 +136,8 @@ class FamilyTree extends Model
         $total = $members->count();
         $male = $members->where('gender', 'male')->count();
         $female = $members->where('gender', 'female')->count();
-        $alive = $members->where('is_alive', true)->count();
-        $deceased = $members->where('is_alive', false)->count();
+        $alive = $members->where('is_living', true)->count();
+        $deceased = $members->where('is_living', false)->count();
 
         return [
             'total_members' => $total,
@@ -147,7 +147,7 @@ class FamilyTree extends Model
             'deceased_count' => $deceased,
             'views_count' => (int) ($this->views_count ?? 0),
             'quota_limit' => $this->maxMembersLimit(),
-            'remaining_slots' => $this->remainingMemberSlots(),
+            'remaining_slots' => $this->isPremium() ? null : max(0, self::FREE_MEMBER_LIMIT - $total),
             'is_premium' => $this->isPremium(),
         ];
     }
