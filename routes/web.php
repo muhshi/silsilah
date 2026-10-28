@@ -14,7 +14,13 @@ use App\Services\DeviceDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', function () {
+    $demoTree = FamilyTree::where('is_public', true)
+        ->whereNull('view_password')
+        ->first();
+
+    return view('welcome', compact('demoTree'));
+})->name('home');
 
 // PWA Routes
 Route::get('manifest.json', function () {

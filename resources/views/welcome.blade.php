@@ -1,3 +1,7 @@
+@php
+    $demoTree = $demoTree ?? \App\Models\FamilyTree::where('is_public', true)->whereNull('view_password')->first();
+    $demoUrl = $demoTree ? route('tree.public', $demoTree->slug) : route('tree.public', 'demo');
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 <head>
@@ -52,6 +56,10 @@
                 <nav class="hidden md:flex items-center gap-8">
                     <a href="#fitur" class="text-sm text-on-surface-variant hover:text-primary font-medium transition-colors">Fitur</a>
                     <a href="#harga" class="text-sm text-on-surface-variant hover:text-primary font-medium transition-colors">Harga</a>
+                    <a href="{{ $demoUrl }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 transition-colors">
+                        <flux:icon name="sparkles" class="size-4" />
+                        <span>Lihat Demo</span>
+                    </a>
                 </nav>
 
                 <div class="flex items-center gap-3">
@@ -73,7 +81,7 @@
             <div class="max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold mb-5 shadow-xs">
                     <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Baru: Cetak Buku Silsilah Keluarga (Multi-Page PDF A4)</span>
+                    <span>Baru: Gotong Royong Data Reuni &amp; Banner 1 Halaman</span>
                 </div>
 
                 <h1 class="font-headline text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-on-surface tracking-tight leading-[1.1] mb-6">
@@ -81,24 +89,51 @@
                 </h1>
 
                 <p class="text-lg text-on-surface-variant leading-relaxed mb-10 max-w-xl">
-                    Bangun pohon silsilah, simpan kisah tiap generasi, dan cetak buku silsilah keluarga eksklusif — semudah mengisi profil.
+                    Bangun pohon silsilah keluarga, hitung nasab kekerabatan adat, pasang pengingat haul otomatis, serta cetak buku dan banner silsilah eksklusif — semudah mengisi profil.
                 </p>
 
-                <div class="flex flex-wrap gap-3">
-                    <flux:button href="{{ route('login') }}" variant="primary" class="px-6">
-                        Mulai gratis
+                <div class="flex flex-wrap items-center gap-3">
+                    @auth
+                        <flux:button href="{{ route('dashboard') }}" variant="primary" class="px-6 font-semibold shadow-sm">
+                            Buka Dashboard
+                        </flux:button>
+                    @else
+                        <flux:button href="{{ route('login') }}" variant="primary" class="px-6 font-semibold shadow-sm">
+                            Mulai Buat Silsilah Gratis
+                        </flux:button>
+                    @endauth
+
+                    <flux:button href="{{ $demoUrl }}" variant="outline" class="px-6 font-semibold" icon="sparkles">
+                        Lihat Demo Interaktif
                     </flux:button>
-                    <flux:button href="#fitur" variant="outline" class="px-6">
-                        Lihat fitur
-                    </flux:button>
+                </div>
+
+                <div class="mt-4 flex items-center gap-4 text-xs text-on-surface-variant">
+                    <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-emerald-600 text-sm">verified</span>
+                        Gratis tanpa kartu kredit
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-emerald-600 text-sm">devices</span>
+                        Mendukung PWA di Android &amp; iOS
+                    </span>
                 </div>
             </div>
 
-            <!-- Tree illustration -->
+            <!-- Tree illustration & Interactive Teaser -->
             <div class="mt-16 lg:mt-20">
-                <div class="rounded-2xl border border-surface-variant/60 bg-surface-container-low p-1.5 sm:p-3 shadow-lg">
+                <div class="rounded-2xl border border-surface-variant/60 bg-surface-container-low p-1.5 sm:p-3 shadow-lg relative group">
                     <div class="rounded-xl overflow-hidden bg-[#F9F6F1] flex items-center justify-center relative">
                         <img src="{{ asset('images/hero-tree.png') }}" alt="Pohon Keluarga" class="w-full h-auto object-cover">
+
+                        <!-- Interactive Demo Overlay Pill -->
+                        <div class="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+                            <a href="{{ $demoUrl }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-emerald-500/40 shadow-lg text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:scale-105 hover:bg-white transition-all">
+                                <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                <flux:icon name="sparkles" class="size-4 text-emerald-600 dark:text-emerald-400" />
+                                <span>Coba Demo Langsung &rarr;</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -110,65 +145,80 @@
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="max-w-lg mb-14">
                 <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-3">Dibuat untuk kemudahan</h2>
-                <p class="text-on-surface-variant leading-relaxed">Fitur lengkap yang kamu butuhkan untuk menyusun dan mengabadikan silsilah keluarga — tanpa kerumitan.</p>
+                <p class="text-on-surface-variant leading-relaxed">Fitur lengkap yang kamu butuhkan untuk menyusun, menghubungkan, dan mengabadikan silsilah keluarga — tanpa kerumitan.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {{-- Fitur 1 --}}
                 <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
-                    <div class="size-11 rounded-xl bg-primary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-primary text-2xl">account_tree</span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="size-11 rounded-xl bg-primary-container flex items-center justify-center text-2xl">
+                            🧮
+                        </div>
+                        <span class="inline-block bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Kalkulator Nasab</span>
                     </div>
-                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Pohon Interaktif & Fokus Mobile</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Visualisasi silsilah responsif dengan navigasi kanvas interaktif serta mode fokus vertikal yang nyaman dijelajahi di smartphone.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">🧮 Kalkulator Kekerabatan &amp; Nasab</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Hitung hubungan kekerabatan dan sebutan adat (Misanan, Mindhoan, Pakdhe, Besan) dengan 1-klik bagikan ke WA grup.</p>
                 </div>
 
-                {{-- Fitur 2 (Highlighted: Buku Silsilah) --}}
-                <div class="rounded-2xl bg-surface p-6 border-2 border-emerald-500/60 dark:border-emerald-600/60 hover:border-emerald-600 transition-all shadow-sm group relative overflow-hidden">
-                    <div class="absolute top-3.5 right-3.5">
-                        <span class="inline-block bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Eksklusif</span>
-                    </div>
-                    <div class="size-11 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-2xl">menu_book</span>
-                    </div>
-                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">📖 Cetak Buku Silsilah (PDF)</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Ekspor buku silsilah A4 siap cetak dengan sampul royal heritage, hadits silaturahmi, statistik nasab, bab generasi, dan indeks alfabetis A–Z.</p>
-                </div>
-
-                {{-- Fitur 3 --}}
+                {{-- Fitur 2 --}}
                 <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
-                    <div class="size-11 rounded-xl bg-secondary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-secondary text-2xl">badge</span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="size-11 rounded-xl bg-amber-100 dark:bg-amber-950/80 flex items-center justify-center text-2xl">
+                            🕌
+                        </div>
+                        <span class="inline-block bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Pengingat Haul &amp; Ulang Tahun</span>
                     </div>
-                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Profil & Rekam Nasab</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Simpan foto, avatar, tanggal & tempat lahir/wafat, profesi, kota domisili, pasangan, hingga catatan biografi tiap anggota keluarga.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">🕌 Pengingat Haul &amp; Milad Keluarga</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Pengingat haul dan ulang tahun tanpa biaya API WhatsApp, plus langganan kalender Google/Apple Calendar otomatis.</p>
+                </div>
+
+                {{-- Fitur 3 (Highlighted: Buku Silsilah) --}}
+                <div class="rounded-2xl bg-surface p-6 border-2 border-emerald-500/60 dark:border-emerald-600/60 hover:border-emerald-600 transition-all shadow-sm group relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="size-11 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center text-2xl">
+                            📖
+                        </div>
+                        <span class="inline-block bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Siap Cetak A4</span>
+                    </div>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">📖 Ekspor Buku Silsilah PDF</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Cetak buku silsilah keluarga terstruktur per generasi (anak pertama beserta pasangan, anak kedua, dst) lengkap dengan hadits silaturahmi dan indeks nama.</p>
                 </div>
 
                 {{-- Fitur 4 --}}
                 <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
-                    <div class="size-11 rounded-xl bg-tertiary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-tertiary text-2xl">group_add</span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="size-11 rounded-xl bg-secondary-container flex items-center justify-center text-2xl">
+                            🤝
+                        </div>
+                        <span class="inline-block bg-secondary/10 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Usulan Data Reuni</span>
                     </div>
-                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Kolaborasi Keluarga Besar</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Undang kerabat melalui email atau tautan undangan untuk bersama-sama melengkapi silsilah keluarga secara aman dan real-time.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">🤝 Gotong Royong Data Saat Reuni</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Kerabat bisa mengusulkan data anak/pasangan secara mandiri saat kumpul keluarga, admin tinggal approve 1-klik tanpa repot entri manual.</p>
                 </div>
 
                 {{-- Fitur 5 --}}
                 <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
-                    <div class="size-11 rounded-xl bg-primary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-primary text-2xl">download</span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="size-11 rounded-xl bg-blue-100 dark:bg-blue-950/80 flex items-center justify-center text-2xl">
+                            📱
+                        </div>
+                        <span class="inline-block bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">PWA Mobile</span>
                     </div>
-                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Ekspor Cepat & Transparan</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Unduh bagan kanvas (PNG/PDF) dengan indikator progres real-time yang dapat diminimalkan ke pojok layar selagi kamu menjelajahi silsilah.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">📱 Otomatis Mode HP &amp; Bisa Di-install (PWA)</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Membuka mode fokus di HP dan mode kanvas di laptop, dapat di-install di layar utama HP untuk navigasi cepat dan nyaman.</p>
                 </div>
 
                 {{-- Fitur 6 --}}
                 <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
-                    <div class="size-11 rounded-xl bg-surface-variant flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-on-surface-variant text-2xl">security</span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="size-11 rounded-xl bg-surface-variant flex items-center justify-center text-2xl">
+                            🔒
+                        </div>
+                        <span class="inline-block bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Privasi</span>
                     </div>
-                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Privasi & Keamanan Data</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Atur pohon sebagai publik untuk dibagikan ke kerabat, atau privat dengan perlindungan kata sandi dan riwayat log aktivitas yang lengkap.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">🔒 Privasi &amp; Keamanan Keluarga</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Pilihan pohon publik atau privat dengan kata sandi, kontrol kolaborasi keluarga, dan perlindungan privasi data pribadi tiap kerabat.</p>
                 </div>
             </div>
         </div>
@@ -178,7 +228,7 @@
     <section id="harga" class="py-20 lg:py-28">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="max-w-lg mb-14">
-                <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-3">Harga sederhana & terjangkau</h2>
+                <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-3">Harga sederhana &amp; terjangkau</h2>
                 <p class="text-on-surface-variant leading-relaxed">Mulai gratis untuk keluarga utamamu. Upgrade atau tambah kuota pohon sekali bayar tanpa langganan bulanan.</p>
             </div>
 
@@ -208,11 +258,11 @@
                             </li>
                             <li class="flex items-start gap-2.5">
                                 <span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>
-                                <span>Bagan kanvas & mode fokus mobile</span>
+                                <span>Bagan kanvas &amp; mode fokus mobile</span>
                             </li>
                             <li class="flex items-start gap-2.5">
                                 <span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>
-                                <span>Export bagan standar (PNG & PDF)</span>
+                                <span>Export bagan standar (PNG &amp; PDF)</span>
                             </li>
                         </ul>
                     </div>
@@ -262,7 +312,7 @@
                     </div>
 
                     <flux:button href="{{ route('login') }}" variant="primary" class="w-full justify-center !bg-emerald-600 hover:!bg-emerald-700">
-                        Masuk & upgrade pohon
+                        Masuk &amp; upgrade pohon
                     </flux:button>
                 </div>
 
@@ -306,9 +356,35 @@
                     </div>
 
                     <flux:button href="{{ route('login') }}" class="w-full justify-center !bg-white !text-zinc-950 hover:!bg-zinc-200">
-                        Masuk & tambah pohon
+                        Masuk &amp; tambah pohon
                     </flux:button>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ready CTA Section -->
+    <section class="py-16 lg:py-20 bg-surface-container-low border-t border-surface-variant/40">
+        <div class="max-w-4xl mx-auto px-5 sm:px-8 text-center">
+            <h2 class="font-headline text-3xl sm:text-4xl font-extrabold text-on-surface tracking-tight mb-4">
+                Mulai abadikan silsilah keluargamu hari ini.
+            </h2>
+            <p class="text-base sm:text-lg text-on-surface-variant max-w-xl mx-auto mb-8">
+                Bergabunglah dengan ribuan keluarga yang telah merawat ikatan silaturahmi antar generasi. Coba demo interaktif atau daftar gratis sekarang.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                @auth
+                    <flux:button href="{{ route('dashboard') }}" variant="primary" class="px-6 font-semibold shadow-sm">
+                        Buka Dashboard
+                    </flux:button>
+                @else
+                    <flux:button href="{{ route('login') }}" variant="primary" class="px-6 font-semibold shadow-sm">
+                        Mulai Buat Silsilah Gratis
+                    </flux:button>
+                @endauth
+                <flux:button href="{{ $demoUrl }}" variant="outline" class="px-6 font-semibold" icon="sparkles">
+                    Lihat Demo Interaktif
+                </flux:button>
             </div>
         </div>
     </section>
@@ -333,13 +409,14 @@
                         <ul class="space-y-2 text-on-surface-variant">
                             <li><a href="#fitur" class="hover:text-primary transition-colors">Fitur</a></li>
                             <li><a href="#harga" class="hover:text-primary transition-colors">Harga</a></li>
+                            <li><a href="{{ $demoUrl }}" class="hover:text-primary transition-colors">Demo Interaktif</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 class="font-semibold text-on-surface mb-3">Legal</h4>
                         <ul class="space-y-2 text-on-surface-variant">
                             <li><a href="{{ route('legal.privacy') }}" class="hover:text-primary transition-colors">Kebijakan Privasi</a></li>
-                            <li><a href="{{ route('legal.terms') }}" class="hover:text-primary transition-colors">Syarat & Ketentuan</a></li>
+                            <li><a href="{{ route('legal.terms') }}" class="hover:text-primary transition-colors">Syarat &amp; Ketentuan</a></li>
                             <li><a href="{{ route('legal.refund') }}" class="hover:text-primary transition-colors">Kebijakan Refund</a></li>
                         </ul>
                     </div>
