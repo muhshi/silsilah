@@ -184,7 +184,7 @@ new class extends Component
     public function cancelInvite($id)
     {
         \Illuminate\Support\Facades\Gate::authorize('manageCollaborators', $this->tree);
-        TreeInvitation::where('id', $id)->delete();
+        TreeInvitation::where('family_tree_id', $this->treeId)->where('id', $id)->delete();
         session()->flash('success', 'Undangan dibatalkan.');
     }
 
@@ -391,7 +391,7 @@ new class extends Component
                     {{-- Public Link card with direct copy button if public --}}
                     @if($tree->is_public && $tree->slug)
                         @php
-                            $publicUrl = url('/public/tree/' . $tree->slug);
+                            $publicUrl = route('tree.public', $tree->slug);
                         @endphp
                         <div class="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60"
                              x-data="{ copied: false }">
@@ -637,7 +637,7 @@ new class extends Component
                                 <ul class="space-y-2 border border-zinc-200 dark:border-zinc-700/60 rounded-xl divide-y divide-zinc-100 dark:divide-zinc-800">
                                     @foreach($invitations as $inv)
                                         @php
-                                            $inviteUrl = url('/invitations/accept/' . $inv->token);
+                                            $inviteUrl = route('invitations.accept', ['token' => $inv->token]);
                                             $inviteMsg = "Halo! Kamu diundang untuk berkolaborasi mengelola pohon silsilah keluarga \"{$tree->name}\" di Silsilah.\n\nKlik tautan berikut untuk bergabung sebagai Editor:\n{$inviteUrl}";
                                         @endphp
                                         <li class="p-3 flex items-center justify-between gap-3" x-data="{
@@ -727,11 +727,11 @@ new class extends Component
                         <div class="space-y-2.5 max-h-[22rem] overflow-y-auto pr-1">
                             @foreach($logs as $log)
                                 <div class="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/60 dark:border-zinc-700/50 flex items-start gap-3 text-xs">
-                                    <img src="{{ $log->user->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($log->user->name ?? 'System') }}" class="w-8 h-8 rounded-full shrink-0 mt-0.5 border border-zinc-200 dark:border-zinc-700">
+                                    <img src="{{ $log->user?->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($log->user?->name ?? 'System') }}" class="w-8 h-8 rounded-full shrink-0 mt-0.5 border border-zinc-200 dark:border-zinc-700">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center justify-between gap-2">
                                             <p class="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                                                {{ $log->user->name ?? 'Sistem' }}
+                                                {{ $log->user?->name ?? 'Sistem' }}
                                             </p>
                                             <span class="text-[10px] text-zinc-400 dark:text-zinc-500 whitespace-nowrap" title="{{ $log->created_at->format('d M Y H:i:s') }}">
                                                 {{ $log->created_at->diffForHumans() }}
