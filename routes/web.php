@@ -50,6 +50,7 @@ Route::get('auth/google/callback', [SocialiteController::class, 'callback']);
 
 // Invitation Accept Routes
 Route::get('invitations/accept/{token}', [InvitationController::class, 'show'])->name('invitation.accept');
+Route::get('invitations/{token}/accept', [InvitationController::class, 'show'])->name('invitations.accept');
 Route::match(['get', 'post'], 'invitations/accept/{token}/process', [InvitationController::class, 'accept'])->name('invitation.accept.process');
 
 // Duitku Payment Gateway Routes

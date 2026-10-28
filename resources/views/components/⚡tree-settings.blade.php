@@ -680,7 +680,7 @@ new class extends Component
                                 <ul class="space-y-2 border border-zinc-200 dark:border-zinc-700/60 rounded-xl divide-y divide-zinc-100 dark:divide-zinc-800">
                                     @foreach($invitations as $inv)
                                         @php
-                                            $inviteUrl = route('invitations.accept', ['token' => $inv->token]);
+                                            $inviteUrl = route('invitation.accept', ['token' => $inv->token]);
                                             $inviteMsg = "Halo! Kamu diundang untuk berkolaborasi mengelola pohon silsilah keluarga \"{$tree->name}\" di Silsilah.\n\nKlik tautan berikut untuk bergabung sebagai Editor:\n{$inviteUrl}";
                                         @endphp
                                         <li class="p-3 flex items-center justify-between gap-3" x-data="{
