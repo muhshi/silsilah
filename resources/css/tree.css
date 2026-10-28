@@ -37,6 +37,22 @@
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
+.pt-sm.pt-full-bleed {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    height: calc(100vh - 65px) !important;
+    min-height: calc(100vh - 65px) !important;
+}
+
+@media (max-width: 768px) {
+    .pt-sm.pt-full-bleed {
+        height: calc(100vh - 120px) !important;
+        min-height: calc(100vh - 120px) !important;
+    }
+}
+
 /* The inner element that gets transformed */
 .tree-inner {
     display: inline-block;

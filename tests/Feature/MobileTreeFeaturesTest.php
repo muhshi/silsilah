@@ -109,3 +109,28 @@ it('can add a new parent using relType parent_of', function () {
     expect($mother)->not->toBeNull()
         ->and($person->mother_id)->toBe($mother->id);
 });
+
+it('renders full-bleed canvas with unified tabs and utility actions on tree-view', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Bani Wahid',
+        'slug' => 'bani-wahid',
+        'is_premium' => true,
+    ]);
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('tree-view', ['id' => $tree->id]);
+
+    $component->assertSee('Bani Wahid')
+        ->assertSee('Bagan Canvas')
+        ->assertSee('Fokus Explorer')
+        ->assertSee('Buku Simpel')
+        ->assertSee('Kalender Acara')
+        ->assertSee('Bagikan')
+        ->assertSee('Ekspor')
+        ->assertSee('Poster Silsilah Pigura (A1/A0)')
+        ->assertSee('Buku Silsilah (PDF)')
+        ->assertSee('Anggota Baru');
+});

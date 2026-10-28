@@ -102,49 +102,67 @@ new class extends Component
 
 <div class="w-full max-w-[100vw]" x-data="canvasTree()">
     {{-- Header --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between px-4 lg:px-8 py-3.5 gap-3 border-b border-zinc-200/60 dark:border-zinc-800/80 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md sticky top-0 z-30">
-        <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-md shadow-emerald-600/10 flex-shrink-0">
-                <span class="text-xl">🌳</span>
+    <div class="border-b border-zinc-200/80 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 lg:px-6 py-2.5 flex items-center justify-between gap-4 sticky top-0 z-30">
+        {{-- Left: Breadcrumb + Badges --}}
+        <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-sm shadow-emerald-600/10 flex-shrink-0">
+                <span class="text-base">🌳</span>
             </div>
             <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <h1 class="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ $tree->name }}</h1>
+                <div class="flex items-center gap-1.5 text-xs truncate">
+                    <a href="{{ $isPublic ? url('/') : route('dashboard') }}" class="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300">Dashboard</a>
+                    <span class="text-zinc-400">/</span>
+                    <span class="font-bold text-zinc-900 dark:text-white truncate max-w-[180px] sm:max-w-xs">{{ $tree->name }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-0.5">
                     @if($tree->is_public)
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">Publik</span>
                     @else
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">Privat</span>
                     @endif
+
+                    @if($tree->is_premium)
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                            <span>👑</span>
+                            <span>Premium</span>
+                        </span>
+                    @elseif(!$isPublic)
+                        <a href="{{ route('dashboard', ['upgrade_tree' => $tree->id]) }}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 flex items-center gap-1 transition-colors">
+                            <span>🔒</span>
+                            <span>Upgrade 5K</span>
+                        </a>
+                    @endif
                 </div>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate">{{ $tree->description ?: 'Bagan silsilah keluarga interaktif' }}</p>
             </div>
         </div>
 
-        {{-- Desktop Action Buttons --}}
-        <div class="hidden md:flex items-center gap-2.5 flex-wrap">
-            {{-- 1. View Mode Switcher (Segmented Pill) --}}
-            <div class="flex items-center bg-zinc-100/90 dark:bg-zinc-800/90 p-1 rounded-full border border-zinc-200/60 dark:border-zinc-700/60 text-xs font-semibold">
-                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'?view=canvas') : '#') : route('tree.show', ['tree' => $tree, 'view' => 'canvas']) }}"
-                   wire:navigate
-                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-sm font-bold">
-                    <span>🌳</span>
-                    <span>Bagan</span>
-                </a>
-                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#') : route('tree.vertical', $tree) }}"
-                   wire:navigate
-                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200">
-                    <span>🧭</span>
-                    <span>Fokus</span>
-                </a>
-                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#') : route('tree.simple', $tree) }}"
-                   wire:navigate
-                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200">
-                    <span>📄</span>
-                    <span>Simple</span>
-                </a>
-            </div>
+        {{-- Center: Unified Navigation Tabs (Desktop only) --}}
+        <div class="hidden lg:flex items-center gap-1 bg-zinc-100/90 dark:bg-zinc-800/90 p-1 rounded-xl text-xs font-semibold">
+            <span class="bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-sm font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 cursor-default">
+                <span>🌳</span>
+                <span>Bagan Canvas</span>
+            </span>
+            <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#') : route('tree.vertical', $tree) }}"
+               wire:navigate
+               class="px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 transition-colors">
+                <span>🧭</span>
+                <span>Fokus Explorer</span>
+            </a>
+            <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#') : route('tree.simple', $tree) }}"
+               wire:navigate
+               class="px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 transition-colors">
+                <span>📄</span>
+                <span>Buku Simpel</span>
+            </a>
+            <a href="{{ $isPublic ? route('tree.public.calendar', $tree->slug) : route('tree.calendar', $tree->slug ?: $tree->id) }}"
+               class="px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 transition-colors">
+                <span>🗓️</span>
+                <span>Kalender Acara</span>
+            </a>
+        </div>
 
-            {{-- 2. Utilities: Share & Export --}}
+        {{-- Right: Actions (Desktop) --}}
+        <div class="hidden md:flex items-center gap-2">
             @if($tree->slug)
                 @php
                     $shareUrl = url('/public/tree/' . $tree->slug);
@@ -214,7 +232,7 @@ new class extends Component
                     <flux:menu.item icon="photo"
                                     href="#"
                                     @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'banner']) }}', title: 'Poster Silsilah Pigura (A1/A0)' } }))">
-                        Cetak Poster Pigura (A1/A0)
+                        Poster Silsilah Pigura (A1/A0)
                     </flux:menu.item>
                     <flux:menu.item icon="photo"
                                     href="#"
@@ -240,36 +258,38 @@ new class extends Component
             </flux:dropdown>
 
             @if(!$isPublic)
-                {{-- 3. Overflow Menu (Import & Tree Settings) --}}
                 <flux:dropdown>
                     <flux:button size="sm" icon="ellipsis-horizontal" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
-                        Opsi
+                        Kelola
                     </flux:button>
                     <flux:menu>
-                        <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
-                            Import Data CSV/GEDCOM
-                        </flux:menu.item>
-                        <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
-                            Kelola Pohon (Dashboard &amp; Statistik)
-                        </flux:menu.item>
                         <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
                             Cek Hubungan Kekerabatan
                         </flux:menu.item>
                         <flux:menu.item icon="calendar" wire:click="$dispatch('open-family-reminders')">
-                            Agenda &amp; Pengingat Keluarga
+                            Agenda &amp; Pengingat Kalender
                         </flux:menu.item>
                         <flux:menu.item icon="calendar-days" href="{{ route('tree.calendar', $tree->slug ?: $tree->id) }}" target="_blank">
                             Buka Halaman Kalender Penuh
                         </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
+                            Kelola Pohon (Dashboard &amp; Statistik)
+                        </flux:menu.item>
+                        <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
+                            Import CSV/GEDCOM
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item icon="window" href="{{ Route::has('tree.dock') ? route('tree.dock', $tree) : url('/tree/' . ($tree->slug ?: $tree->id) . '/dock') }}">
+                            Coba Tampilan Dock (Opsi 2)
+                        </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
 
-                {{-- 4. Primary Action Button --}}
-                <flux:button size="sm" icon="plus" wire:click="$dispatch('create-member')" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-bold !rounded-full shadow-md shadow-emerald-600/20">
+                <flux:button size="sm" icon="plus" wire:click="$dispatch('create-member')" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-bold !rounded-xl shadow-md shadow-emerald-600/20">
                     Anggota Baru
                 </flux:button>
             @else
-                {{-- Fitur Keluarga untuk Publik --}}
                 <flux:dropdown>
                     <flux:button size="sm" icon="sparkles" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
                         Fitur Keluarga
@@ -282,36 +302,161 @@ new class extends Component
                             Cek Hubungan Kekerabatan
                         </flux:menu.item>
                         <flux:menu.item icon="calendar" wire:click="$dispatch('open-family-reminders')">
-                            Agenda &amp; Pengingat Keluarga
+                            Agenda &amp; Pengingat Kalender
                         </flux:menu.item>
                         <flux:menu.item icon="calendar-days" href="{{ route('tree.public.calendar', $tree->slug) }}" target="_blank">
                             Buka Halaman Kalender Penuh
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item icon="window" href="{{ Route::has('tree.public.dock') ? route('tree.public.dock', $tree->slug) : url('/public/tree/' . $tree->slug . '/dock') }}">
+                            Coba Tampilan Dock (Opsi 2)
                         </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
             @endif
         </div>
+
+        {{-- Mobile Action Bar --}}
+        <div class="flex md:hidden items-center gap-1.5">
+            @if($tree->slug)
+                <button type="button"
+                        x-data="{ shared: false, async share() {
+                            const url = '{{ url('/public/tree/' . $tree->slug) }}';
+                            const text = 'Halo! Yuk lihat diagram silsilah keluarga \"{{ addslashes($tree->name) }}\":\n' + url;
+                            if (navigator.share) {
+                                try { await navigator.share({ title: '{{ addslashes($tree->name) }}', text: text, url: url }); return; } catch(e){}
+                            }
+                            try { await navigator.clipboard.writeText(url); this.shared = true; setTimeout(() => this.shared = false, 2500); } catch(e){}
+                        } }"
+                        @click="share()"
+                        class="p-2 rounded-xl bg-zinc-100 hover:bg-emerald-50 active:scale-95 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition-all flex items-center justify-center shrink-0"
+                        title="Bagikan Silsilah">
+                    <span class="material-symbols-outlined text-lg" x-show="!shared">share</span>
+                    <span class="material-symbols-outlined text-lg text-emerald-600" x-show="shared">check</span>
+                </button>
+            @endif
+
+            <flux:dropdown>
+                <flux:button size="sm" icon="arrow-down-tray" class="!p-2 !rounded-xl !bg-zinc-100 dark:!bg-zinc-800 text-zinc-700 dark:text-zinc-200" title="Ekspor"></flux:button>
+                <flux:menu>
+                    @if($tree->is_premium)
+                        <flux:menu.item icon="book-open"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'book']) }}', title: 'Buku Silsilah (PDF)' } }))">
+                            <div class="flex items-center justify-between w-full gap-2">
+                                <span>Buku Silsilah (PDF)</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">👑 Premium</span>
+                            </div>
+                        </flux:menu.item>
+                    @else
+                        <flux:menu.item icon="book-open"
+                                        href="{{ route('dashboard', ['upgrade_tree' => $tree->id]) }}">
+                            <div class="flex items-center justify-between w-full gap-2">
+                                <span class="flex items-center gap-1 text-zinc-700 dark:text-zinc-300">
+                                    <span>Buku Silsilah (PDF)</span>
+                                    <span class="text-xs text-amber-500 font-bold">🔒</span>
+                                </span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">Upgrade 5K</span>
+                            </div>
+                        </flux:menu.item>
+                    @endif
+                    <flux:menu.item icon="photo"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'banner']) }}', title: 'Poster Silsilah Pigura (A1/A0)' } }))">
+                        Poster Silsilah Pigura (A1/A0)
+                    </flux:menu.item>
+                    <flux:menu.item icon="photo"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'png', 'view' => 'horizontal']) }}', title: 'Gambar Silsilah (PNG)' } }))">
+                        Export Gambar (PNG)
+                    </flux:menu.item>
+                    <flux:menu.item icon="document-arrow-down"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'pdf', 'view' => 'horizontal']) }}', title: 'Bagan Canvas (PDF)' } }))">
+                        Export Bagan Canvas (PDF)
+                    </flux:menu.item>
+                    <flux:menu.item icon="sparkles"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'prompt']) }}', title: 'Prompt AI (.md)' } }))">
+                        Export Prompt AI (.md)
+                    </flux:menu.item>
+                    <flux:menu.item icon="code-bracket"
+                                    href="#"
+                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'json']) }}', title: 'Data Silsilah (JSON)' } }))">
+                        Export Data (JSON)
+                    </flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
+
+            <button type="button"
+                    wire:click="$dispatch('open-family-reminders')"
+                    class="p-2 rounded-xl bg-zinc-100 hover:bg-emerald-50 active:scale-95 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition-all flex items-center justify-center shrink-0"
+                    title="Agenda Kalender">
+                <span class="material-symbols-outlined text-lg">calendar_month</span>
+            </button>
+
+            <flux:dropdown>
+                <flux:button size="sm" icon="ellipsis-vertical" class="!p-2 !rounded-xl !bg-zinc-100 dark:!bg-zinc-800 text-zinc-700 dark:text-zinc-200" title="Pilihan Lainnya"></flux:button>
+                <flux:menu>
+                    <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
+                        Cek Hubungan Kekerabatan
+                    </flux:menu.item>
+                    <flux:menu.item icon="book-open" href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#') : route('tree.simple', $tree) }}">
+                        Buka Buku Simpel
+                    </flux:menu.item>
+                    <flux:menu.item icon="calendar-days" href="{{ $isPublic ? route('tree.public.calendar', $tree->slug) : route('tree.calendar', $tree->slug ?: $tree->id) }}">
+                        Halaman Kalender Penuh
+                    </flux:menu.item>
+                    @if(!$isPublic)
+                        <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
+                            Kelola Pohon (Dashboard &amp; Statistik)
+                        </flux:menu.item>
+                        <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
+                            Import CSV/GEDCOM
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item icon="window" href="{{ Route::has('tree.dock') ? route('tree.dock', $tree) : url('/tree/' . ($tree->slug ?: $tree->id) . '/dock') }}">
+                            Coba Tampilan Dock (Opsi 2)
+                        </flux:menu.item>
+                    @else
+                        <flux:menu.item icon="pencil-square" wire:click="$dispatch('open-contribute-modal')">
+                            Lengkapi / Usulkan Data
+                        </flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:menu.item icon="window" href="{{ Route::has('tree.public.dock') ? route('tree.public.dock', $tree->slug) : url('/public/tree/' . $tree->slug . '/dock') }}">
+                            Coba Tampilan Dock (Opsi 2)
+                        </flux:menu.item>
+                    @endif
+                </flux:menu>
+            </flux:dropdown>
+        </div>
     </div>
 
     {{-- Segmented View Switcher (Mobile Only) --}}
-    <div class="md:hidden px-4 mb-3">
+    <div class="md:hidden px-4 py-2 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-900/50">
         <div class="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl shadow-inner gap-1">
             <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#') : route('tree.vertical', $tree) }}"
                wire:navigate
-               class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5 transition-all">
+               class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1 transition-all">
                 <span>🧭</span>
-                <span>Fokus Explorer</span>
+                <span>Fokus</span>
             </a>
-            <button class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all">
+            <button class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-sm flex items-center justify-center gap-1 transition-all">
                 <span>🌳</span>
-                <span>Bagan Canvas</span>
+                <span>Bagan</span>
             </button>
+            <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#') : route('tree.simple', $tree) }}"
+               wire:navigate
+               class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1 transition-all">
+                <span>📄</span>
+                <span>Simpel</span>
+            </a>
         </div>
     </div>
 
     {{-- Tree Canvas --}}
-    <div class="px-4 lg:px-8 pb-20 md:pb-8">
-        <div class="pt-sm touch-none select-none" x-ref="container"
+    <div class="w-full overflow-hidden relative">
+        <div class="pt-sm pt-full-bleed touch-none select-none" x-ref="container"
              @mousedown="startDrag($event)"
              @mousemove="doDrag($event)"
              @mouseup="stopDrag()"
@@ -357,26 +502,41 @@ new class extends Component
            wire:navigate
            class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-emerald-600">
             <span class="text-lg">🧭</span>
-            <span class="text-[11px]">Fokus</span>
+            <span class="text-[10px]">Fokus</span>
         </a>
+
+        <div class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <span class="text-lg">🌳</span>
+            <span class="text-[10px]">Bagan</span>
+        </div>
 
         <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical?tab=directory') : '#') : route('tree.vertical', ['tree' => $tree, 'tab' => 'directory']) }}"
            wire:navigate
            class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-emerald-600">
             <span class="text-lg">👥</span>
-            <span class="text-[11px]">Direktori</span>
+            <span class="text-[10px]">Direktori</span>
         </a>
 
-        <div class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-            <span class="text-lg">🌳</span>
-            <span class="text-[11px]">Bagan</span>
-        </div>
+        <button type="button"
+                wire:click="$dispatch('open-family-reminders')"
+                class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-emerald-600">
+            <span class="text-lg">🗓️</span>
+            <span class="text-[10px]">Kalender</span>
+        </button>
 
         @if(!$isPublic)
-            <button wire:click="$dispatch('create-member')"
+            <button type="button"
+                    wire:click="$dispatch('create-member')"
                     class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <span class="text-lg font-bold">➕</span>
-                <span class="text-[11px]">Tambah</span>
+                <span class="text-[10px]">Tambah</span>
+            </button>
+        @else
+            <button type="button"
+                    wire:click="$dispatch('open-contribute-modal')"
+                    class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <span class="text-lg font-bold">✏️</span>
+                <span class="text-[10px]">Usul</span>
             </button>
         @endif
     </nav>
