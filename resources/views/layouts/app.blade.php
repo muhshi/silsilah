@@ -1,4 +1,6 @@
-<x-layouts::app.header :title="$title ?? null">
+@props(['title' => null])
+
+<x-layouts::app.header :title="$title">
     <flux:main {{ $attributes }}>
         {{ $slot }}
     </flux:main>

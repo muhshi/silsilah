@@ -18,7 +18,8 @@ test('authenticated user can visit dock variant view (Option 2)', function () {
         ->assertSee('Bagan')
         ->assertSee('Fokus')
         ->assertSee('Simpel')
-        ->assertSee('Kalender');
+        ->assertSee('Kalender')
+        ->assertSee('bottom-4 sm:bottom-6');
 });
 
 test('public tree can be viewed with dock variant', function () {
@@ -34,7 +35,8 @@ test('public tree can be viewed with dock variant', function () {
         ->assertSee('Standar')
         ->assertSee('Bagan')
         ->assertSee('Fokus')
-        ->assertSee('Simpel');
+        ->assertSee('Simpel')
+        ->assertSee('bottom-4 sm:bottom-6');
 });
 
 test('password protected public tree redirects to password page on dock route', function () {
