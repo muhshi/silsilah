@@ -80,7 +80,15 @@ Route::post('admin/leave-impersonation', [AdminImpersonationController::class, '
     ->name('admin.leave-impersonation');
 
 // Public tree view (no auth required) - Default is Horizontal
-Route::get('public/tree/{slug}', function ($slug) {
+$recordTreeVisit = function (FamilyTree $tree) {
+    $sessionKey = "tree_viewed_{$tree->id}";
+    if (! session()->has($sessionKey)) {
+        $tree->incrementViews();
+        session()->put($sessionKey, true);
+    }
+};
+
+Route::get('public/tree/{slug}', function ($slug) use ($recordTreeVisit) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
 
     if (! $tree->is_public) {
@@ -90,11 +98,13 @@ Route::get('public/tree/{slug}', function ($slug) {
     if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.password', $tree->slug);
     }
+
+    $recordTreeVisit($tree);
 
     return view('tree.public', ['id' => $tree->id, 'tree' => $tree, 'viewType' => 'horizontal']);
 })->name('tree.public');
 
-Route::get('public/tree/{slug}/vertical', function ($slug) {
+Route::get('public/tree/{slug}/vertical', function ($slug) use ($recordTreeVisit) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
 
     if (! $tree->is_public) {
@@ -104,11 +114,13 @@ Route::get('public/tree/{slug}/vertical', function ($slug) {
     if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.password', $tree->slug);
     }
+
+    $recordTreeVisit($tree);
 
     return view('tree.public', ['id' => $tree->id, 'tree' => $tree, 'viewType' => 'vertical']);
 })->name('tree.public.vertical');
 
-Route::get('public/tree/{slug}/simple', function ($slug) {
+Route::get('public/tree/{slug}/simple', function ($slug) use ($recordTreeVisit) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
 
     if (! $tree->is_public) {
@@ -118,6 +130,8 @@ Route::get('public/tree/{slug}/simple', function ($slug) {
     if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
         return redirect()->route('tree.password', $tree->slug);
     }
+
+    $recordTreeVisit($tree);
 
     return view('tree.public', ['id' => $tree->id, 'tree' => $tree, 'viewType' => 'simple']);
 })->name('tree.public.simple');

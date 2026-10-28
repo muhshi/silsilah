@@ -22,6 +22,7 @@ class FamilyTree extends Model
         'description',
         'is_public',
         'is_premium',
+        'views_count',
         'view_password',
     ];
 
@@ -33,6 +34,7 @@ class FamilyTree extends Model
         return [
             'is_public' => 'boolean',
             'is_premium' => 'boolean',
+            'views_count' => 'integer',
         ];
     }
 
@@ -107,5 +109,10 @@ class FamilyTree extends Model
         }
 
         return max(0, self::FREE_MEMBER_LIMIT - $this->members()->count());
+    }
+
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
     }
 }
