@@ -57,6 +57,10 @@
                             {{ __('Pengguna & Kuota') }}
                         </flux:sidebar.item>
 
+                        <flux:sidebar.item icon="cube" :href="route('admin.trees')" :current="request()->routeIs('admin.trees')" wire:navigate>
+                            {{ __('Pohon Silsilah') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="credit-card" :href="route('admin.orders')" :current="request()->routeIs('admin.orders')" wire:navigate :badge="$pendingOrdersCount > 0 ? $pendingOrdersCount : null" badge-color="amber">
                             {{ __('Transaksi Duitku') }}
                         </flux:sidebar.item>
@@ -172,6 +176,8 @@
                             Ringkasan KPI
                         @elseif(request()->routeIs('admin.users'))
                             Pengguna & Kuota
+                        @elseif(request()->routeIs('admin.trees'))
+                            Pohon Silsilah
                         @elseif(request()->routeIs('admin.orders'))
                             Transaksi Duitku
                         @elseif(request()->routeIs('admin.pricing'))

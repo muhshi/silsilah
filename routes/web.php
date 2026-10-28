@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::view('/', 'admin.dashboard')->name('dashboard');
     Route::view('users', 'admin.users')->name('users');
+    Route::view('trees', 'admin.trees')->name('trees');
     Route::view('orders', 'admin.orders')->name('orders');
     Route::view('pricing', 'admin.pricing')->name('pricing');
     Route::view('vouchers', 'admin.vouchers')->name('vouchers');
