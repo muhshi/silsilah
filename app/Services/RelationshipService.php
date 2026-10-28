@@ -391,7 +391,8 @@ class RelationshipService
     {
         // 1. Check marriages of $from to see if $to is spouse's parent (Mertua)
         $spousesOfFrom = Marriage::where('husband_id', $from->id)->pluck('wife_id')
-            ->concat(Marriage::where('wife_id', $from->id)->pluck('husband_id'));
+            ->concat(Marriage::where('wife_id', $from->id)->pluck('husband_id'))
+            ->filter();
 
         foreach ($spousesOfFrom as $spId) {
             $spouse = $allMembers->get($spId) ?? Member::find($spId);
@@ -412,7 +413,8 @@ class RelationshipService
 
         // 2. Check if $from is parent of $to's spouse (Menantu)
         $spousesOfTo = Marriage::where('husband_id', $to->id)->pluck('wife_id')
-            ->concat(Marriage::where('wife_id', $to->id)->pluck('husband_id'));
+            ->concat(Marriage::where('wife_id', $to->id)->pluck('husband_id'))
+            ->filter();
 
         foreach ($spousesOfTo as $spId) {
             $spouse = $allMembers->get($spId) ?? Member::find($spId);

@@ -240,6 +240,9 @@ new class extends Component
                         <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
                             Kelola Pohon (Dashboard &amp; Statistik)
                         </flux:menu.item>
+                        <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
+                            Cek Hubungan Kekerabatan
+                        </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
 
@@ -326,6 +329,7 @@ new class extends Component
     </nav>
 
     <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
+    <livewire:relationship-calculator :tree-id="$tree->id" />
     @if(!$isPublic)
         <livewire:tree-settings :tree-id="$tree->id" />
         <livewire:import-members :tree-id="$tree->id" />
