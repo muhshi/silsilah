@@ -134,6 +134,7 @@ test('detects upcoming wedding anniversaries from marriages with marriage_date',
         'last_name' => 'Santoso',
         'gender' => 'male',
         'is_living' => true,
+        'birth_date' => '1990-05-01',
     ]);
 
     $wife = Member::factory()->create([
@@ -142,6 +143,7 @@ test('detects upcoming wedding anniversaries from marriages with marriage_date',
         'last_name' => 'Aminah',
         'gender' => 'female',
         'is_living' => true,
+        'birth_date' => '1992-05-01',
     ]);
 
     $marriage = Marriage::create([
@@ -265,6 +267,27 @@ test('ignores members with missing or unknown dates', function () {
     expect($events)->toBeEmpty();
 });
 
+test('ignores living members when is_birth_date_unknown is true', function () {
+    Carbon::setTestNow(Carbon::parse('2026-11-01'));
+
+    $tree = FamilyTree::factory()->create();
+
+    $member = Member::factory()->make([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'UnknownBirthday',
+        'is_living' => true,
+        'birth_date' => '1990-11-05',
+    ]);
+    $member->is_birth_date_unknown = true;
+
+    $tree->setRelation('members', collect([$member]));
+
+    $service = new FamilyReminderService;
+    $events = $service->getUpcomingEvents($tree, 30);
+
+    expect($events)->toBeEmpty();
+});
+
 test('formats polite, culturally appropriate WhatsApp broadcast messages', function () {
     Carbon::setTestNow(Carbon::parse('2026-11-01'));
 
@@ -291,6 +314,7 @@ test('formats polite, culturally appropriate WhatsApp broadcast messages', funct
         'first_name' => 'Aisyah',
         'gender' => 'female',
         'is_living' => true,
+        'birth_date' => '1992-05-01',
     ]);
 
     $marriage = Marriage::create([

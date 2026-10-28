@@ -35,12 +35,14 @@ class FamilyReminderService
         $events = collect();
 
         // 1. Process Members (Birthdays & Hauls)
-        $members = $tree->members()
-            ->where(function ($query) {
-                $query->whereNotNull('birth_date')
-                    ->orWhereNotNull('death_date');
-            })
-            ->get();
+        $members = $tree->relationLoaded('members')
+            ? $tree->members->filter(fn ($m) => ! empty($m->birth_date) || ! empty($m->death_date))
+            : $tree->members()
+                ->where(function ($query) {
+                    $query->whereNotNull('birth_date')
+                        ->orWhereNotNull('death_date');
+                })
+                ->get();
 
         foreach ($members as $member) {
             $isDeceased = ($member->is_living === false)
