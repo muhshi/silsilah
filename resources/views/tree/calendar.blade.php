@@ -1,9 +1,9 @@
 <x-layouts::app :title="'Kalender Agenda — ' . $tree->name">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-6">
         {{-- Breadcrumb & Back to Tree --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-200 dark:border-zinc-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3">
-                <flux:button href="{{ route('tree.show', $tree->slug ?: $tree->id) }}" icon="arrow-left" size="sm" variant="subtle">
+                <flux:button href="{{ route('tree.show', $tree->slug ?: $tree->id) }}" icon="arrow-left" size="sm" variant="subtle" class="min-h-[40px] flex items-center">
                     Kembali ke Silsilah
                 </flux:button>
                 <div class="h-5 w-px bg-zinc-200 dark:bg-zinc-700 hidden sm:block"></div>
@@ -19,14 +19,14 @@
             </div>
 
             <div class="flex items-center gap-2 self-start sm:self-auto">
-                <flux:button href="{{ route('tree.show', $tree->slug ?: $tree->id) }}" icon="chart-bar" size="sm" variant="outline">
+                <flux:button href="{{ route('tree.show', $tree->slug ?: $tree->id) }}" icon="chart-bar" size="sm" variant="outline" class="min-h-[40px] flex items-center">
                     Bagan Pohon
                 </flux:button>
             </div>
         </div>
 
         {{-- Interactive Monthly Calendar Grid --}}
-        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-4 sm:p-7 border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-3 sm:p-7 border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
             <livewire:family-reminders :tree-id="$tree->id" :as-modal="false" :view-mode="'calendar'" />
         </div>
     </div>

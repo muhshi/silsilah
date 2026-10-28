@@ -136,13 +136,13 @@
             {{-- Month Navigation Toolbar --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60">
                 <div class="flex items-center gap-2">
-                    <flux:button type="button" wire:click="prevMonth" size="sm" icon="chevron-left" variant="subtle">
+                    <flux:button type="button" wire:click="prevMonth" size="sm" icon="chevron-left" variant="subtle" class="min-h-[40px]">
                         Bulan Lalu
                     </flux:button>
-                    <flux:button type="button" wire:click="goToToday" size="sm" variant="subtle" class="font-bold">
+                    <flux:button type="button" wire:click="goToToday" size="sm" variant="subtle" class="font-bold min-h-[40px]">
                         Bulan Ini
                     </flux:button>
-                    <flux:button type="button" wire:click="nextMonth" size="sm" icon-trailing="chevron-right" variant="subtle">
+                    <flux:button type="button" wire:click="nextMonth" size="sm" icon-trailing="chevron-right" variant="subtle" class="min-h-[40px]">
                         Bulan Depan
                     </flux:button>
                 </div>
@@ -184,7 +184,7 @@
                                     role="button"
                                     tabindex="0"
                                 @endif
-                                class="min-h-[75px] sm:min-h-[96px] p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none
+                                class="min-h-[55px] sm:min-h-[96px] p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between select-none
                                     {{ ! $day['is_current_month'] ? 'opacity-30 bg-zinc-50/50 dark:bg-zinc-900/30 border-dashed border-zinc-200 dark:border-zinc-800 cursor-not-allowed' : 'cursor-pointer' }}
                                     {{ $day['is_current_month'] && ! $isSelected && ! $day['is_today'] ? 'bg-white dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700/80 hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-xs' : '' }}
                                     {{ $day['is_today'] && ! $isSelected ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-400/50' : '' }}
@@ -202,8 +202,24 @@
                                     @endif
                                 </div>
 
-                                {{-- Event Badges / Pills --}}
-                                <div class="space-y-1 mt-1">
+                                {{-- Mobile Micro Indicators (< sm) --}}
+                                <div class="flex sm:hidden items-center gap-1 mt-1 flex-wrap">
+                                    @foreach($day['events']->take(3) as $ev)
+                                        @if($ev['type'] === 'haul')
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="{{ $ev['title'] }}"></span>
+                                        @elseif($ev['type'] === 'birthday')
+                                            <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0" title="{{ $ev['title'] }}"></span>
+                                        @else
+                                            <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0" title="{{ $ev['title'] }}"></span>
+                                        @endif
+                                    @endforeach
+                                    @if($day['events']->count() > 3)
+                                        <span class="text-[9px] font-bold text-zinc-500">+{{ $day['events']->count() - 3 }}</span>
+                                    @endif
+                                </div>
+
+                                {{-- Tablet/Desktop Full Badges (sm:) --}}
+                                <div class="hidden sm:block space-y-1 mt-1">
                                     @foreach($day['events']->take(2) as $ev)
                                         @if($ev['type'] === 'haul')
                                             <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1"
@@ -218,14 +234,13 @@
                                                 <span class="truncate">{{ $ev['ordinal_text'] }} {{ $ev['member']?->first_name }}</span>
                                             </div>
                                         @else
-                                            <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-indigo-100 text-indigo-900 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1"
+                                            <div class="text-[10px] sm:text-[11px] leading-tight font-bold px-1 sm:px-1.5 py-0.5 rounded-md truncate bg-purple-100 text-purple-900 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1"
                                                  title="{{ $ev['title'] }}">
                                                 <span class="shrink-0 text-[10px]">💍</span>
-                                                <span class="truncate">{{ $ev['ordinal_text'] }} {{ $ev['member']?->first_name }} &amp; {{ $ev['spouse']?->first_name }}</span>
+                                                <span class="truncate">{{ $ev['ordinal_text'] }}</span>
                                             </div>
                                         @endif
                                     @endforeach
-
                                     @if($day['events']->count() > 2)
                                         <div class="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400 pl-1">
                                             +{{ $day['events']->count() - 2 }} lainnya

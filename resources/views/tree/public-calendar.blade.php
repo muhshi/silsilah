@@ -39,7 +39,7 @@
 
     {{-- Sticky Header --}}
     <header class="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-4">
             {{-- Brand & Tree Info --}}
             <div class="flex items-center gap-3 min-w-0">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 group shrink-0">
@@ -58,7 +58,7 @@
 
             {{-- Controls & Navigation --}}
             <div class="flex items-center gap-2 shrink-0">
-                <flux:button size="sm" icon="arrow-left" href="{{ route('tree.public', $tree->slug) }}" variant="subtle">
+                <flux:button size="sm" icon="arrow-left" href="{{ route('tree.public', $tree->slug) }}" variant="subtle" class="min-h-[40px] flex items-center">
                     Bagan Silsilah
                 </flux:button>
 
@@ -78,24 +78,24 @@
                             }
                         }"
                         @click="toggleTheme()"
-                        class="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-xs flex items-center justify-center size-8"
+                        class="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-xs flex items-center justify-center min-h-[40px] min-w-[40px]"
                         title="Ganti Tema (Terang / Gelap)">
                     <span x-show="!dark" title="Mode Gelap">🌙</span>
                     <span x-show="dark" title="Mode Terang">☀️</span>
                 </button>
 
                 @auth
-                    <flux:button size="sm" icon="layout-grid" href="{{ route('dashboard') }}" class="!bg-emerald-600 !text-white hover:!bg-emerald-700">Dashboard</flux:button>
+                    <flux:button size="sm" icon="layout-grid" href="{{ route('dashboard') }}" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 min-h-[40px] flex items-center">Dashboard</flux:button>
                 @else
-                    <flux:button size="sm" variant="ghost" icon="arrow-right-end-on-rectangle" href="{{ route('login') }}">Masuk</flux:button>
+                    <flux:button size="sm" variant="ghost" icon="arrow-right-end-on-rectangle" href="{{ route('login') }}" class="min-h-[40px] flex items-center">Masuk</flux:button>
                 @endauth
             </div>
         </div>
     </header>
 
     {{-- Main Calendar Container --}}
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-4 sm:p-7 border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
+    <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl p-3 sm:p-7 border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
             <livewire:family-reminders :tree-id="$tree->id" :as-modal="false" :view-mode="'calendar'" />
         </div>
     </main>

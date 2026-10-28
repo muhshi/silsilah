@@ -241,3 +241,23 @@ it('handles password protected public tree on public calendar page', function ()
         ->assertOk()
         ->assertSee('Kalender &amp; Agenda — Keluarga Terproteksi', false);
 });
+
+it('renders compact event indicators on calendar grid for mobile screens', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $member = Member::factory()->create([
+        'family_tree_id' => $tree->id,
+        'first_name' => 'Kyai',
+        'last_name' => 'Asmuni',
+        'is_living' => false,
+        'death_date' => now()->startOfMonth()->addDays(5)->format('Y-m-d'),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test('family-reminders', ['treeId' => $tree->id])
+        ->assertSee('Haul')
+        ->assertSee('Asmuni');
+});
