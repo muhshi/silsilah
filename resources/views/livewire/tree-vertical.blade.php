@@ -411,6 +411,9 @@ new class extends Component
                         <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
                             Cek Hubungan Kekerabatan
                         </flux:menu.item>
+                        <flux:menu.item icon="calendar" wire:click="$dispatch('open-family-reminders')">
+                            Agenda &amp; Pengingat Keluarga
+                        </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
 
@@ -845,6 +848,7 @@ new class extends Component
     {{-- Livewire Components --}}
     <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
     <livewire:relationship-calculator :tree-id="$tree->id" />
+    <livewire:family-reminders :tree-id="$tree->id" />
     @if(!$isPublic)
         <livewire:import-members :tree-id="$tree->id" />
         <livewire:tree-settings :tree-id="$tree->id" />

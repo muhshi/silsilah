@@ -328,6 +328,10 @@ new class extends Component
                     <span>Riwayat Aktivitas</span>
                     <span class="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded-full font-mono">{{ $logs->count() }}</span>
                 </button>
+                <button type="button" wire:click="$set('activeTab', 'reminders')" class="px-3.5 py-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer {{ $activeTab === 'reminders' ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
+                    <span class="material-symbols-outlined text-base">calendar_month</span>
+                    <span>Agenda &amp; Pengingat</span>
+                </button>
                 <button type="button" wire:click="$set('activeTab', 'general')" class="px-3.5 py-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer {{ $activeTab === 'general' ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold' : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200' }}">
                     <span class="material-symbols-outlined text-base">settings</span>
                     <span>Pengaturan</span>
@@ -748,7 +752,14 @@ new class extends Component
                 </div>
             @endif
 
-            {{-- Tab 5: Pengaturan --}}
+            {{-- Tab 5: Agenda & Pengingat --}}
+            @if($activeTab === 'reminders')
+                <div class="space-y-6 pt-2">
+                    <livewire:family-reminders :tree-id="$treeId" :as-modal="false" />
+                </div>
+            @endif
+
+            {{-- Tab 6: Pengaturan --}}
             @if($activeTab === 'general')
                 <div class="space-y-6 pt-2">
                     <form wire:submit="saveGeneralSettings" class="space-y-4">

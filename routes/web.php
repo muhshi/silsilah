@@ -7,6 +7,7 @@ use App\Http\Controllers\DuitkuCallbackController;
 use App\Http\Controllers\DuitkuCheckoutController;
 use App\Http\Controllers\ImageProxyController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\TreeCalendarController;
 use App\Http\Controllers\TreeExportController;
 use App\Models\FamilyTree;
 use Illuminate\Support\Facades\Route;
@@ -155,5 +156,8 @@ Route::get('public/tree/{slug}/password', function ($slug) {
 // ========== TREE EXPORT (Browsershot & Data) ==========
 Route::get('tree/{tree}/export-render', [TreeExportController::class, 'renderPreview'])->name('tree.export.render');
 Route::get('tree/{tree}/export/{format}', [TreeExportController::class, 'export'])->name('tree.export');
+
+// ========== TREE CALENDAR (.ics feed) ==========
+Route::get('tree/{tree}/calendar.ics', [TreeCalendarController::class, 'feed'])->name('tree.calendar.ics');
 
 require __DIR__.'/settings.php';
