@@ -4,11 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $tree->name }} — Pohon Silsilah Keluarga</title>
-    <meta name="description" content="Silsilah keluarga {{ $tree->name }}">
+    <meta name="description" content="{{ $tree->description ?: 'Bagan silsilah dan direktori keluarga ' . $tree->name . '.' }}">
+
+    <!-- OpenGraph & WhatsApp Social Cards -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $tree->name }} — Silsilah Keluarga">
+    <meta property="og:description" content="{{ $tree->description ?: 'Bagan silsilah dan direktori keluarga ' . $tree->name . ' (' . $tree->members()->count() . ' anggota).' }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('images/logo.png') }}">
+    <meta property="og:site_name" content="Silsilah Keluarga">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ $tree->name }} — Silsilah Keluarga">
+    <meta name="twitter:description" content="{{ $tree->description ?: 'Bagan silsilah dan direktori keluarga ' . $tree->name . '.' }}">
+    <meta name="twitter:image" content="{{ asset('images/logo.png') }}">
+
+    <!-- Favicon & Icons -->
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <meta property="og:image" content="{{ asset('images/logo.png') }}">
+
+    <!-- PWA & Mobile Meta -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Silsilah">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         // Default to light mode for shared public tree link unless explicitly toggled to dark

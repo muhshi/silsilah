@@ -16,6 +16,20 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
+// PWA Routes
+Route::get('manifest.json', function () {
+    return response(file_get_contents(public_path('manifest.json')), 200, [
+        'Content-Type' => 'application/json',
+    ]);
+});
+
+Route::get('sw.js', function () {
+    return response(file_get_contents(public_path('sw.js')), 200, [
+        'Content-Type' => 'application/javascript; charset=utf-8',
+        'Service-Worker-Allowed' => '/',
+    ]);
+});
+
 // Legal & Compliance Pages
 Route::view('privacy', 'pages.legal.privacy')->name('legal.privacy');
 Route::view('terms', 'pages.legal.terms')->name('legal.terms');
