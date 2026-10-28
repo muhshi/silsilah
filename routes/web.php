@@ -98,6 +98,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('tree.simple', ['id' => $treeModel->id, 'tree' => $treeModel]);
     })->name('tree.simple');
 
+    Route::get('tree/{tree}/dock', function ($tree) {
+        $treeModel = is_numeric($tree)
+            ? FamilyTree::where('id', $tree)->first() ?? FamilyTree::where('slug', $tree)->firstOrFail()
+            : FamilyTree::where('slug', $tree)->first() ?? FamilyTree::where('id', $tree)->firstOrFail();
+
+        return view('tree.dock', ['id' => $treeModel->id, 'tree' => $treeModel]);
+    })->name('tree.dock');
+
     Route::get('tree/{tree}/calendar', function ($tree) {
         $treeModel = is_numeric($tree)
             ? FamilyTree::where('id', $tree)->first() ?? FamilyTree::where('slug', $tree)->firstOrFail()
@@ -192,6 +200,22 @@ Route::get('public/tree/{slug}/simple', function ($slug) use ($recordTreeVisit) 
 
     return view('tree.public', ['id' => $tree->id, 'tree' => $tree, 'viewType' => 'simple']);
 })->name('tree.public.simple');
+
+Route::get('public/tree/{slug}/dock', function ($slug) use ($recordTreeVisit) {
+    $tree = FamilyTree::where('slug', $slug)->firstOrFail();
+
+    if (! $tree->is_public) {
+        abort(404);
+    }
+
+    if ($tree->view_password && ! session("tree_unlocked_{$tree->id}")) {
+        return redirect()->route('tree.password', $tree->slug);
+    }
+
+    $recordTreeVisit($tree);
+
+    return view('tree.public-dock', ['id' => $tree->id, 'tree' => $tree]);
+})->name('tree.public.dock');
 
 Route::get('public/tree/{slug}/calendar', function ($slug) use ($recordTreeVisit) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();

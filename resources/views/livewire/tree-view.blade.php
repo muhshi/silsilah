@@ -9,11 +9,13 @@ new class extends Component
     public $tree;
     public $isPublic = false;
     public $publicSlug = null;
+    public bool $dock = false;
 
-    public function mount($id, $isPublic = false, $publicSlug = null)
+    public function mount($id, $isPublic = false, $publicSlug = null, $dock = false)
     {
         $this->isPublic = $isPublic;
         $this->publicSlug = $publicSlug;
+        $this->dock = $dock;
 
         $this->tree = is_numeric($id)
             ? FamilyTree::with([
@@ -45,7 +47,7 @@ new class extends Component
     #[On('refresh-tree')]
     public function refreshTree()
     {
-        $this->mount($this->tree->id);
+        $this->mount($this->tree->id, $this->isPublic, $this->publicSlug, $this->dock);
     }
 
     public function leaveTree()
@@ -100,8 +102,122 @@ new class extends Component
 };
 ?>
 
-<div class="w-full max-w-[100vw]" x-data="canvasTree()">
+<div class="w-full max-w-[100vw] tree-view" data-component="tree-view" x-data="canvasTree()">
     {{-- Header --}}
+    @if($dock)
+        {{-- FLOATING PILL TOOLBAR / DOCK (OPSI 2) --}}
+        <div class="fixed top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/80 shadow-2xl max-w-[95vw] sm:max-w-none overflow-x-auto no-scrollbar">
+            {{-- Tree Identity --}}
+            <a href="{{ $isPublic ? url('/') : route('dashboard') }}" class="flex items-center gap-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:text-emerald-600 transition-colors shrink-0">
+                <span class="text-base">🌳</span>
+                <span class="truncate max-w-[120px] sm:max-w-[200px]">{{ $tree->name }}</span>
+            </a>
+
+            <div class="h-4 w-px bg-zinc-200 dark:bg-zinc-700 shrink-0"></div>
+
+            {{-- Mode Switcher Pills --}}
+            <div class="flex items-center gap-1 text-xs shrink-0">
+                <button class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-bold shadow-xs">
+                    Bagan
+                </button>
+                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#') : route('tree.vertical', $tree) }}"
+                   wire:navigate
+                   class="px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold transition-all">
+                    Fokus
+                </a>
+                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/simple') : '#') : route('tree.simple', $tree) }}"
+                   wire:navigate
+                   class="px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold transition-all">
+                    Simpel
+                </a>
+                <button wire:click="$dispatch('open-family-reminders')"
+                        class="px-2.5 py-1 rounded-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-semibold transition-all flex items-center gap-1">
+                    <span>🗓️</span>
+                    <span class="hidden sm:inline">Kalender</span>
+                </button>
+            </div>
+
+            <div class="h-4 w-px bg-zinc-200 dark:bg-zinc-700 shrink-0"></div>
+
+            {{-- Actions --}}
+            <div class="flex items-center gap-1 shrink-0">
+                {{-- Share --}}
+                @if($tree->slug)
+                    <button type="button"
+                            x-data="{ shared: false, async share() {
+                                const url = '{{ url('/public/tree/' . $tree->slug) }}';
+                                const text = 'Halo! Yuk lihat diagram silsilah keluarga \"{{ addslashes($tree->name) }}\":\n' + url;
+                                if (navigator.share) {
+                                    try { await navigator.share({ title: '{{ addslashes($tree->name) }}', text: text, url: url }); return; } catch(e){}
+                                }
+                                try { await navigator.clipboard.writeText(url); this.shared = true; setTimeout(() => this.shared = false, 2500); } catch(e){}
+                            } }"
+                            @click="share()"
+                            class="p-1.5 rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 transition-colors"
+                            title="Bagikan Silsilah">
+                        <span class="material-symbols-outlined text-base" x-show="!shared">share</span>
+                        <span class="material-symbols-outlined text-base text-emerald-600" x-show="shared">check</span>
+                    </button>
+                @endif
+
+                {{-- Export Dropdown --}}
+                <flux:dropdown>
+                    <button class="p-1.5 rounded-full hover:bg-purple-50 dark:hover:bg-purple-950/40 text-zinc-700 dark:text-zinc-200 transition-colors"
+                            title="Ekspor Bagan">
+                        <span class="material-symbols-outlined text-base">download</span>
+                    </button>
+                    <flux:menu class="!w-64">
+                        <flux:menu.item icon="photo"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'banner']) }}', title: 'Poster Silsilah Pigura (A1/A0)' } }))">
+                            Poster Pigura (A1/A0)
+                        </flux:menu.item>
+                        <flux:menu.item icon="book-open"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'book']) }}', title: 'Buku Silsilah (PDF)' } }))">
+                            Buku Silsilah (PDF)
+                        </flux:menu.item>
+                        <flux:menu.item icon="photo"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'png', 'view' => 'horizontal']) }}', title: 'Gambar Silsilah (PNG)' } }))">
+                            Export Gambar (PNG)
+                        </flux:menu.item>
+                        <flux:menu.item icon="document-arrow-down"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'pdf', 'view' => 'horizontal']) }}', title: 'Bagan Canvas (PDF)' } }))">
+                            Export Bagan Canvas (PDF)
+                        </flux:menu.item>
+                        <flux:menu.item icon="sparkles"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'prompt']) }}', title: 'Prompt AI (.md)' } }))">
+                            Export Prompt AI (.md)
+                        </flux:menu.item>
+                        <flux:menu.item icon="code-bracket"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'json']) }}', title: 'Data Silsilah (JSON)' } }))">
+                            Export Data (JSON)
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+
+                {{-- Option to Switch back to Option 1 --}}
+                <a href="{{ $isPublic ? route('tree.public', $tree->slug) : route('tree.show', $tree) }}"
+                   class="px-2 py-1 rounded-full text-[11px] font-bold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-all shrink-0"
+                   title="Kembali ke Tampilan Standar (Opsi 1)">
+                    Standar
+                </a>
+
+                {{-- Add Member CTA --}}
+                @if(!$isPublic)
+                    <button wire:click="$dispatch('create-member')"
+                            class="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1 shrink-0 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span class="hidden sm:inline">Anggota</span>
+                    </button>
+                @endif
+            </div>
+        </div>
+    @else
     <div class="border-b border-zinc-200/80 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 lg:px-6 py-2.5 flex items-center justify-between gap-4 sticky top-0 z-30">
         {{-- Left: Breadcrumb + Badges --}}
         <div class="flex items-center gap-2.5 min-w-0">
@@ -431,7 +547,9 @@ new class extends Component
             </flux:dropdown>
         </div>
     </div>
+    @endif
 
+    @if(!$dock)
     {{-- Segmented View Switcher (Mobile Only) --}}
     <div class="md:hidden px-4 py-2 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-900/50">
         <div class="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl shadow-inner gap-1">
@@ -453,10 +571,13 @@ new class extends Component
             </a>
         </div>
     </div>
+    @endif
 
     {{-- Tree Canvas --}}
     <div class="w-full overflow-hidden relative">
-        <div class="pt-sm pt-full-bleed touch-none select-none" x-ref="container"
+        <div class="pt-sm pt-full-bleed touch-none select-none"
+             @if($dock) style="height: 100vh !important; min-height: 100vh !important;" @endif
+             x-ref="container"
              @mousedown="startDrag($event)"
              @mousemove="doDrag($event)"
              @mouseup="stopDrag()"
@@ -478,7 +599,7 @@ new class extends Component
             </div>
 
             {{-- Material 3 Floating Zoom Controls --}}
-            <div class="fixed md:absolute bottom-20 md:bottom-5 right-4 z-30 flex flex-col items-center bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800 gap-1 select-none" @touchstart.stop @click.stop>
+            <div class="fixed md:absolute {{ $dock ? 'bottom-5' : 'bottom-20 md:bottom-5' }} right-4 z-30 flex flex-col items-center bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800 gap-1 select-none" @touchstart.stop @click.stop>
                 <button @click="zoomIn()" title="Zoom In" class="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
@@ -496,6 +617,7 @@ new class extends Component
         </div>
     </div>
 
+    @if(!$dock)
     {{-- STICKY BOTTOM NAVIGATION BAR (Mobile Only) --}}
     <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-around px-2 z-40 shadow-lg">
         <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'/vertical') : '#') : route('tree.vertical', $tree) }}"
@@ -540,6 +662,7 @@ new class extends Component
             </button>
         @endif
     </nav>
+    @endif
 
     {{-- Member Manager & Modals --}}
     <livewire:member-manager :tree-id="$tree->id" :is-public="$isPublic" :tree-slug="$publicSlug ?? $tree->slug" />
