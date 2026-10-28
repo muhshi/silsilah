@@ -144,14 +144,7 @@ new class extends Component
                 {{-- Share --}}
                 @if($tree->slug)
                     <button type="button"
-                            x-data="{ shared: false, async share() {
-                                const url = '{{ url('/public/tree/' . $tree->slug) }}';
-                                const text = 'Halo! Yuk lihat diagram silsilah keluarga \"{{ addslashes($tree->name) }}\":\n' + url;
-                                if (navigator.share) {
-                                    try { await navigator.share({ title: '{{ addslashes($tree->name) }}', text: text, url: url }); return; } catch(e){}
-                                }
-                                try { await navigator.clipboard.writeText(url); this.shared = true; setTimeout(() => this.shared = false, 2500); } catch(e){}
-                            } }"
+                            x-data="treeShare({{ json_encode(url('/public/tree/' . $tree->slug)) }}, {{ json_encode($tree->name) }})"
                             @click="share()"
                             class="p-1.5 rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 transition-colors"
                             title="Bagikan Silsilah">
@@ -280,38 +273,8 @@ new class extends Component
         {{-- Right: Actions (Desktop) --}}
         <div class="hidden md:flex items-center gap-2">
             @if($tree->slug)
-                @php
-                    $shareUrl = url('/public/tree/' . $tree->slug);
-                    $shareMsg = "Halo! Yuk lihat diagram silsilah keluarga \"{$tree->name}\" di Silsilah:\n\n{$shareUrl}";
-                @endphp
-                <flux:button size="sm" icon="share" x-data="{ shared: false, async share() {
-                    const text = {{ json_encode($shareMsg) }};
-                    let ok = false;
-                    if (navigator.clipboard && window.isSecureContext) {
-                        try {
-                            await navigator.clipboard.writeText(text);
-                            ok = true;
-                        } catch(e) {}
-                    }
-                    if (!ok) {
-                        try {
-                            const el = document.createElement('textarea');
-                            el.value = text;
-                            el.style.position = 'fixed';
-                            el.style.left = '-999999px';
-                            document.body.appendChild(el);
-                            el.focus();
-                            el.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(el);
-                            ok = true;
-                        } catch(e) {}
-                    }
-                    if (ok) {
-                        this.shared = true;
-                        setTimeout(() => this.shared = false, 2500);
-                    }
-                } }"
+                <flux:button size="sm" icon="share"
+                    x-data="treeShare({{ json_encode(url('/public/tree/' . $tree->slug)) }}, {{ json_encode($tree->name) }})"
                     x-on:click="share()"
                     class="!bg-zinc-100 !text-zinc-700 hover:!bg-emerald-50 hover:!text-emerald-700 dark:!bg-zinc-800 dark:!text-zinc-300 dark:hover:!bg-emerald-950/40">
                     <span x-show="!shared">Bagikan</span>
@@ -436,14 +399,7 @@ new class extends Component
         <div class="flex md:hidden items-center gap-1.5">
             @if($tree->slug)
                 <button type="button"
-                        x-data="{ shared: false, async share() {
-                            const url = '{{ url('/public/tree/' . $tree->slug) }}';
-                            const text = 'Halo! Yuk lihat diagram silsilah keluarga \"{{ addslashes($tree->name) }}\":\n' + url;
-                            if (navigator.share) {
-                                try { await navigator.share({ title: '{{ addslashes($tree->name) }}', text: text, url: url }); return; } catch(e){}
-                            }
-                            try { await navigator.clipboard.writeText(url); this.shared = true; setTimeout(() => this.shared = false, 2500); } catch(e){}
-                        } }"
+                        x-data="treeShare({{ json_encode(url('/public/tree/' . $tree->slug)) }}, {{ json_encode($tree->name) }})"
                         @click="share()"
                         class="p-2 rounded-xl bg-zinc-100 hover:bg-emerald-50 active:scale-95 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition-all flex items-center justify-center shrink-0"
                         title="Bagikan Silsilah">

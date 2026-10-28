@@ -133,7 +133,7 @@ new class extends Component
 };
 ?>
 
-<div class="space-y-8 max-w-7xl mx-auto">
+<div class="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full min-w-0">
     <!-- Payment Feedback Messages -->
     @if($recentOrder)
         @if($recentOrder->isPaid())
@@ -298,7 +298,7 @@ new class extends Component
             </div>
         </div>
 
-        <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto shrink-0">
             <div class="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono font-bold text-xs text-zinc-900 dark:text-white flex items-center gap-2 shadow-2xs">
                 <span class="text-zinc-400 font-sans text-[11px]">Kode:</span>
                 <span class="tracking-wider text-emerald-700 dark:text-emerald-400">{{ auth()->user()->referral_code ?? 'SIL-'.auth()->id() }}</span>
@@ -306,16 +306,16 @@ new class extends Component
 
             <button type="button"
                     @click="navigator.clipboard.writeText('{{ auth()->user()->referral_code }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                    class="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    class="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0">
                 <span class="material-symbols-outlined text-[16px]" x-text="copied ? 'check' : 'content_copy'"></span>
                 <span x-text="copied ? 'Tersalin!' : 'Salin'"></span>
             </button>
 
             <a href="https://wa.me/?text={{ urlencode('Halo! Aku pakai aplikasi Silsilah Keluarga Digital. Daftar atau beli kuota pakai kode referralku ' . (auth()->user()->referral_code) . ' untuk dapat diskon 15%: ' . (auth()->user()->referralLink())) }}"
                target="_blank"
-               class="h-9 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+               class="h-9 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0">
                 <span class="text-sm">💬</span>
-                <span class="hidden sm:inline">WhatsApp</span>
+                <span class="inline">WhatsApp</span>
             </a>
         </div>
     </div>
@@ -337,21 +337,21 @@ new class extends Component
         </div>
 
         <!-- Filter Chips -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar max-w-full min-w-0">
             <button wire:click="setFilter('all')"
-                    class="px-4 py-2 rounded-full text-xs font-bold transition-all {{ $filter === 'all' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+                    class="px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 {{ $filter === 'all' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
                 Semua ({{ $totalTrees }})
             </button>
             <button wire:click="setFilter('public')"
-                    class="px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 {{ $filter === 'public' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+                    class="px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 {{ $filter === 'public' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
                 <span>🌍</span> Publik ({{ $totalPublic }})
             </button>
             <button wire:click="setFilter('private')"
-                    class="px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 {{ $filter === 'private' ? 'bg-zinc-700 text-white shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+                    class="px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 {{ $filter === 'private' ? 'bg-zinc-700 text-white shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
                 <span>🔒</span> Privat ({{ $totalPrivate }})
             </button>
             <button wire:click="setFilter('premium')"
-                    class="px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 {{ $filter === 'premium' ? 'bg-purple-600 text-white shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+                    class="px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 {{ $filter === 'premium' ? 'bg-purple-600 text-white shadow-sm' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
                 <span>👑</span> Premium ({{ $totalPremium }})
             </button>
         </div>
@@ -418,44 +418,46 @@ new class extends Component
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
                         <!-- Primary CTA -->
                         <button onclick="event.stopPropagation(); window.location='{{ route('tree.show', $tree) }}'"
-                                class="flex-1 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-xs hover:shadow-md hover:shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                class="flex-1 min-w-[110px] h-10 px-3 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-xs hover:shadow-md hover:shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                             <span>Buka Silsilah</span>
-                            <svg class="w-3.5 h-3.5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <svg class="w-3.5 h-3.5 text-white/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
                             </svg>
                         </button>
 
-                        <!-- Contextual Secondary: Upgrade 5K (Soft amber accent, height 40px) -->
-                        @if(!$tree->is_premium)
-                            <button type="button"
-                                    onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('open-upgrade-modal', { detail: { id: {{ $tree->id }}, name: '{{ addslashes($tree->name) }}' } }))"
-                                    class="h-10 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-[0.98] dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800/70 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
-                                    title="Tingkatkan ke Pohon Premium (Rp 5.000)">
-                                <span class="material-symbols-outlined text-base text-amber-600 dark:text-amber-400">workspace_premium</span>
-                                <span>Upgrade 5K</span>
-                            </button>
-                        @endif
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <!-- Contextual Secondary: Upgrade 5K (Soft amber accent, height 40px) -->
+                            @if(!$tree->is_premium)
+                                <button type="button"
+                                        onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('open-upgrade-modal', { detail: { id: {{ $tree->id }}, name: {{ json_encode($tree->name) }} } }))"
+                                        class="h-10 px-2.5 sm:px-3 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-[0.98] dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800/70 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs"
+                                        title="Tingkatkan ke Pohon Premium (Rp 5.000)">
+                                    <span class="material-symbols-outlined text-base text-amber-600 dark:text-amber-400">workspace_premium</span>
+                                    <span>Upgrade 5K</span>
+                                </button>
+                            @endif
 
-                        <!-- Auxiliary: Mobile / Focus View (Height 40px) -->
-                        <a href="{{ route('tree.vertical', $tree) }}"
-                           onclick="event.stopPropagation();"
-                           wire:navigate
-                           class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-zinc-200 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                           title="Mode Fokus Eksplorasi">
-                            <span class="material-symbols-outlined text-lg">explore</span>
-                        </a>
+                            <!-- Auxiliary: Mobile / Focus View (Height 40px) -->
+                            <a href="{{ route('tree.vertical', $tree) }}"
+                               onclick="event.stopPropagation();"
+                               wire:navigate
+                               class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-zinc-200 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                               title="Mode Fokus Eksplorasi">
+                                <span class="material-symbols-outlined text-lg">explore</span>
+                            </a>
 
-                        <!-- Management Hub: Kelola Pohon (Height 40px) -->
-                        <a href="{{ route('tree.show', ['tree' => $tree, 'manage' => 1]) }}"
-                           onclick="event.stopPropagation();"
-                           wire:navigate
-                           class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 hover:text-emerald-700 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
-                           title="Kelola Pohon (Dashboard &amp; Statistik)">
-                            <span class="material-symbols-outlined text-lg">tune</span>
-                        </a>
+                            <!-- Management Hub: Kelola Pohon (Height 40px) -->
+                            <a href="{{ route('tree.show', ['tree' => $tree, 'manage' => 1]) }}"
+                               onclick="event.stopPropagation();"
+                               wire:navigate
+                               class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 hover:text-emerald-700 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                               title="Kelola Pohon (Dashboard &amp; Statistik)">
+                                <span class="material-symbols-outlined text-lg">tune</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -874,7 +876,7 @@ new class extends Component
                 });
                 @if(request()->filled('upgrade_tree') && $targetUpgradeTree)
                     this.treeId = {{ $targetUpgradeTree->id }};
-                    this.treeName = '{{ addslashes($targetUpgradeTree->name) }}';
+                    this.treeName = {{ json_encode($targetUpgradeTree->name) }};
                     this.$nextTick(() => {
                         $flux.modal('upgrade-tree-modal').show();
                     });

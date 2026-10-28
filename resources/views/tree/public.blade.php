@@ -55,6 +55,7 @@
             window.location.replace('{{ route('tree.public.vertical', $tree->slug) }}');
         }
     </script>
+    @include('partials.tree-share-script')
     @fluxAppearance
     @livewireStyles
 </head>
