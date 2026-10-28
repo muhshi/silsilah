@@ -10,6 +10,8 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\TreeCalendarController;
 use App\Http\Controllers\TreeExportController;
 use App\Models\FamilyTree;
+use App\Services\DeviceDetector;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -38,10 +40,20 @@ Route::get('api/image-proxy', [ImageProxyController::class, 'proxy'])->name('ima
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    Route::get('tree/{tree}', function ($tree) {
+    Route::get('tree/{tree}', function (Request $request, $tree) {
         $treeModel = is_numeric($tree)
             ? FamilyTree::where('id', $tree)->first() ?? FamilyTree::where('slug', $tree)->firstOrFail()
             : FamilyTree::where('slug', $tree)->first() ?? FamilyTree::where('id', $tree)->firstOrFail();
+
+        $viewType = DeviceDetector::resolveTreeViewType($request);
+
+        if ($viewType === 'vertical') {
+            return view('tree.vertical', ['id' => $treeModel->id, 'tree' => $treeModel]);
+        }
+
+        if ($viewType === 'simple') {
+            return view('tree.simple', ['id' => $treeModel->id, 'tree' => $treeModel]);
+        }
 
         return view('tree.show', ['id' => $treeModel->id, 'tree' => $treeModel]);
     })->name('tree.show');
@@ -90,7 +102,7 @@ $recordTreeVisit = function (FamilyTree $tree) {
     }
 };
 
-Route::get('public/tree/{slug}', function ($slug) use ($recordTreeVisit) {
+Route::get('public/tree/{slug}', function (Request $request, $slug) use ($recordTreeVisit) {
     $tree = FamilyTree::where('slug', $slug)->firstOrFail();
 
     if (! $tree->is_public) {
@@ -103,7 +115,9 @@ Route::get('public/tree/{slug}', function ($slug) use ($recordTreeVisit) {
 
     $recordTreeVisit($tree);
 
-    return view('tree.public', ['id' => $tree->id, 'tree' => $tree, 'viewType' => 'horizontal']);
+    $viewType = DeviceDetector::resolveTreeViewType($request);
+
+    return view('tree.public', ['id' => $tree->id, 'tree' => $tree, 'viewType' => $viewType]);
 })->name('tree.public');
 
 Route::get('public/tree/{slug}/vertical', function ($slug) use ($recordTreeVisit) {

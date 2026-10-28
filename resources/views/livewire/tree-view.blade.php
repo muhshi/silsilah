@@ -124,7 +124,7 @@ new class extends Component
         <div class="hidden md:flex items-center gap-2.5 flex-wrap">
             {{-- 1. View Mode Switcher (Segmented Pill) --}}
             <div class="flex items-center bg-zinc-100/90 dark:bg-zinc-800/90 p-1 rounded-full border border-zinc-200/60 dark:border-zinc-700/60 text-xs font-semibold">
-                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug) : '#') : route('tree.show', $tree) }}"
+                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'?view=canvas') : '#') : route('tree.show', ['tree' => $tree, 'view' => 'canvas']) }}"
                    wire:navigate
                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 shadow-sm font-bold">
                     <span>🌳</span>

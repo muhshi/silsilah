@@ -117,7 +117,7 @@ new class extends Component
         <div class="hidden md:flex items-center gap-2.5 flex-wrap">
             {{-- 1. View Mode Switcher (Segmented Pill) --}}
             <div class="flex items-center bg-zinc-100/90 dark:bg-zinc-800/90 p-1 rounded-full border border-zinc-200/60 dark:border-zinc-700/60 text-xs font-semibold">
-                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug) : '#') : route('tree.show', $tree) }}"
+                <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'?view=canvas') : '#') : route('tree.show', ['tree' => $tree, 'view' => 'canvas']) }}"
                    wire:navigate
                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200">
                     <span>🌳</span>
@@ -330,7 +330,7 @@ new class extends Component
             <span class="text-[11px]">Direktori</span>
         </a>
 
-        <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug) : '#') : route('tree.show', $tree) }}"
+        <a href="{{ $isPublic ? ($publicSlug ? url('/public/tree/'.$publicSlug.'?view=canvas') : '#') : route('tree.show', ['tree' => $tree, 'view' => 'canvas']) }}"
            wire:navigate
            class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-emerald-600">
             <span class="text-lg">🌳</span>

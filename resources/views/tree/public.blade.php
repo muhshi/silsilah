@@ -18,6 +18,11 @@
         if (localStorage.getItem('flux.appearance') !== 'dark') {
             document.documentElement.classList.remove('dark');
         }
+
+        // Safety net: if on a small mobile screen (<768px) and rendered horizontal without explicit ?view=, redirect to vertical
+        if (window.innerWidth < 768 && !new URLSearchParams(window.location.search).has('view') && '{{ $viewType ?? "horizontal" }}' === 'horizontal') {
+            window.location.replace('{{ route('tree.public.vertical', $tree->slug) }}');
+        }
     </script>
     @fluxAppearance
     @livewireStyles
@@ -47,7 +52,7 @@
             <div class="flex items-center gap-2 shrink-0">
                 {{-- View Type Switcher --}}
                 <div class="hidden md:flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg text-xs">
-                    <a href="{{ route('tree.public', $tree->slug) }}"
+                    <a href="{{ route('tree.public', ['slug' => $tree->slug, 'view' => 'canvas']) }}"
                        class="px-2.5 py-1 rounded-md font-medium transition-colors {{ ($viewType ?? 'horizontal') === 'horizontal' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white' }}">
                         Horizontal
                     </a>
