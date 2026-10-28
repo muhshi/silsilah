@@ -366,27 +366,27 @@ new class extends Component
                 <div>
                     <!-- Top Status Row -->
                     <div class="flex items-start justify-between mb-5">
-                        <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-950/60 dark:to-teal-900/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-950/60 dark:to-teal-900/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
                             🌳
                         </div>
 
                         <div class="flex items-center gap-1.5 flex-wrap justify-end">
                             @if($tree->is_public)
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PUBLIK
                                 </span>
                             @else
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-zinc-100 dark:bg-zinc-700/60 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-600 flex items-center gap-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 dark:bg-zinc-700/60 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> PRIVAT
                                 </span>
                             @endif
 
                             @if($tree->is_premium)
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1 shadow-2xs">
                                     👑 PREMIUM
                                 </span>
                             @else
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-zinc-100 dark:bg-zinc-700/60 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-600 flex items-center gap-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 dark:bg-zinc-700/60 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
                                     STANDAR
                                 </span>
                             @endif
@@ -394,49 +394,56 @@ new class extends Component
                     </div>
 
                     <!-- Tree Name & Description -->
-                    <h3 class="text-xl font-headline font-bold text-zinc-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors mb-2 line-clamp-1">
+                    <h3 class="text-lg font-headline font-bold text-zinc-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors mb-1.5 line-clamp-1">
                         {{ $tree->name }}
                     </h3>
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 min-h-[32px] leading-relaxed mb-6">
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 min-h-[32px] leading-relaxed mb-5">
                         {{ $tree->description ?: 'Belum ada deskripsi untuk silsilah keluarga ini.' }}
                     </p>
                 </div>
 
                 <div>
                     <!-- Meta Row: Members & Date -->
-                    <div class="flex items-center justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400 pb-5 border-b border-zinc-100 dark:border-zinc-700/60 mb-5">
-                        <div class="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700/50 px-3 py-1.5 rounded-full">
-                            <span>👥</span>
-                            <span class="text-zinc-800 dark:text-zinc-200 font-bold">{{ $tree->members_count }}</span>
-                            <span class="text-zinc-500 dark:text-zinc-400">{{ $tree->is_premium ? 'Anggota' : '/ 100 Anggota' }}</span>
+                    <div class="flex items-center justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400 pb-4 border-b border-zinc-100 dark:border-zinc-700/60 mb-4">
+                        <div class="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700/50 px-2.5 py-1 rounded-lg">
+                            <span class="material-symbols-outlined text-sm text-zinc-400">group</span>
+                            <span class="text-zinc-800 dark:text-zinc-200 font-bold tabular-nums">{{ $tree->members_count }}</span>
+                            <span class="text-zinc-400 text-[11px]">{{ $tree->is_premium ? 'Anggota' : '/ 100 Anggota' }}</span>
                         </div>
-                        <div class="text-[11px]">
-                            {{ $tree->created_at->diffForHumans() }}
+                        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">
+                            {{ $tree->created_at->locale('id')->diffForHumans() }}
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="flex items-center gap-2">
+                        <!-- Primary CTA -->
                         <button onclick="event.stopPropagation(); window.location='{{ route('tree.show', $tree) }}'"
-                                class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5">
+                                class="flex-1 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-xs hover:shadow-md hover:shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                             <span>Buka Silsilah</span>
-                            <span>➔</span>
+                            <svg class="w-3.5 h-3.5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                            </svg>
                         </button>
+
+                        <!-- Contextual Secondary: Upgrade 5K (Soft amber accent, height 40px) -->
                         @if(!$tree->is_premium)
                             <button type="button"
                                     onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('open-upgrade-modal', { detail: { id: {{ $tree->id }}, name: '{{ addslashes($tree->name) }}' } }))"
-                                    class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-sm shadow-amber-500/20 transition-all flex items-center gap-1 cursor-pointer shrink-0"
-                                    title="Upgrade ke Pohon Premium (Rp 5.000)">
-                                <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                                    class="h-10 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-[0.98] dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800/70 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
+                                    title="Tingkatkan ke Pohon Premium (Rp 5.000)">
+                                <span class="material-symbols-outlined text-base text-amber-600 dark:text-amber-400">workspace_premium</span>
                                 <span>Upgrade 5K</span>
                             </button>
                         @endif
+
+                        <!-- Auxiliary: Mobile / Focus View (Height 40px) -->
                         <a href="{{ route('tree.vertical', $tree) }}"
                            onclick="event.stopPropagation();"
                            wire:navigate
-                           class="py-2.5 px-3 rounded-xl bg-zinc-100 hover:bg-amber-50 dark:bg-zinc-700/60 dark:hover:bg-amber-950/40 text-zinc-700 hover:text-amber-700 dark:text-zinc-300 dark:hover:text-amber-300 text-xs font-bold transition-all"
-                           title="Buka Mode Fokus HP">
-                            🧭
+                           class="h-10 w-10 rounded-xl bg-zinc-100 hover:bg-zinc-200 active:scale-[0.98] dark:bg-zinc-700/60 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                           title="Mode Fokus Smartphone (Vertikal)">
+                            <span class="material-symbols-outlined text-lg">smartphone</span>
                         </a>
                     </div>
                 </div>
