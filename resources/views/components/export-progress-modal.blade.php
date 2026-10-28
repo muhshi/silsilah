@@ -104,7 +104,15 @@
                 <template x-if="status === 'error'">
                     <div class="text-center py-2">
                         <p class="text-sm text-rose-600 dark:text-rose-400 font-medium mb-2" x-text="errorMessage"></p>
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+                        <template x-if="errorMessage.includes('Premium')">
+                            <div class="mt-3 mb-2">
+                                <a href="{{ route('dashboard') }}"
+                                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-xs">
+                                    <span>👑 Upgrade Pohon Rp 5K</span>
+                                </a>
+                            </div>
+                        </template>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4" x-show="!errorMessage.includes('Premium')">
                             Silakan periksa koneksi Anda atau coba ekspor kembali beberapa saat lagi.
                         </p>
                     </div>
@@ -290,6 +298,9 @@ function exportProgressManager() {
             })
             .then(async (response) => {
                 if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Fitur Cetak Buku Silsilah (PDF) khusus untuk Pohon Premium.');
+                    }
                     throw new Error(`Gagal mengunduh (Status ${response.status})`);
                 }
 

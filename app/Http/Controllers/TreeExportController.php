@@ -26,6 +26,8 @@ class TreeExportController extends Controller
         $treeModel = $this->exportService->findTree($tree);
 
         if ($request->query('format') === 'book') {
+            abort_unless($treeModel->is_premium, 403, 'Fitur Cetak Buku Silsilah (PDF) khusus untuk Pohon Premium.');
+
             $bookData = $this->exportService->prepareBookData($treeModel);
 
             return view('tree.export-book', $bookData);
@@ -53,6 +55,10 @@ class TreeExportController extends Controller
 
         $treeModel = $this->exportService->findTree($tree);
         $viewType = $request->query('view', 'horizontal');
+
+        if ($format === 'book') {
+            abort_unless($treeModel->is_premium, 403, 'Fitur Cetak Buku Silsilah (PDF) khusus untuk Pohon Premium. Silakan upgrade pohon silsilah Anda.');
+        }
 
         return match ($format) {
             'prompt' => $this->exportService->exportPrompt($treeModel),

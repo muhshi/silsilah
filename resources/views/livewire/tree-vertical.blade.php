@@ -351,14 +351,27 @@ new class extends Component
                     Ekspor
                 </flux:button>
                 <flux:menu>
-                    <flux:menu.item icon="book-open"
-                                    href="#"
-                                    @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'book']) }}', title: 'Buku Silsilah (PDF)' } }))">
-                        <div class="flex items-center justify-between w-full gap-2">
-                            <span>Buku Silsilah (PDF)</span>
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Rekomendasi</span>
-                        </div>
-                    </flux:menu.item>
+                    @if($tree->is_premium)
+                        <flux:menu.item icon="book-open"
+                                        href="#"
+                                        @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'book']) }}', title: 'Buku Silsilah (PDF)' } }))">
+                            <div class="flex items-center justify-between w-full gap-2">
+                                <span>Buku Silsilah (PDF)</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">👑 Premium</span>
+                            </div>
+                        </flux:menu.item>
+                    @else
+                        <flux:menu.item icon="book-open"
+                                        href="{{ route('dashboard', ['upgrade_tree' => $tree->id]) }}">
+                            <div class="flex items-center justify-between w-full gap-2">
+                                <span class="flex items-center gap-1 text-zinc-700 dark:text-zinc-300">
+                                    <span>Buku Silsilah (PDF)</span>
+                                    <span class="text-xs text-amber-500 font-bold">🔒</span>
+                                </span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">Upgrade 5K</span>
+                            </div>
+                        </flux:menu.item>
+                    @endif
                     <flux:menu.item icon="photo"
                                     href="#"
                                     @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'png', 'view' => 'vertical']) }}', title: 'Gambar Silsilah (PNG)' } }))">

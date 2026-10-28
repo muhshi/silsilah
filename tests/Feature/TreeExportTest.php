@@ -86,9 +86,10 @@ test('export render requires valid signature', function () {
     $signedResponse->assertOk();
 });
 
-test('can preview book render with valid signature', function () {
+test('can preview book render with valid signature for premium tree', function () {
     $tree = FamilyTree::factory()->create([
         'name' => 'Bani Ahmad',
+        'is_premium' => true,
     ]);
 
     $kakek = Member::factory()->create([
@@ -121,6 +122,20 @@ test('can preview book render with valid signature', function () {
     $response->assertSee('INDEKS ANGGOTA KELUARGA (A — Z)');
     $response->assertSee('Ahmad Dahlan');
     $response->assertSee('Fauzi Ahmad');
+});
+
+test('cannot export book format for free non-premium tree', function () {
+    $tree = FamilyTree::factory()->create([
+        'name' => 'Pohon Biasa',
+        'is_premium' => false,
+    ]);
+
+    $response = $this->get(route('tree.export', [
+        'tree' => $tree->slug,
+        'format' => 'book',
+    ]));
+
+    $response->assertStatus(403);
 });
 
 test('tree export service accurately calculates generations for book format', function () {

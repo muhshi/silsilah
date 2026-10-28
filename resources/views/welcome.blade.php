@@ -52,14 +52,17 @@
     <section class="relative pt-28 pb-16 lg:pt-40 lg:pb-24">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="max-w-2xl">
-                <p class="text-sm font-semibold text-primary tracking-wide uppercase mb-5">Open-source & gratis</p>
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold mb-5 shadow-xs">
+                    <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Baru: Cetak Buku Silsilah Keluarga (Multi-Page PDF A4)</span>
+                </div>
 
                 <h1 class="font-headline text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-on-surface tracking-tight leading-[1.1] mb-6">
                     Satu tempat untuk merangkai cerita keluargamu.
                 </h1>
 
                 <p class="text-lg text-on-surface-variant leading-relaxed mb-10 max-w-xl">
-                    Bangun pohon silsilah, simpan kisah tiap generasi, dan bagikan warisan keluarga — semudah mengisi profil.
+                    Bangun pohon silsilah, simpan kisah tiap generasi, dan cetak buku silsilah keluarga eksklusif — semudah mengisi profil.
                 </p>
 
                 <div class="flex flex-wrap gap-3">
@@ -88,40 +91,65 @@
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="max-w-lg mb-14">
                 <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-3">Dibuat untuk kemudahan</h2>
-                <p class="text-on-surface-variant leading-relaxed">Fitur yang kamu butuhkan untuk menyusun silsilah — tanpa kerumitan.</p>
+                <p class="text-on-surface-variant leading-relaxed">Fitur lengkap yang kamu butuhkan untuk menyusun dan mengabadikan silsilah keluarga — tanpa kerumitan.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="rounded-xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/30 transition-colors group">
-                    <div class="size-10 rounded-lg bg-primary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-primary text-xl">account_tree</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {{-- Fitur 1 --}}
+                <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
+                    <div class="size-11 rounded-xl bg-primary-container flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-primary text-2xl">account_tree</span>
                     </div>
-                    <h3 class="font-headline font-semibold text-on-surface mb-1.5">Pohon Interaktif</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Visualisasi silsilah yang responsif. Mudah dinavigasi dan menampilkan struktur serumit apa pun.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Pohon Interaktif & Fokus Mobile</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Visualisasi silsilah responsif dengan navigasi kanvas interaktif serta mode fokus vertikal yang nyaman dijelajahi di smartphone.</p>
                 </div>
 
-                <div class="rounded-xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/30 transition-colors group">
-                    <div class="size-10 rounded-lg bg-secondary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-secondary text-xl">badge</span>
+                {{-- Fitur 2 (Highlighted: Buku Silsilah) --}}
+                <div class="rounded-2xl bg-surface p-6 border-2 border-emerald-500/60 dark:border-emerald-600/60 hover:border-emerald-600 transition-all shadow-sm group relative overflow-hidden">
+                    <div class="absolute top-3.5 right-3.5">
+                        <span class="inline-block bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Eksklusif</span>
                     </div>
-                    <h3 class="font-headline font-semibold text-on-surface mb-1.5">Profil Mendetail</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Simpan foto, biografi, profesi, hingga tanggal penting tiap anggota keluarga.</p>
+                    <div class="size-11 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-2xl">menu_book</span>
+                    </div>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">📖 Cetak Buku Silsilah (PDF)</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Ekspor buku silsilah A4 siap cetak dengan sampul royal heritage, hadits silaturahmi, statistik nasab, bab generasi, dan indeks alfabetis A–Z.</p>
                 </div>
 
-                <div class="rounded-xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/30 transition-colors group">
-                    <div class="size-10 rounded-lg bg-tertiary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-tertiary text-xl">group_add</span>
+                {{-- Fitur 3 --}}
+                <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
+                    <div class="size-11 rounded-xl bg-secondary-container flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-secondary text-2xl">badge</span>
                     </div>
-                    <h3 class="font-headline font-semibold text-on-surface mb-1.5">Kolaborasi</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Undang kerabat untuk ikut mengelola dan melengkapi data silsilah bersama-sama.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Profil & Rekam Nasab</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Simpan foto, avatar, tanggal & tempat lahir/wafat, profesi, kota domisili, pasangan, hingga catatan biografi tiap anggota keluarga.</p>
                 </div>
 
-                <div class="rounded-xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/30 transition-colors group">
-                    <div class="size-10 rounded-lg bg-primary-container flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-primary text-xl">picture_as_pdf</span>
+                {{-- Fitur 4 --}}
+                <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
+                    <div class="size-11 rounded-xl bg-tertiary-container flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-tertiary text-2xl">group_add</span>
                     </div>
-                    <h3 class="font-headline font-semibold text-on-surface mb-1.5">Export & Cetak</h3>
-                    <p class="text-sm text-on-surface-variant leading-relaxed">Download pohon keluarga dalam format PDF atau gambar beresolusi tinggi untuk dicetak.</p>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Kolaborasi Keluarga Besar</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Undang kerabat melalui email atau tautan undangan untuk bersama-sama melengkapi silsilah keluarga secara aman dan real-time.</p>
+                </div>
+
+                {{-- Fitur 5 --}}
+                <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
+                    <div class="size-11 rounded-xl bg-primary-container flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-primary text-2xl">download</span>
+                    </div>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Ekspor Cepat & Transparan</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Unduh bagan kanvas (PNG/PDF) dengan indikator progres real-time yang dapat diminimalkan ke pojok layar selagi kamu menjelajahi silsilah.</p>
+                </div>
+
+                {{-- Fitur 6 --}}
+                <div class="rounded-2xl bg-surface p-6 border border-surface-variant/40 hover:border-primary/40 transition-all shadow-xs group">
+                    <div class="size-11 rounded-xl bg-surface-variant flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-on-surface-variant text-2xl">security</span>
+                    </div>
+                    <h3 class="font-headline font-bold text-on-surface mb-2 text-base">Privasi & Keamanan Data</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Atur pohon sebagai publik untuk dibagikan ke kerabat, atau privat dengan perlindungan kata sandi dan riwayat log aktivitas yang lengkap.</p>
                 </div>
             </div>
         </div>
@@ -131,77 +159,135 @@
     <section id="harga" class="py-20 lg:py-28">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
             <div class="max-w-lg mb-14">
-                <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-3">Harga sederhana</h2>
-                <p class="text-on-surface-variant leading-relaxed">Mulai gratis, tambah pohon kalau butuh. Tanpa langganan bulanan.</p>
+                <h2 class="font-headline text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-3">Harga sederhana & terjangkau</h2>
+                <p class="text-on-surface-variant leading-relaxed">Mulai gratis untuk keluarga utamamu. Upgrade atau tambah kuota pohon sekali bayar tanpa langganan bulanan.</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-3xl">
-                <!-- Free -->
-                <div class="rounded-xl bg-surface-container-lowest p-7 border border-surface-variant/40">
-                    <h3 class="font-headline text-lg font-bold text-on-surface mb-1">Pohon Pertama</h3>
-                    <p class="text-sm text-on-surface-variant mb-6">Untuk memulai silsilah keluarga utamamu.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
+                <!-- 1. Free Tier -->
+                <div class="rounded-2xl bg-surface-container-lowest p-7 border border-surface-variant/40 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Gratis Selamanya</span>
+                            <h3 class="font-headline text-xl font-bold text-on-surface mt-1">Pohon Pertama</h3>
+                            <p class="text-xs text-on-surface-variant mt-1">Untuk memulai merangkai silsilah keluarga intimu.</p>
+                        </div>
 
-                    <div class="flex items-baseline gap-1 mb-6">
-                        <span class="font-headline text-3xl font-extrabold text-on-surface">Gratis</span>
-                        <span class="text-sm text-on-surface-variant">selamanya</span>
+                        <div class="flex items-baseline gap-1 my-6">
+                            <span class="font-headline text-3xl font-extrabold text-on-surface">Gratis</span>
+                            <span class="text-xs text-on-surface-variant">selamanya</span>
+                        </div>
+
+                        <ul class="space-y-3 text-sm text-on-surface-variant mb-8">
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>
+                                <span><strong class="text-on-surface">1</strong> pohon silsilah keluarga</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>
+                                <span>Hingga <strong class="text-on-surface">100 anggota</strong> keluarga</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>
+                                <span>Bagan kanvas & mode fokus mobile</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>
+                                <span>Export bagan standar (PNG & PDF)</span>
+                            </li>
+                        </ul>
                     </div>
 
-                    <ul class="space-y-3 mb-8 text-sm text-on-surface-variant">
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
-                            <span><strong class="text-on-surface">1</strong> pohon keluarga</span>
-                        </li>
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
-                            <span>Anggota keluarga <strong class="text-on-surface">tak terbatas</strong></span>
-                        </li>
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-primary text-lg">check_circle</span>
-                            <span>Export PDF & gambar</span>
-                        </li>
-                    </ul>
-
                     <flux:button href="{{ route('login') }}" variant="outline" class="w-full justify-center">
-                        Mulai sekarang
+                        Mulai gratis sekarang
                     </flux:button>
                 </div>
 
-                <!-- Premium -->
-                <div class="rounded-xl bg-on-surface text-surface p-7 relative overflow-hidden">
-                    <div class="absolute top-3 right-3">
-                        <span class="inline-block bg-tertiary-container text-on-tertiary-container text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">Populer</span>
+                <!-- 2. Upgrade Tree (Rp 5.000) - Highlighted -->
+                <div class="rounded-2xl bg-surface p-7 border-2 border-emerald-500 dark:border-emerald-500 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute top-3.5 right-3.5">
+                        <span class="inline-block bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Paling Praktis</span>
                     </div>
 
-                    <h3 class="font-headline text-lg font-bold mb-1">Tambah Pohon</h3>
-                    <p class="text-sm opacity-70 mb-6">Untuk keluarga pasangan atau cabang lain.</p>
+                    <div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Pohon yang Ada</span>
+                            <h3 class="font-headline text-xl font-bold text-on-surface mt-1">Upgrade ke Premium</h3>
+                            <p class="text-xs text-on-surface-variant mt-1">Sudah terlanjur isi pohon gratis? Cukup upgrade tanpa buat ulang!</p>
+                        </div>
 
-                    <div class="flex items-baseline gap-1 mb-6">
-                        <span class="text-sm opacity-60">Rp</span>
-                        <span class="font-headline text-3xl font-extrabold">10.000</span>
-                        <span class="text-sm opacity-60">/ pohon</span>
+                        <div class="flex items-baseline gap-1 my-6">
+                            <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">Rp</span>
+                            <span class="font-headline text-3xl font-extrabold text-on-surface">5.000</span>
+                            <span class="text-xs text-on-surface-variant">/ pohon (sekali bayar)</span>
+                        </div>
+
+                        <ul class="space-y-3 text-sm text-on-surface-variant mb-8">
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base mt-0.5">workspace_premium</span>
+                                <span><strong class="text-on-surface">Anggota Tak Terbatas</strong> (unlimited)</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base mt-0.5">menu_book</span>
+                                <span>📖 <strong class="text-on-surface">Cetak Buku Silsilah</strong> (A4 Multi-Halaman)</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base mt-0.5">group_add</span>
+                                <span>Fitur kolaborasi keluarga penuh</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base mt-0.5">verified</span>
+                                <span>Aktif selamanya tanpa biaya langganan</span>
+                            </li>
+                        </ul>
                     </div>
 
-                    <ul class="space-y-3 mb-8 text-sm opacity-80">
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-lg opacity-60">check_circle</span>
-                            <span>Bayar per pohon baru</span>
-                        </li>
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-lg opacity-60">check_circle</span>
-                            <span>Promo: <strong class="text-white">Beli 5 gratis 1</strong></span>
-                        </li>
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-lg opacity-60">check_circle</span>
-                            <span>Semua fitur paket gratis</span>
-                        </li>
-                        <li class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-lg opacity-60">check_circle</span>
-                            <span>Akses fitur kolaborasi</span>
-                        </li>
-                    </ul>
+                    <flux:button href="{{ route('login') }}" variant="primary" class="w-full justify-center !bg-emerald-600 hover:!bg-emerald-700">
+                        Masuk & upgrade pohon
+                    </flux:button>
+                </div>
 
-                    <flux:button href="{{ route('login') }}" variant="primary" class="w-full justify-center">
-                        Masuk & tambah kuota
+                <!-- 3. Tambah Pohon Baru (Rp 10.000) -->
+                <div class="rounded-2xl bg-zinc-900 text-white p-7 relative overflow-hidden flex flex-col justify-between border border-zinc-800 shadow-lg">
+                    <div class="absolute top-3.5 right-3.5">
+                        <span class="inline-block bg-amber-400 text-zinc-950 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Diskon 15%</span>
+                    </div>
+
+                    <div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Pohon Baru Tambahan</span>
+                            <h3 class="font-headline text-xl font-bold text-white mt-1">Tambah Pohon Baru</h3>
+                            <p class="text-xs text-zinc-400 mt-1">Untuk keluarga pasangan atau cabang keluarga lain.</p>
+                        </div>
+
+                        <div class="flex items-baseline gap-1 my-6">
+                            <span class="text-sm text-zinc-400">Rp</span>
+                            <span class="font-headline text-3xl font-extrabold text-white">10.000</span>
+                            <span class="text-xs text-zinc-400">/ pohon (hemat kuota)</span>
+                        </div>
+
+                        <ul class="space-y-3 text-sm text-zinc-300 mb-8">
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-amber-400 text-base mt-0.5">check_circle</span>
+                                <span>Otomatis langsung berstatus <strong class="text-white">Pohon Premium</strong></span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-amber-400 text-base mt-0.5">check_circle</span>
+                                <span>Anggota keluarga <strong class="text-white">tanpa batas</strong></span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-amber-400 text-base mt-0.5">check_circle</span>
+                                <span>Termasuk <strong class="text-white">Cetak Buku Silsilah (PDF)</strong></span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-amber-400 text-base mt-0.5">check_circle</span>
+                                <span>Bebas pilih jumlah kuota dengan diskon 15%</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <flux:button href="{{ route('login') }}" class="w-full justify-center !bg-white !text-zinc-950 hover:!bg-zinc-200">
+                        Masuk & tambah pohon
                     </flux:button>
                 </div>
             </div>
