@@ -390,7 +390,7 @@ new class extends Component
 
             @if(!$isPublic)
                 <flux:dropdown>
-                    <flux:button size="sm" icon="ellipsis-horizontal" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
+                    <flux:button size="sm" icon="cog-6-tooth" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
                         Kelola
                     </flux:button>
                     <flux:menu>

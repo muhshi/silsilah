@@ -195,17 +195,28 @@ new class extends Component
                                         @click.prevent="window.dispatchEvent(new CustomEvent('start-export', { detail: { url: '{{ route('tree.export', ['tree' => $tree, 'format' => 'json']) }}', title: 'Data Silsilah (JSON)' } }))">
                             Export Data (JSON)
                         </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
 
+                {{-- Tree Settings & Management Dropdown --}}
+                <flux:dropdown position="top" align="center">
+                    <button class="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center"
+                            title="{{ $isPublic ? 'Menu & Pilihan' : 'Kelola Pohon & Pengaturan' }}">
+                        <span class="material-symbols-outlined text-[18px] sm:text-base">{{ $isPublic ? 'more_vert' : 'settings' }}</span>
+                    </button>
+                    <flux:menu class="!w-64">
                         @if(!$isPublic)
-                            <flux:menu.separator />
                             <flux:menu.item icon="adjustments-horizontal" wire:click="$dispatch('open-tree-settings')">
                                 Kelola Pohon (Dashboard &amp; Statistik)
                             </flux:menu.item>
                             <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
                                 Import CSV/GEDCOM
                             </flux:menu.item>
-                        @else
                             <flux:menu.separator />
+                            <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
+                                Cek Hubungan Kekerabatan
+                            </flux:menu.item>
+                        @else
                             <flux:menu.item icon="pencil-square" wire:click="$dispatch('open-contribute-modal')">
                                 Lengkapi / Usulkan Data
                             </flux:menu.item>
@@ -355,7 +366,7 @@ new class extends Component
 
             @if(!$isPublic)
                 <flux:dropdown>
-                    <flux:button size="sm" icon="ellipsis-horizontal" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
+                    <flux:button size="sm" icon="cog-6-tooth" class="!bg-zinc-100 !text-zinc-700 hover:!bg-zinc-200 dark:!bg-zinc-800 dark:!text-zinc-300">
                         Kelola
                     </flux:button>
                     <flux:menu>
