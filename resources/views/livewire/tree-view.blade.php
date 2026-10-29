@@ -107,6 +107,7 @@ new class extends Component
     @if($dock)
         {{-- FLOATING PILL TOOLBAR / DOCK (macOS Dock Style at Bottom Center) --}}
         <div class="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 sm:gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl sm:rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-zinc-200/90 dark:border-zinc-700/80 shadow-2xl max-w-[calc(100vw-1.5rem)] sm:max-w-none select-none"
+             style="bottom: clamp(0.75rem, 2vh, 1.5rem) !important;"
              @mousedown.stop
              @touchstart.stop
              @click.stop>
@@ -571,7 +572,10 @@ new class extends Component
             </div>
 
             {{-- Material 3 Floating Zoom Controls --}}
-            <div class="fixed md:absolute {{ $dock ? 'bottom-16 sm:bottom-6 right-3 sm:right-6' : 'bottom-20 md:bottom-5 right-4' }} z-30 flex flex-col items-center bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800 gap-0.5 sm:gap-1 select-none" @touchstart.stop @click.stop>
+            <div class="fixed md:absolute {{ $dock ? 'bottom-16 sm:bottom-6 right-3 sm:right-6' : 'bottom-20 md:bottom-5 right-4' }} z-30 flex flex-col items-center bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800 gap-0.5 sm:gap-1 select-none"
+                 @if($dock) style="bottom: clamp(4.25rem, 6vh, 5rem) !important;" @endif
+                 @touchstart.stop
+                 @click.stop>
                 <button @click="zoomIn()" title="Zoom In" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 hover:bg-emerald-50 dark:bg-zinc-800 dark:hover:bg-emerald-950/40 text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 flex items-center justify-center transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
