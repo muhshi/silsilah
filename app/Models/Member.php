@@ -172,6 +172,39 @@ class Member extends Model
     }
 
     /**
+     * Get all linked copies of this member across other family trees (bidirectional cluster).
+     *
+     * @return Collection<int, Member>
+     */
+    public function getLinkedMembers(): Collection
+    {
+        $ids = collect();
+
+        // 1. Where this member points to
+        if ($this->source_member_id) {
+            $ids->push($this->source_member_id);
+
+            // Other members pointing to the same source
+            $siblings = Member::where('source_member_id', $this->source_member_id)
+                ->where('id', '!=', $this->id)
+                ->pluck('id');
+            $ids = $ids->merge($siblings);
+        }
+
+        // 2. Other members pointing to this member
+        $referrers = Member::where('source_member_id', $this->id)->pluck('id');
+        $ids = $ids->merge($referrers);
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Member::with(['familyTree', 'father', 'mother'])
+            ->whereIn('id', $ids->unique()->filter(fn ($id) => $id != $this->id))
+            ->get();
+    }
+
+    /**
      * Get all descendant IDs of this member recursively (children, grandchildren, etc.)
      *
      * @return Collection<int, int>

@@ -162,27 +162,45 @@ new class extends Component
             abort(403);
         }
 
+        // Link current member to source member
         $currentMember->update([
             'source_tree_id' => $sourceMember->family_tree_id,
             'source_member_id' => $sourceMember->id,
         ]);
+
+        // Also link source member back if it doesn't point to anything yet
+        if (! $sourceMember->source_member_id) {
+            $sourceMember->update([
+                'source_tree_id' => $currentMember->family_tree_id,
+                'source_member_id' => $currentMember->id,
+            ]);
+        }
 
         $this->source_tree_id = $sourceMember->family_tree_id;
         $this->source_member_id = $sourceMember->id;
         $this->showLinkSearch = false;
         $this->searchSourceQuery = '';
 
-        session()->flash('success', "Berhasil ditautkan dengan profil '{$sourceMember->first_name}' dari Silsilah {$sourceMember->familyTree->name}!");
+        session()->flash('success', "Berhasil ditautkan dua arah dengan profil '{$sourceMember->first_name}' dari Silsilah {$sourceMember->familyTree->name}!");
         $this->dispatch('refresh-tree');
     }
 
     public function syncFromSource()
     {
-        if (! $this->memberId) return;
-        $currentMember = Member::with('sourceMember.familyTree')->find($this->memberId);
-        if (! $currentMember || ! $currentMember->sourceMember) return;
+        $this->syncFromLinked();
+    }
 
-        $source = $currentMember->sourceMember;
+    public function syncFromLinked($targetSourceId = null)
+    {
+        if (! $this->memberId) return;
+        $currentMember = Member::find($this->memberId);
+        if (! $currentMember) return;
+
+        $linked = $currentMember->getLinkedMembers();
+        if ($linked->isEmpty()) return;
+
+        $source = $targetSourceId ? $linked->firstWhere('id', $targetSourceId) : $linked->first();
+        if (! $source) return;
 
         $currentMember->update([
             'first_name' => $source->first_name,
@@ -209,13 +227,58 @@ new class extends Component
         $this->dispatch('refresh-tree');
     }
 
+    public function pushToLinked()
+    {
+        if (! $this->memberId) return;
+        $currentMember = Member::find($this->memberId);
+        if (! $currentMember) return;
+
+        $linked = $currentMember->getLinkedMembers();
+        if ($linked->isEmpty()) return;
+
+        $treeNames = [];
+        foreach ($linked as $target) {
+            $target->update([
+                'first_name' => $currentMember->first_name,
+                'last_name' => $currentMember->last_name,
+                'gender' => $currentMember->gender,
+                'is_living' => $currentMember->is_living,
+                'birth_date' => $currentMember->birth_date,
+                'death_date' => $currentMember->death_date,
+                'birth_place' => $currentMember->birth_place,
+                'death_place' => $currentMember->death_place,
+                'photo' => $currentMember->photo,
+                'avatar_id' => $currentMember->avatar_id,
+                'address' => $currentMember->address,
+                'profession' => $currentMember->profession,
+                'company' => $currentMember->company,
+                'bio' => $currentMember->bio,
+                'whatsapp' => $currentMember->whatsapp,
+                'facebook' => $currentMember->facebook,
+                'instagram' => $currentMember->instagram,
+            ]);
+            $treeNames[] = $target->familyTree?->name;
+        }
+
+        $namesList = implode(', ', array_unique(array_filter($treeNames)));
+        session()->flash('success', "Perubahan berhasil diterapkan ke silsilah tertaut ({$namesList})!");
+        $this->dispatch('refresh-tree');
+    }
+
     public function unlinkSource()
     {
         if (! $this->memberId) return;
         $currentMember = Member::find($this->memberId);
         if (! $currentMember) return;
 
+        // Clear link on current member
         $currentMember->update([
+            'source_tree_id' => null,
+            'source_member_id' => null,
+        ]);
+
+        // Also clear links pointing to current member
+        Member::where('source_member_id', $currentMember->id)->update([
             'source_tree_id' => null,
             'source_member_id' => null,
         ]);
@@ -377,12 +440,14 @@ new class extends Component
         }
 
         $existingMarriages = collect();
+        $linkedMembers = collect();
         if ($this->memberId) {
             $current = Member::with(['marriagesAsHusband.wife', 'marriagesAsWife.husband'])->find($this->memberId);
             if ($current) {
                 $existingMarriages = $current->gender === 'male'
                     ? $current->marriagesAsHusband
                     : $current->marriagesAsWife;
+                $linkedMembers = $current->getLinkedMembers();
             }
         }
 
@@ -395,6 +460,7 @@ new class extends Component
             'targetSpouses' => $targetSpouses,
             'availableMembers' => $availableMembers,
             'existingMarriages' => $existingMarriages,
+            'linkedMembers' => $linkedMembers,
         ];
     }
 
@@ -948,30 +1014,35 @@ new class extends Component
 
             {{-- Status Tautan Lintas Pohon (Edit Mode) --}}
             @if($memberId)
-                @php
-                    $sourceTree = $source_tree_id ? \App\Models\FamilyTree::find($source_tree_id) : null;
-                @endphp
-                <div class="mb-4 p-3 rounded-2xl border {{ $source_member_id ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500/40' : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700/60' }}">
-                    @if($source_member_id)
-                        <div class="flex items-center justify-between flex-wrap gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="text-base">🔗</span>
-                                <div>
-                                    <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                                        Tertaut ke Pohon: {{ $sourceTree?->name ?? 'Pohon Lain' }}
-                                    </div>
-                                    <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
-                                        Profil ini tersinkron dengan profil di pohon keluarga Anda yang lain.
+                <div class="mb-4 p-3 rounded-2xl border {{ $linkedMembers->isNotEmpty() ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500/40' : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700/60' }}">
+                    @if($linkedMembers->isNotEmpty())
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base">🔗</span>
+                                    <div>
+                                        <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                                            Tertaut dengan Silsilah:
+                                            @foreach($linkedMembers as $lm)
+                                                <span>{{ $lm->familyTree?->name }} ({{ $lm->first_name }})</span>@if(!$loop->last), @endif
+                                            @endforeach
+                                        </div>
+                                        <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                                            Profil ini saling tersinkronisasi dua arah.
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <flux:button size="xs" variant="subtle" wire:click="syncFromSource" title="Ambil biodata terbaru dari sumber">
-                                    🔄 Sinkronkan
-                                </flux:button>
-                                <flux:button size="xs" variant="ghost" class="!text-red-500" wire:click="unlinkSource" wire:confirm="Lepas tautan profil ini dari silsilah sumber?" title="Putus relasi lintas silsilah">
-                                    🔓 Lepas
-                                </flux:button>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <flux:button size="xs" variant="subtle" wire:click="syncFromLinked" title="Tarik biodata terbaru dari silsilah tertaut ke sini">
+                                        🔄 Tarik Data
+                                    </flux:button>
+                                    <flux:button size="xs" variant="primary" class="!bg-emerald-600 hover:!bg-emerald-700 text-white" wire:click="pushToLinked" title="Terapkan perubahan biodata ini ke seluruh silsilah tertaut">
+                                        ⬆️ Terapkan ke Semua
+                                    </flux:button>
+                                    <flux:button size="xs" variant="ghost" class="!text-red-500" wire:click="unlinkSource" wire:confirm="Lepas tautan profil ini dari silsilah lain?" title="Putus relasi lintas silsilah">
+                                        🔓 Lepas
+                                    </flux:button>
+                                </div>
                             </div>
                         </div>
                     @else
@@ -1284,22 +1355,24 @@ new class extends Component
                 @endif
             </div>
 
-            @if($vm->sourceTree)
-                <div class="mt-3.5 p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 min-w-0 text-left">
-                        <span class="text-base shrink-0">🌳</span>
-                        <div class="min-w-0">
-                            <div class="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-400">Tercatat juga di Silsilah:</div>
-                            <div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ $vm->sourceTree->name }}</div>
+            @php
+                $vmLinked = $vm->getLinkedMembers();
+            @endphp
+            @if($vmLinked->isNotEmpty())
+                <div class="mt-3.5 p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-500/30 space-y-2">
+                    <div class="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-400">Tercatat juga di Silsilah:</div>
+                    @foreach($vmLinked as $lm)
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0 text-left">
+                                <span class="text-base shrink-0">🌳</span>
+                                <div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ $lm->familyTree?->name }}</div>
+                            </div>
+                            <a href="{{ route('tree.vertical', ['tree' => $lm->family_tree_id, 'member' => $lm->id]) }}" wire:navigate class="shrink-0 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center gap-1 transition-all">
+                                <span>Buka</span>
+                                <span>➔</span>
+                            </a>
                         </div>
-                    </div>
-                    @php
-                        $sourceTreeUrl = route('tree.vertical', ['tree' => $vm->source_tree_id, 'member' => $vm->source_member_id]);
-                    @endphp
-                    <a href="{{ $sourceTreeUrl }}" wire:navigate class="shrink-0 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center gap-1 transition-all">
-                        <span>Buka</span>
-                        <span>➔</span>
-                    </a>
+                    @endforeach
                 </div>
             @endif
 

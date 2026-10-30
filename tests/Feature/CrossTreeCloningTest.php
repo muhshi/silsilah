@@ -204,3 +204,58 @@ test('detail modal displays source tree badge when member is linked', function (
         ->assertSee('Tercatat juga di Silsilah:')
         ->assertSee('Bani Kakek Ayah');
 });
+
+test('bidirectional linking allows member in either tree to see link and sync data', function () {
+    $user = User::factory()->create();
+    $treeA = FamilyTree::factory()->create(['name' => 'Bani Mochtar']);
+    $treeB = FamilyTree::factory()->create(['name' => 'Bani Syukri']);
+    $treeA->users()->attach($user->id, ['role' => 'owner']);
+    $treeB->users()->attach($user->id, ['role' => 'owner']);
+
+    $memberA = Member::factory()->create([
+        'family_tree_id' => $treeA->id,
+        'first_name' => 'M Abdul',
+        'last_name' => 'Muhshi',
+        'profession' => 'Engineer',
+    ]);
+
+    $memberB = Member::factory()->create([
+        'family_tree_id' => $treeB->id,
+        'first_name' => 'M Abdul',
+        'last_name' => 'Muhshi',
+        'profession' => null,
+    ]);
+
+    $this->actingAs($user);
+
+    // Link from Tree A to Tree B
+    Livewire::test('member-manager', ['treeId' => $treeA->id])
+        ->call('editMember', $memberA->id)
+        ->call('linkExistingMemberToSource', $memberB->id);
+
+    // Now test opening memberB in Tree B! It must also see the link to Tree A
+    Livewire::test('member-manager', ['treeId' => $treeB->id])
+        ->call('editMember', $memberB->id)
+        ->assertSee('Bani Mochtar')
+        ->assertSee('Tarik Data');
+
+    // Update profession in Member A and sync from Tree B
+    $memberA->update(['profession' => 'Senior Developer']);
+
+    Livewire::test('member-manager', ['treeId' => $treeB->id])
+        ->call('editMember', $memberB->id)
+        ->call('syncFromLinked');
+
+    $memberB->refresh();
+    expect($memberB->profession)->toBe('Senior Developer');
+
+    // Also test push to linked from Tree B
+    $memberB->update(['bio' => 'Family Genealogist']);
+
+    Livewire::test('member-manager', ['treeId' => $treeB->id])
+        ->call('editMember', $memberB->id)
+        ->call('pushToLinked');
+
+    $memberA->refresh();
+    expect($memberA->bio)->toBe('Family Genealogist');
+});
