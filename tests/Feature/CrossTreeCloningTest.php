@@ -259,3 +259,65 @@ test('bidirectional linking allows member in either tree to see link and sync da
     $memberA->refresh();
     expect($memberA->bio)->toBe('Family Genealogist');
 });
+
+test('marriage date synchronizes across linked trees and reflects on both spouses', function () {
+    $user = User::factory()->create();
+    $treeA = FamilyTree::factory()->create(['name' => 'Bani Mochtar']);
+    $treeB = FamilyTree::factory()->create(['name' => 'Bani Syukri']);
+    $treeA->users()->attach($user->id, ['role' => 'owner']);
+    $treeB->users()->attach($user->id, ['role' => 'owner']);
+
+    // Husband & Wife in Tree A with marriage_date
+    $husbandA = Member::factory()->create(['family_tree_id' => $treeA->id, 'first_name' => 'Abdul', 'gender' => 'male']);
+    $wifeA = Member::factory()->create(['family_tree_id' => $treeA->id, 'first_name' => 'Ainur', 'gender' => 'female']);
+    $marriageA = Marriage::create([
+        'husband_id' => $husbandA->id,
+        'wife_id' => $wifeA->id,
+        'marriage_date' => '2021-01-03',
+        'is_current' => true,
+    ]);
+
+    // Husband & Wife in Tree B without marriage_date
+    $husbandB = Member::factory()->create([
+        'family_tree_id' => $treeB->id,
+        'first_name' => 'Abdul',
+        'gender' => 'male',
+        'source_tree_id' => $treeA->id,
+        'source_member_id' => $husbandA->id,
+    ]);
+    $wifeB = Member::factory()->create([
+        'family_tree_id' => $treeB->id,
+        'first_name' => 'Ainur',
+        'gender' => 'female',
+        'source_tree_id' => $treeA->id,
+        'source_member_id' => $wifeA->id,
+    ]);
+    $marriageB = Marriage::create([
+        'husband_id' => $husbandB->id,
+        'wife_id' => $wifeB->id,
+        'marriage_date' => null,
+        'is_current' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    // Sync from husbandB in Tree B
+    Livewire::test('member-manager', ['treeId' => $treeB->id])
+        ->call('editMember', $husbandB->id)
+        ->call('syncFromLinked');
+
+    $marriageB->refresh();
+    expect($marriageB->marriage_date->format('Y-m-d'))->toBe('2021-01-03');
+
+    // Both husband and wife share this exact marriage_date in form
+    Livewire::test('member-manager', ['treeId' => $treeB->id])
+        ->call('editMember', $wifeB->id)
+        ->assertSet('marriage_date', '2021-01-03');
+
+    // Update marriage date directly via updateMarriageDate
+    Livewire::test('member-manager', ['treeId' => $treeB->id])
+        ->call('updateMarriageDate', $marriageB->id, '2022-05-20');
+
+    $marriageB->refresh();
+    expect($marriageB->marriage_date->format('Y-m-d'))->toBe('2022-05-20');
+});

@@ -223,7 +223,41 @@ new class extends Component
         ]);
 
         $this->editMember($currentMember->id);
-        session()->flash('success', "Data profil berhasil disinkronkan dengan data terbaru dari Silsilah {$source->familyTree->name}!");
+
+        // Sync marriages (marriage_date & is_current) between linked members
+        $sourceMarriages = Marriage::where('husband_id', $source->id)->orWhere('wife_id', $source->id)->get();
+        foreach ($sourceMarriages as $sm) {
+            $sourceSpouseId = $sm->husband_id == $source->id ? $sm->wife_id : $sm->husband_id;
+            $sourceSpouse = Member::find($sourceSpouseId);
+            if (! $sourceSpouse) continue;
+
+            $targetSpouse = Member::where('family_tree_id', $currentMember->family_tree_id)
+                ->where(function ($q) use ($sourceSpouse) {
+                    $q->where('source_member_id', $sourceSpouse->id)
+                        ->orWhere('id', $sourceSpouse->source_member_id)
+                        ->orWhere(function ($sq) use ($sourceSpouse) {
+                            $sq->where('first_name', $sourceSpouse->first_name)
+                                ->where('gender', $sourceSpouse->gender);
+                        });
+                })->first();
+
+            if ($targetSpouse) {
+                $currentMarriage = Marriage::where(function ($q) use ($currentMember, $targetSpouse) {
+                    $q->where('husband_id', $currentMember->id)->where('wife_id', $targetSpouse->id);
+                })->orWhere(function ($q) use ($currentMember, $targetSpouse) {
+                    $q->where('husband_id', $targetSpouse->id)->where('wife_id', $currentMember->id);
+                })->first();
+
+                if ($currentMarriage) {
+                    $currentMarriage->update([
+                        'marriage_date' => $sm->marriage_date,
+                        'is_current' => $sm->is_current,
+                    ]);
+                }
+            }
+        }
+
+        session()->flash('success', "Data profil dan pernikahan berhasil disinkronkan dari Silsilah {$source->familyTree->name}!");
         $this->dispatch('refresh-tree');
     }
 
@@ -237,6 +271,8 @@ new class extends Component
         if ($linked->isEmpty()) return;
 
         $treeNames = [];
+        $currentMarriages = Marriage::where('husband_id', $currentMember->id)->orWhere('wife_id', $currentMember->id)->get();
+
         foreach ($linked as $target) {
             $target->update([
                 'first_name' => $currentMember->first_name,
@@ -258,6 +294,38 @@ new class extends Component
                 'instagram' => $currentMember->instagram,
             ]);
             $treeNames[] = $target->familyTree?->name;
+
+            // Push marriages
+            foreach ($currentMarriages as $cm) {
+                $currentSpouseId = $cm->husband_id == $currentMember->id ? $cm->wife_id : $cm->husband_id;
+                $currentSpouse = Member::find($currentSpouseId);
+                if (! $currentSpouse) continue;
+
+                $targetSpouse = Member::where('family_tree_id', $target->family_tree_id)
+                    ->where(function ($q) use ($currentSpouse) {
+                        $q->where('source_member_id', $currentSpouse->id)
+                            ->orWhere('id', $currentSpouse->source_member_id)
+                            ->orWhere(function ($sq) use ($currentSpouse) {
+                                $sq->where('first_name', $currentSpouse->first_name)
+                                    ->where('gender', $currentSpouse->gender);
+                            });
+                    })->first();
+
+                if ($targetSpouse) {
+                    $targetMarriage = Marriage::where(function ($q) use ($target, $targetSpouse) {
+                        $q->where('husband_id', $target->id)->where('wife_id', $targetSpouse->id);
+                    })->orWhere(function ($q) use ($target, $targetSpouse) {
+                        $q->where('husband_id', $targetSpouse->id)->where('wife_id', $target->id);
+                    })->first();
+
+                    if ($targetMarriage) {
+                        $targetMarriage->update([
+                            'marriage_date' => $cm->marriage_date,
+                            'is_current' => $cm->is_current,
+                        ]);
+                    }
+                }
+            }
         }
 
         $namesList = implode(', ', array_unique(array_filter($treeNames)));
@@ -639,12 +707,19 @@ new class extends Component
                             $newSpouse->source_member_id = $sp->id;
                             $newSpouse->save();
 
+                            $origMarriage = Marriage::where(function ($q) use ($source, $sp) {
+                                $q->where('husband_id', $source->id)->where('wife_id', $sp->id);
+                            })->orWhere(function ($q) use ($source, $sp) {
+                                $q->where('husband_id', $sp->id)->where('wife_id', $source->id);
+                            })->first();
+
                             $hId = $member->gender === 'male' ? $member->id : $newSpouse->id;
                             $wId = $member->gender === 'female' ? $member->id : $newSpouse->id;
                             Marriage::create([
                                 'husband_id' => $hId,
                                 'wife_id' => $wId,
-                                'is_current' => true,
+                                'marriage_date' => $origMarriage?->marriage_date,
+                                'is_current' => $origMarriage ? $origMarriage->is_current : true,
                             ]);
                             $createdSpouses[$sp->id] = $newSpouse->id;
                         }
@@ -720,6 +795,26 @@ new class extends Component
         );
 
         session()->flash('success', 'Status pernikahan berhasil diperbarui.');
+        $this->dispatch('refresh-tree');
+    }
+
+    public function updateMarriageDate($marriageId, $date)
+    {
+        $tree = FamilyTree::findOrFail($this->treeId);
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
+
+        $marriage = Marriage::findOrFail($marriageId);
+        $marriage->update([
+            'marriage_date' => $date ?: null,
+        ]);
+
+        \App\Models\ActivityLog::log(
+            $this->treeId,
+            'marriage_updated',
+            'Memperbarui tanggal pernikahan'
+        );
+
+        session()->flash('success', 'Tanggal pernikahan berhasil diperbarui.');
         $this->dispatch('refresh-tree');
     }
 
@@ -1148,7 +1243,16 @@ new class extends Component
 
                 <div class="grid grid-cols-3 gap-4">
                     <flux:input type="date" wire:model="birth_date" label="Tgl Lahir" />
-                    <flux:input type="date" wire:model="marriage_date" label="Tgl Pernikahan" />
+                    @if(!$memberId || $existingMarriages->count() <= 1)
+                        <flux:input type="date" wire:model="marriage_date" label="Tgl Pernikahan" />
+                    @else
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-zinc-500">Tgl Pernikahan</label>
+                            <div class="text-[10px] text-zinc-500 bg-zinc-100 dark:bg-zinc-800 p-2 rounded-lg leading-tight">
+                                Diatur per pasangan di bawah ({{ $existingMarriages->count() }} pasangan)
+                            </div>
+                        </div>
+                    @endif
                     <flux:input type="date" wire:model="death_date" label="Tgl Wafat" x-bind:disabled="$wire.is_living" />
                 </div>
 
@@ -1234,40 +1338,46 @@ new class extends Component
                                 $isDeceasedSpouse = $sp && !$sp->is_living;
                             @endphp
                             @if($sp)
-                                <div class="flex items-center justify-between p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <span class="text-base">💍</span>
-                                        <div class="min-w-0">
-                                            <div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                                                {{ $sp->first_name }} {{ $sp->last_name }}
-                                            </div>
-                                            <div class="text-[11px] flex items-center gap-1.5 flex-wrap">
-                                                @if($isDeceasedSpouse && $isDivorced)
-                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">Cerai Mati (Wafat)</span>
-                                                @elseif($isDivorced)
-                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">Cerai Hidup</span>
-                                                @else
-                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Menikah (Aktif)</span>
-                                                @endif
-                                                @if($m->marriage_date)
-                                                    <span class="text-zinc-400">• {{ \Carbon\Carbon::parse($m->marriage_date)->format('d M Y') }}</span>
-                                                @endif
+                                <div class="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <span class="text-base">💍</span>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                                                    {{ $sp->first_name }} {{ $sp->last_name }}
+                                                </div>
+                                                <div class="text-[11px] flex items-center gap-1.5 flex-wrap">
+                                                    @if($isDeceasedSpouse && $isDivorced)
+                                                        <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">Cerai Mati (Wafat)</span>
+                                                    @elseif($isDivorced)
+                                                        <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">Cerai Hidup</span>
+                                                    @else
+                                                        <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Menikah (Aktif)</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            @if($m->is_current)
+                                                <flux:button size="xs" variant="subtle" wire:click="updateMarriageStatus({{ $m->id }}, false)" title="Tandai sebagai Cerai Hidup">
+                                                    Ubah ke Cerai
+                                                </flux:button>
+                                            @else
+                                                <flux:button size="xs" variant="subtle" wire:click="updateMarriageStatus({{ $m->id }}, true)" title="Tandai sebagai Menikah Aktif">
+                                                    Ubah ke Menikah
+                                                </flux:button>
+                                            @endif
+                                            <flux:button size="xs" variant="ghost" wire:click="deleteMarriage({{ $m->id }})" wire:confirm="Hapus relasi pernikahan dengan {{ $sp->first_name }}?" class="!text-red-500" title="Hapus Relasi Pasangan">
+                                                ✕
+                                            </flux:button>
+                                        </div>
                                     </div>
-                                    <div class="flex items-center gap-1.5 shrink-0">
-                                        @if($m->is_current)
-                                            <flux:button size="xs" variant="subtle" wire:click="updateMarriageStatus({{ $m->id }}, false)" title="Tandai sebagai Cerai Hidup">
-                                                Ubah ke Cerai
-                                            </flux:button>
-                                        @else
-                                            <flux:button size="xs" variant="subtle" wire:click="updateMarriageStatus({{ $m->id }}, true)" title="Tandai sebagai Menikah Aktif">
-                                                Ubah ke Menikah
-                                            </flux:button>
-                                        @endif
-                                        <flux:button size="xs" variant="ghost" wire:click="deleteMarriage({{ $m->id }})" wire:confirm="Hapus relasi pernikahan dengan {{ $sp->first_name }}?" class="!text-red-500" title="Hapus Relasi Pasangan">
-                                            ✕
-                                        </flux:button>
+                                    <div class="flex items-center gap-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 text-xs">
+                                        <span class="text-zinc-500 text-[11px] font-medium shrink-0">📅 Tgl Pernikahan:</span>
+                                        <input type="date"
+                                               value="{{ $m->marriage_date ? \Carbon\Carbon::parse($m->marriage_date)->format('Y-m-d') : '' }}"
+                                               wire:change="updateMarriageDate({{ $m->id }}, $event.target.value)"
+                                               class="text-xs px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                                     </div>
                                 </div>
                             @endif
