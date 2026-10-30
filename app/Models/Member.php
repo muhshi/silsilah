@@ -17,6 +17,8 @@ class Member extends Model
 
     protected $fillable = [
         'family_tree_id',
+        'source_tree_id',
+        'source_member_id',
         'first_name',
         'last_name',
         'gender',
@@ -76,6 +78,22 @@ class Member extends Model
     }
 
     /**
+     * @return BelongsTo<FamilyTree, Member>
+     */
+    public function sourceTree(): BelongsTo
+    {
+        return $this->belongsTo(FamilyTree::class, 'source_tree_id');
+    }
+
+    /**
+     * @return BelongsTo<Member, Member>
+     */
+    public function sourceMember(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'source_member_id');
+    }
+
+    /**
      * @return BelongsTo<Member, Member>
      */
     public function father(): BelongsTo
@@ -125,6 +143,32 @@ class Member extends Model
     public function marriagesAsWife(): HasMany
     {
         return $this->hasMany(Marriage::class, 'wife_id');
+    }
+
+    /**
+     * Get all spouses of this member across marriages.
+     *
+     * @return Collection<int, Member>
+     */
+    public function getSpouses(): Collection
+    {
+        $spouseIds = $this->gender === 'male'
+            ? $this->marriagesAsHusband()->pluck('wife_id')
+            : $this->marriagesAsWife()->pluck('husband_id');
+
+        return Member::whereIn('id', $spouseIds)->get();
+    }
+
+    /**
+     * Get all direct children of this member.
+     *
+     * @return Collection<int, Member>
+     */
+    public function getAllChildren(): Collection
+    {
+        $filter = $this->gender === 'male' ? 'father_id' : 'mother_id';
+
+        return Member::where($filter, $this->id)->get();
     }
 
     /**

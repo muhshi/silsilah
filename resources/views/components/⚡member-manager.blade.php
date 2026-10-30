@@ -55,6 +55,178 @@ new class extends Component
     public $mother_id;
     public $other_parent_id;
 
+    // Cross-Tree Reuse & Sync
+    public $searchSourceQuery = '';
+    public $selectedSourceMemberId = null;
+    public $includeSpouses = true;
+    public $includeChildren = true;
+    public $sourceSpouseList = [];
+    public $sourceChildList = [];
+    public $source_tree_id = null;
+    public $source_member_id = null;
+    public $showLinkSearch = false;
+
+    public function getSourceMemberCandidatesProperty()
+    {
+        $query = trim($this->searchSourceQuery);
+        if (strlen($query) < 2) {
+            return collect();
+        }
+
+        $user = auth()->user();
+        if (! $user) {
+            return collect();
+        }
+
+        $otherTreeIds = $user->familyTrees()
+            ->where('family_trees.id', '!=', $this->treeId)
+            ->pluck('family_trees.id');
+
+        if ($otherTreeIds->isEmpty()) {
+            return collect();
+        }
+
+        return Member::with(['familyTree', 'father', 'mother', 'marriagesAsHusband.wife', 'marriagesAsWife.husband'])
+            ->whereIn('family_tree_id', $otherTreeIds)
+            ->where(function ($q) use ($query) {
+                $q->where('first_name', 'like', "%{$query}%")
+                    ->orWhere('last_name', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get();
+    }
+
+    public function selectSourceMember($memberId)
+    {
+        $member = Member::with(['familyTree', 'father', 'mother'])->find($memberId);
+        if (! $member) return;
+
+        $userTreeIds = auth()->user()->familyTrees()->pluck('family_trees.id');
+        if (! $userTreeIds->contains($member->family_tree_id)) {
+            abort(403);
+        }
+
+        $this->selectedSourceMemberId = $member->id;
+        $this->source_tree_id = $member->family_tree_id;
+        $this->source_member_id = $member->id;
+
+        // Auto-fill attributes
+        $this->first_name = $member->first_name;
+        $this->last_name = $member->last_name ?? '';
+        $this->gender = $member->gender;
+        $this->is_living = (bool) $member->is_living;
+        $this->birth_date = $member->birth_date ? \Carbon\Carbon::parse($member->birth_date)->format('Y-m-d') : '';
+        $this->death_date = $member->death_date ? \Carbon\Carbon::parse($member->death_date)->format('Y-m-d') : '';
+        $this->birth_place = $member->birth_place ?? '';
+        $this->address = $member->address ?? '';
+        $this->profession = $member->profession ?? '';
+        $this->bio = $member->bio ?? '';
+        $this->photo = null;
+        $this->photo_url = $member->photo ?? '';
+        $this->avatar_id = $member->avatar_id;
+
+        // Load spouses & children for optional nuclear family cloning
+        $spouses = $member->getSpouses();
+        $this->sourceSpouseList = $spouses->map(fn($s) => [
+            'id' => $s->id,
+            'name' => trim($s->first_name . ' ' . $s->last_name),
+            'gender' => $s->gender,
+        ])->toArray();
+
+        $children = $member->getAllChildren();
+        $this->sourceChildList = $children->map(fn($c) => [
+            'id' => $c->id,
+            'name' => trim($c->first_name . ' ' . $c->last_name),
+            'gender' => $c->gender,
+        ])->toArray();
+    }
+
+    public function clearSourceMember()
+    {
+        $this->selectedSourceMemberId = null;
+        $this->source_tree_id = null;
+        $this->source_member_id = null;
+        $this->sourceSpouseList = [];
+        $this->sourceChildList = [];
+    }
+
+    public function linkExistingMemberToSource($sourceMemberId)
+    {
+        $currentMember = Member::find($this->memberId);
+        $sourceMember = Member::with('familyTree')->find($sourceMemberId);
+
+        if (! $currentMember || ! $sourceMember) return;
+
+        $userTreeIds = auth()->user()->familyTrees()->pluck('family_trees.id');
+        if (! $userTreeIds->contains($sourceMember->family_tree_id)) {
+            abort(403);
+        }
+
+        $currentMember->update([
+            'source_tree_id' => $sourceMember->family_tree_id,
+            'source_member_id' => $sourceMember->id,
+        ]);
+
+        $this->source_tree_id = $sourceMember->family_tree_id;
+        $this->source_member_id = $sourceMember->id;
+        $this->showLinkSearch = false;
+        $this->searchSourceQuery = '';
+
+        session()->flash('success', "Berhasil ditautkan dengan profil '{$sourceMember->first_name}' dari Silsilah {$sourceMember->familyTree->name}!");
+        $this->dispatch('refresh-tree');
+    }
+
+    public function syncFromSource()
+    {
+        if (! $this->memberId) return;
+        $currentMember = Member::with('sourceMember.familyTree')->find($this->memberId);
+        if (! $currentMember || ! $currentMember->sourceMember) return;
+
+        $source = $currentMember->sourceMember;
+
+        $currentMember->update([
+            'first_name' => $source->first_name,
+            'last_name' => $source->last_name,
+            'gender' => $source->gender,
+            'is_living' => $source->is_living,
+            'birth_date' => $source->birth_date,
+            'death_date' => $source->death_date,
+            'birth_place' => $source->birth_place,
+            'death_place' => $source->death_place,
+            'photo' => $source->photo,
+            'avatar_id' => $source->avatar_id,
+            'address' => $source->address,
+            'profession' => $source->profession,
+            'company' => $source->company,
+            'bio' => $source->bio,
+            'whatsapp' => $source->whatsapp,
+            'facebook' => $source->facebook,
+            'instagram' => $source->instagram,
+        ]);
+
+        $this->editMember($currentMember->id);
+        session()->flash('success', "Data profil berhasil disinkronkan dengan data terbaru dari Silsilah {$source->familyTree->name}!");
+        $this->dispatch('refresh-tree');
+    }
+
+    public function unlinkSource()
+    {
+        if (! $this->memberId) return;
+        $currentMember = Member::find($this->memberId);
+        if (! $currentMember) return;
+
+        $currentMember->update([
+            'source_tree_id' => null,
+            'source_member_id' => null,
+        ]);
+
+        $this->source_tree_id = null;
+        $this->source_member_id = null;
+
+        session()->flash('success', 'Tautan ke silsilah lain berhasil dilepas.');
+        $this->dispatch('refresh-tree');
+    }
+
     public function autoDetectGender(): void
     {
         if (in_array($this->relType, ['spouse_of', 'ex_of']) && $this->targetMemberId) {
@@ -156,6 +328,12 @@ new class extends Component
         if ($marriages->count() === 1 && $marriages->first()->marriage_date) {
             $this->marriage_date = \Carbon\Carbon::parse($marriages->first()->marriage_date)->format('Y-m-d');
         }
+
+        // Cross-tree source references
+        $this->source_tree_id = $member->source_tree_id;
+        $this->source_member_id = $member->source_member_id;
+        $this->showLinkSearch = false;
+        $this->searchSourceQuery = '';
 
         // If photo is a URL, put it in photo_url field
         if ($member->photo && str_starts_with($member->photo, 'http')) {
@@ -373,6 +551,65 @@ new class extends Component
                     ]);
                 }
             }
+
+            // Cross-tree source provenance & nuclear family copy
+            if ($this->selectedSourceMemberId) {
+                $source = Member::find($this->selectedSourceMemberId);
+                if ($source) {
+                    $member->update([
+                        'source_tree_id' => $source->family_tree_id,
+                        'source_member_id' => $source->id,
+                    ]);
+
+                    $createdSpouses = [];
+                    if ($this->includeSpouses) {
+                        $sourceSpouses = $source->getSpouses();
+                        foreach ($sourceSpouses as $sp) {
+                            $newSpouse = $sp->replicate([
+                                'family_tree_id', 'father_id', 'mother_id'
+                            ]);
+                            $newSpouse->family_tree_id = $this->treeId;
+                            $newSpouse->source_tree_id = $sp->family_tree_id;
+                            $newSpouse->source_member_id = $sp->id;
+                            $newSpouse->save();
+
+                            $hId = $member->gender === 'male' ? $member->id : $newSpouse->id;
+                            $wId = $member->gender === 'female' ? $member->id : $newSpouse->id;
+                            Marriage::create([
+                                'husband_id' => $hId,
+                                'wife_id' => $wId,
+                                'is_current' => true,
+                            ]);
+                            $createdSpouses[$sp->id] = $newSpouse->id;
+                        }
+                    }
+
+                    if ($this->includeChildren) {
+                        $sourceChildren = $source->getAllChildren();
+                        foreach ($sourceChildren as $child) {
+                            $newChild = $child->replicate([
+                                'family_tree_id', 'father_id', 'mother_id'
+                            ]);
+                            $newChild->family_tree_id = $this->treeId;
+                            $newChild->source_tree_id = $child->family_tree_id;
+                            $newChild->source_member_id = $child->id;
+
+                            if ($member->gender === 'male') {
+                                $newChild->father_id = $member->id;
+                                $newChild->mother_id = $child->mother_id && isset($createdSpouses[$child->mother_id])
+                                    ? $createdSpouses[$child->mother_id]
+                                    : null;
+                            } else {
+                                $newChild->mother_id = $member->id;
+                                $newChild->father_id = $child->father_id && isset($createdSpouses[$child->father_id])
+                                    ? $createdSpouses[$child->father_id]
+                                    : null;
+                            }
+                            $newChild->save();
+                        }
+                    }
+                }
+            }
         }
 
         Flux::modal('member-modal')->close();
@@ -545,7 +782,9 @@ new class extends Component
             'memberId', 'first_name', 'last_name', 'gender', 'is_living',
             'birth_date', 'death_date', 'birth_place', 'address', 'profession', 'bio',
             'photo', 'photo_url', 'avatar_id', 'father_id', 'mother_id', 'other_parent_id', 'relType', 'targetMemberId',
-            'marriage_date', 'marriage_status'
+            'marriage_date', 'marriage_status', 'searchSourceQuery', 'selectedSourceMemberId',
+            'includeSpouses', 'includeChildren', 'sourceSpouseList', 'sourceChildList',
+            'source_tree_id', 'source_member_id', 'showLinkSearch'
         ]);
     }
 };
@@ -582,6 +821,196 @@ new class extends Component
                             <span>Upgrade ke Premium (Rp 5.000)</span>
                         </a>
                     </div>
+                </div>
+            @endif
+
+            {{-- Fitur Salin/Impor dari Silsilah Lain (Create Mode) --}}
+            @if(!$memberId)
+                <div class="mb-4 p-3.5 rounded-2xl border transition-all {{ $selectedSourceMemberId ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500/40' : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700/60' }}">
+                    @if($selectedSourceMemberId)
+                        @php
+                            $sourceMemberObj = \App\Models\Member::with('familyTree')->find($selectedSourceMemberId);
+                        @endphp
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base">✨</span>
+                                    <div>
+                                        <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                                            Profil disalin dari Pohon: {{ $sourceMemberObj?->familyTree?->name }}
+                                        </div>
+                                        <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                                            Biodata terisi otomatis & profil saling tertaut.
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" wire:click="clearSourceMember" class="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:underline">
+                                    ✕ Batalkan
+                                </button>
+                            </div>
+
+                            {{-- Opsi Salin Pasangan & Anak Sekaligus --}}
+                            @if(!empty($sourceSpouseList) || !empty($sourceChildList))
+                                <div class="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/50 space-y-2">
+                                    <div class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                                        👨‍👩‍👧 Opsi Salin Keluarga Sekaligus:
+                                    </div>
+                                    @if(!empty($sourceSpouseList))
+                                        <label class="flex items-start gap-2 text-xs text-zinc-800 dark:text-zinc-200 cursor-pointer">
+                                            <input type="checkbox" wire:model.live="includeSpouses" class="rounded border-zinc-300 text-emerald-600 shadow-xs focus:ring-emerald-500 mt-0.5">
+                                            <span>
+                                                Sertakan Pasangan: <strong>{{ collect($sourceSpouseList)->pluck('name')->join(', ') }}</strong>
+                                            </span>
+                                        </label>
+                                    @endif
+                                    @if(!empty($sourceChildList))
+                                        <label class="flex items-start gap-2 text-xs text-zinc-800 dark:text-zinc-200 cursor-pointer">
+                                            <input type="checkbox" wire:model.live="includeChildren" class="rounded border-zinc-300 text-emerald-600 shadow-xs focus:ring-emerald-500 mt-0.5">
+                                            <span>
+                                                Sertakan Anak ({{ count($sourceChildList) }}): <strong>{{ collect($sourceChildList)->pluck('name')->join(', ') }}</strong>
+                                            </span>
+                                        </label>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                    <span>🔍</span>
+                                    <span>Cari & Ambil Profil dari Pohon Lain Anda</span>
+                                </label>
+                                @if($searchSourceQuery)
+                                    <button type="button" wire:click="$set('searchSourceQuery', '')" class="text-[11px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                                        Reset
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="relative">
+                                <input type="text"
+                                       wire:model.live.debounce.300ms="searchSourceQuery"
+                                       placeholder="Ketik nama anggota (contoh: Ahmad, Budi...)"
+                                       class="w-full text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900/80 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+
+                            @if(strlen(trim($searchSourceQuery)) >= 2)
+                                <div class="mt-2 space-y-2 max-h-56 overflow-y-auto pr-1">
+                                    @forelse($this->sourceMemberCandidates as $candidate)
+                                        @php
+                                            $candFather = $candidate->father;
+                                            $candMother = $candidate->mother;
+                                            $candSpouses = $candidate->getSpouses();
+                                            $candBirthYear = $candidate->birth_date ? \Carbon\Carbon::parse($candidate->birth_date)->format('Y') : null;
+                                        @endphp
+                                        <div class="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/70 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 transition-all flex items-center justify-between gap-3">
+                                            <div class="min-w-0 space-y-0.5">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <span class="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                                                        {{ $candidate->first_name }} {{ $candidate->last_name }}
+                                                    </span>
+                                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold {{ $candidate->gender === 'female' ? 'bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300' }}">
+                                                        {{ $candidate->gender === 'female' ? 'Wanita' : 'Pria' }}
+                                                    </span>
+                                                </div>
+
+                                                {{-- Nasab & Disambiguasi --}}
+                                                <div class="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap">
+                                                    @if($candFather)
+                                                        <span>Nasab: <strong>bin/binti {{ $candFather->first_name }} {{ $candFather->last_name }}</strong></span>
+                                                    @endif
+                                                    @if($candSpouses->isNotEmpty())
+                                                        <span>• Pasangan: <strong>{{ $candSpouses->pluck('first_name')->join(', ') }}</strong></span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-[10px] text-zinc-400 dark:text-zinc-500">
+                                                    <span>🌳 {{ $candidate->familyTree?->name }}</span>
+                                                    @if($candBirthYear)
+                                                        <span>• Lahir: {{ $candBirthYear }} @if($candidate->birth_place)({{ $candidate->birth_place }})@endif</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <flux:button size="xs" variant="primary" class="!bg-emerald-600 hover:!bg-emerald-700 text-white shrink-0" wire:click="selectSourceMember({{ $candidate->id }})">
+                                                Pilih
+                                            </flux:button>
+                                        </div>
+                                    @empty
+                                        <div class="text-xs text-center py-2 text-zinc-400">
+                                            Tidak ditemukan anggota dengan nama "{{ $searchSourceQuery }}" di pohon lain Anda.
+                                        </div>
+                                    @endforelse
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            {{-- Status Tautan Lintas Pohon (Edit Mode) --}}
+            @if($memberId)
+                @php
+                    $sourceTree = $source_tree_id ? \App\Models\FamilyTree::find($source_tree_id) : null;
+                @endphp
+                <div class="mb-4 p-3 rounded-2xl border {{ $source_member_id ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500/40' : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700/60' }}">
+                    @if($source_member_id)
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">🔗</span>
+                                <div>
+                                    <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                                        Tertaut ke Pohon: {{ $sourceTree?->name ?? 'Pohon Lain' }}
+                                    </div>
+                                    <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                                        Profil ini tersinkron dengan profil di pohon keluarga Anda yang lain.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <flux:button size="xs" variant="subtle" wire:click="syncFromSource" title="Ambil biodata terbaru dari sumber">
+                                    🔄 Sinkronkan
+                                </flux:button>
+                                <flux:button size="xs" variant="ghost" class="!text-red-500" wire:click="unlinkSource" wire:confirm="Lepas tautan profil ini dari silsilah sumber?" title="Putus relasi lintas silsilah">
+                                    🔓 Lepas
+                                </flux:button>
+                            </div>
+                        </div>
+                    @else
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                                    Belum ditautkan ke profil di pohon lain.
+                                </span>
+                                <button type="button" wire:click="$toggle('showLinkSearch')" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                                    {{ $showLinkSearch ? 'Tutup Pencarian' : '+ Tautkan ke Pohon Lain' }}
+                                </button>
+                            </div>
+                            @if($showLinkSearch)
+                                <div class="mt-3 space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-2">
+                                    <input type="text"
+                                           wire:model.live.debounce.300ms="searchSourceQuery"
+                                           placeholder="Cari nama di pohon lain untuk ditautkan..."
+                                           class="w-full text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900/80 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    @if(strlen(trim($searchSourceQuery)) >= 2)
+                                        <div class="space-y-1.5 max-h-40 overflow-y-auto">
+                                            @forelse($this->sourceMemberCandidates as $candidate)
+                                                <div class="p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/60 flex items-center justify-between gap-2 text-xs">
+                                                    <div>
+                                                        <div class="font-bold text-zinc-900 dark:text-zinc-100">{{ $candidate->first_name }} {{ $candidate->last_name }}</div>
+                                                        <div class="text-[10px] text-zinc-500">🌳 {{ $candidate->familyTree?->name }} @if($candidate->father) • bin/binti {{ $candidate->father->first_name }} @endif</div>
+                                                    </div>
+                                                    <flux:button size="xs" variant="primary" class="!bg-emerald-600" wire:click="linkExistingMemberToSource({{ $candidate->id }})">
+                                                        Tautkan
+                                                    </flux:button>
+                                                </div>
+                                            @empty
+                                                <div class="text-xs text-center py-1.5 text-zinc-400">Tidak ada anggota yang cocok.</div>
+                                            @endforelse
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -854,6 +1283,25 @@ new class extends Component
                     </p>
                 @endif
             </div>
+
+            @if($vm->sourceTree)
+                <div class="mt-3.5 p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0 text-left">
+                        <span class="text-base shrink-0">🌳</span>
+                        <div class="min-w-0">
+                            <div class="text-[10px] uppercase font-bold text-emerald-800 dark:text-emerald-400">Tercatat juga di Silsilah:</div>
+                            <div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ $vm->sourceTree->name }}</div>
+                        </div>
+                    </div>
+                    @php
+                        $sourceTreeUrl = route('tree.vertical', ['tree' => $vm->source_tree_id, 'member' => $vm->source_member_id]);
+                    @endphp
+                    <a href="{{ $sourceTreeUrl }}" wire:navigate class="shrink-0 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center gap-1 transition-all">
+                        <span>Buka</span>
+                        <span>➔</span>
+                    </a>
+                </div>
+            @endif
 
             @if(!$this->isPublic)
                 <div class="mt-4 grid grid-cols-3 gap-2">
