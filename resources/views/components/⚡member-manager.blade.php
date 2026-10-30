@@ -32,6 +32,7 @@ new class extends Component
     public $last_name = '';
     public $gender = 'male';
     public $is_living = true;
+    public ?int $order = null;
     public $birth_date = '';
     public $death_date = '';
     public $birth_place = '';
@@ -115,6 +116,7 @@ new class extends Component
         $this->last_name = $member->last_name ?? '';
         $this->gender = $member->gender;
         $this->is_living = (bool) $member->is_living;
+        $this->order = $member->order ?: null;
         $this->birth_date = $member->birth_date ? \Carbon\Carbon::parse($member->birth_date)->format('Y-m-d') : '';
         $this->death_date = $member->death_date ? \Carbon\Carbon::parse($member->death_date)->format('Y-m-d') : '';
         $this->birth_place = $member->birth_place ?? '';
@@ -207,6 +209,7 @@ new class extends Component
             'last_name' => $source->last_name,
             'gender' => $source->gender,
             'is_living' => $source->is_living,
+            'order' => $source->order,
             'birth_date' => $source->birth_date,
             'death_date' => $source->death_date,
             'birth_place' => $source->birth_place,
@@ -279,6 +282,7 @@ new class extends Component
                 'last_name' => $currentMember->last_name,
                 'gender' => $currentMember->gender,
                 'is_living' => $currentMember->is_living,
+                'order' => $currentMember->order,
                 'birth_date' => $currentMember->birth_date,
                 'death_date' => $currentMember->death_date,
                 'birth_place' => $currentMember->birth_place,
@@ -445,6 +449,7 @@ new class extends Component
         $this->last_name = $member->last_name;
         $this->gender = $member->gender;
         $this->is_living = $member->is_living;
+        $this->order = $member->order ? (int) $member->order : null;
         $this->birth_date = $member->birth_date ? \Carbon\Carbon::parse($member->birth_date)->format('Y-m-d') : '';
         $this->death_date = $member->death_date ? \Carbon\Carbon::parse($member->death_date)->format('Y-m-d') : '';
         $this->birth_place = $member->birth_place ?? '';
@@ -548,6 +553,7 @@ new class extends Component
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'gender' => 'required|in:male,female',
+            'order' => 'nullable|integer|min:1|max:999',
             'is_living' => 'boolean',
             'birth_date' => 'nullable|date',
             'death_date' => 'nullable|date',
@@ -580,6 +586,7 @@ new class extends Component
             'last_name' => $this->last_name,
             'gender' => $this->gender,
             'is_living' => $this->is_living,
+            'order' => $this->order ? (int) $this->order : null,
             'birth_date' => $this->birth_date ?: null,
             'death_date' => $this->death_date ?: null,
             'birth_place' => $this->birth_place,
@@ -940,7 +947,7 @@ new class extends Component
     public function resetForm()
     {
         $this->reset([
-            'memberId', 'first_name', 'last_name', 'gender', 'is_living',
+            'memberId', 'first_name', 'last_name', 'gender', 'is_living', 'order',
             'birth_date', 'death_date', 'birth_place', 'address', 'profession', 'bio',
             'photo', 'photo_url', 'avatar_id', 'father_id', 'mother_id', 'other_parent_id', 'relType', 'targetMemberId',
             'marriage_date', 'marriage_status', 'searchSourceQuery', 'selectedSourceMemberId',
@@ -1229,13 +1236,14 @@ new class extends Component
                     </flux:select>
                 @endif
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <flux:radio.group wire:model="gender" label="Jenis Kelamin *">
                             <flux:radio value="female" label="Wanita" />
                             <flux:radio value="male" label="Pria" />
                         </flux:radio.group>
                     </div>
+                    <flux:input type="number" min="1" max="99" wire:model="order" label="Anak ke- (opsional)" placeholder="1, 2, 3..." />
                     <div class="flex items-end pb-2">
                         <flux:switch wire:model="is_living" label="Hidup" />
                     </div>

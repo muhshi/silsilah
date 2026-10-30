@@ -17,20 +17,45 @@
         {{-- Info --}}
         <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2">
-                {{-- Name (clickable → drill down) --}}
-                <button wire:click="focusOn({{ $child->id }})" class="{{ $nameColor }} font-bold text-sm sm:text-base hover:underline text-left truncate flex items-center gap-1.5">
-                    <span>{{ $child->first_name }} {{ $child->last_name }}</span>
+                {{-- Name & Badges (clickable → drill down) --}}
+                <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                    @if($child->order && (int)$child->order > 0)
+                        <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 shrink-0">
+                            Anak ke-{{ $child->order }}
+                        </span>
+                    @endif
+                    <button wire:click="focusOn({{ $child->id }})" class="{{ $nameColor }} font-bold text-sm sm:text-base hover:underline text-left truncate">
+                        <span>{{ $child->first_name }} {{ $child->last_name }}</span>
+                    </button>
                     @if(!$child->is_living)
                         <span class="text-[10px] bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 font-bold px-1.5 py-0.2 rounded shrink-0">Wafat</span>
                     @endif
-                </button>
+                </div>
 
-                {{-- Focus Shortcut Button --}}
-                <button wire:click="focusOn({{ $child->id }})"
-                        class="p-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 text-zinc-700 dark:text-zinc-300 hover:text-emerald-600 rounded-lg text-xs font-bold shrink-0 transition-colors"
-                        title="Fokus ke {{ $child->first_name }}">
-                    ➔
-                </button>
+                {{-- Action / Shift / Focus Shortcut Buttons --}}
+                <div class="flex items-center gap-1 shrink-0">
+                    @if(empty($isPublic))
+                        <div class="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 p-0.5 shadow-2xs">
+                            <button wire:click="moveChildOrder({{ $child->id }}, 'up')"
+                                    @if(!empty($isFirst)) disabled @endif
+                                    class="p-1 rounded text-[10px] leading-none font-bold transition-colors {{ !empty($isFirst) ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed' : 'text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 hover:text-emerald-600' }}"
+                                    title="Pindah urutan ke atas">
+                                ▲
+                            </button>
+                            <button wire:click="moveChildOrder({{ $child->id }}, 'down')"
+                                    @if(!empty($isLast)) disabled @endif
+                                    class="p-1 rounded text-[10px] leading-none font-bold transition-colors {{ !empty($isLast) ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed' : 'text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 hover:text-emerald-600' }}"
+                                    title="Pindah urutan ke bawah">
+                                ▼
+                            </button>
+                        </div>
+                    @endif
+                    <button wire:click="focusOn({{ $child->id }})"
+                            class="p-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 text-zinc-700 dark:text-zinc-300 hover:text-emerald-600 rounded-lg text-xs font-bold shrink-0 transition-colors"
+                            title="Fokus ke {{ $child->first_name }}">
+                        ➔
+                    </button>
+                </div>
             </div>
 
             {{-- Profession / Birth date --}}

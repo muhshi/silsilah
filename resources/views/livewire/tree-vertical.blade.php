@@ -87,6 +87,66 @@ new class extends Component
         $this->focusMemberId = null;
     }
 
+    public function moveChildOrder(int $childId, string $direction): void
+    {
+        $targetChild = Member::find($childId);
+        if (! $targetChild || $targetChild->family_tree_id !== $this->tree->id) {
+            return;
+        }
+
+        if (! $this->isPublic) {
+            \Illuminate\Support\Facades\Gate::authorize('editMembers', $this->tree);
+        }
+
+        $query = Member::where('family_tree_id', $this->tree->id);
+
+        if ($targetChild->father_id && $targetChild->mother_id) {
+            $query->where('father_id', $targetChild->father_id)
+                ->where('mother_id', $targetChild->mother_id);
+        } elseif ($targetChild->father_id) {
+            $query->where('father_id', $targetChild->father_id);
+        } elseif ($targetChild->mother_id) {
+            $query->where('mother_id', $targetChild->mother_id);
+        } else {
+            return;
+        }
+
+        $siblings = $query->get()
+            ->sortBy(function ($child) {
+                $order = ($child->order !== null && (int) $child->order > 0) ? (int) $child->order : 999;
+                $bd = $child->birth_date ? strtotime($child->birth_date) : PHP_INT_MAX;
+
+                return [$order, $bd, $child->id];
+            })
+            ->values();
+
+        $currentIndex = $siblings->search(fn ($item) => $item->id === $targetChild->id);
+        if ($currentIndex === false) {
+            return;
+        }
+
+        $swapIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+        if ($swapIndex < 0 || $swapIndex >= $siblings->count()) {
+            return;
+        }
+
+        $temp = $siblings[$currentIndex];
+        $siblings[$currentIndex] = $siblings[$swapIndex];
+        $siblings[$swapIndex] = $temp;
+
+        foreach ($siblings->values() as $index => $sibling) {
+            $sibling->update(['order' => $index + 1]);
+        }
+
+        \App\Models\ActivityLog::log(
+            $this->tree->id,
+            'member_updated',
+            "Mengubah urutan anak: {$targetChild->first_name}"
+        );
+
+        $this->dispatch('refresh-tree');
+    }
+
     public function with()
     {
         $this->tree->loadMissing([
@@ -189,9 +249,10 @@ new class extends Component
 
             return $allMembers->where($childFilter, $member->id)
                 ->sortBy(function ($child) {
+                    $order = ($child->order !== null && (int) $child->order > 0) ? (int) $child->order : 999;
                     $bd = $child->birth_date ? strtotime($child->birth_date) : PHP_INT_MAX;
 
-                    return [$bd, $child->order ?? 999, $child->id];
+                    return [$order, $bd, $child->id];
                 });
         };
 
@@ -852,7 +913,7 @@ new class extends Component
                                     </p>
                                     <div class="space-y-2">
                                         @foreach($spouseChildren as $child)
-                                            @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants])
+                                            @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants, 'isFirst' => $loop->first, 'isLast' => $loop->last, 'isPublic' => $isPublic])
                                         @endforeach
                                     </div>
                                 @endif
@@ -863,14 +924,14 @@ new class extends Component
                                 <p class="text-xs font-bold text-zinc-500 uppercase tracking-wider mt-3 ml-1">Anak Lainnya</p>
                                 <div class="space-y-2">
                                     @foreach($unassigned as $child)
-                                        @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants])
+                                        @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants, 'isFirst' => $loop->first, 'isLast' => $loop->last, 'isPublic' => $isPublic])
                                     @endforeach
                                 </div>
                             @endif
                         @else
                             <div class="space-y-2">
                                 @foreach($focusChildren as $child)
-                                    @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants])
+                                    @include('components.vertical-child-row', ['child' => $child, 'allMembers' => $allMembers, 'getAvatar' => $getAvatar, 'getSpouses' => $getSpouses, 'countDescendants' => $countDescendants, 'isFirst' => $loop->first, 'isLast' => $loop->last, 'isPublic' => $isPublic])
                                 @endforeach
                             </div>
                         @endif

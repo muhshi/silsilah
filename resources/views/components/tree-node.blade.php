@@ -14,12 +14,14 @@
         $spouses = $allMembers->whereIn('id', $spouseIds);
     }
 
-    // Get ALL children of this member, sorted: birth_date (nulls last) → order → id
+    // Get ALL children of this member, sorted: order (if > 0) → birth_date (nulls last) → id
     $childFilter = $member->gender === 'male' ? 'father_id' : 'mother_id';
     $allChildren = $allMembers->where($childFilter, $member->id)
         ->sortBy(function ($child) {
+            $order = ($child->order !== null && (int) $child->order > 0) ? (int) $child->order : 999;
             $bd = $child->birth_date ? strtotime($child->birth_date) : PHP_INT_MAX;
-            return [$bd, $child->order ?? 999, $child->id];
+
+            return [$order, $bd, $child->id];
         });
 
     // Avatar helper
@@ -104,7 +106,7 @@
         <div class="pt-thumb">
             <img src="{{ $avatarUrl }}" onerror="this.src='{{ asset('images/no_profile_pic.jpg') }}'" />
         </div>
-        <strong>{{ trim($member->first_name . ' ' . $member->last_name) }}</strong>
+        <strong>@if($member->order && (int)$member->order > 0)<span class="text-xs opacity-75 font-normal mr-0.5">#{{ $member->order }}</span>@endif{{ trim($member->first_name . ' ' . $member->last_name) }}</strong>
 
         @if(!$isPublic)
             <span class="pt-options" onclick="event.stopPropagation()">

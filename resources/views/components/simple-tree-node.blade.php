@@ -27,8 +27,10 @@
     $childFilter = $member->gender === 'male' ? 'father_id' : 'mother_id';
     $allChildren = $allMembers->where($childFilter, $member->id)
         ->sortBy(function ($child) {
+            $order = ($child->order !== null && (int) $child->order > 0) ? (int) $child->order : 999;
             $bd = $child->birth_date ? strtotime($child->birth_date) : PHP_INT_MAX;
-            return [$bd, $child->order ?? 999, $child->id];
+
+            return [$order, $bd, $child->id];
         });
 
     $getYears = function($m) {
@@ -70,6 +72,9 @@
     <a class="{{ $spouses->isNotEmpty() ? 'haswife' : '' }} st-{{ $member->gender }} inline-flex items-center gap-1 cursor-pointer"
        wire:click.prevent="$dispatch('show-member', { id: {{ $member->id }} })"
        title="{{ trim($member->first_name . ' ' . $member->last_name) }}">
+        @if($member->order && (int) $member->order > 0)
+            <span class="st-num">#{{ $member->order }}</span>
+        @endif
         <span class="st-icon">{{ $member->gender === 'female' ? '👩' : '👨' }}</span>
         <strong class="st-name">{{ trim($member->first_name . ' ' . $member->last_name) }}</strong>
         @if($memberYears)
