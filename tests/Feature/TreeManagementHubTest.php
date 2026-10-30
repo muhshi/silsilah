@@ -16,10 +16,9 @@ it('renders tree management hub with statistics, license, logs, and collab tabs'
 
     Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
         ->assertSee('Keluarga Besar Sastrowardoyo')
-        ->assertSee('Ringkasan & Statistik')
-        ->assertSee('Status & Lisensi')
-        ->assertSee('Riwayat Aktivitas')
-        ->assertSee('Kolaborasi')
+        ->assertSee('Ringkasan & Lisensi')
+        ->assertSee('Kolaborasi & Usulan')
+        ->assertSee('Agenda & Aktivitas')
         ->assertSee('Pengaturan')
         // Check statistics tab
         ->set('activeTab', 'stats')
@@ -157,4 +156,26 @@ it('integrates management hub into tree views and dashboard', function () {
     // 4. Dashboard Trees Component
     Livewire::test('⚡dashboard-trees')
         ->assertSee('Kelola Pohon (Dashboard & Statistik)');
+});
+
+it('allows tree owner to quickly toggle public and private visibility in tree-settings', function () {
+    $owner = User::factory()->create();
+    $tree = FamilyTree::factory()->create(['is_public' => true]);
+    $tree->users()->attach($owner->id, ['role' => 'owner']);
+
+    $this->actingAs($owner);
+
+    Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
+        ->assertSee('Ubah ke Privat')
+        ->call('togglePublic')
+        ->assertHasNoErrors();
+
+    expect($tree->fresh()->is_public)->toBeFalse();
+
+    Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
+        ->assertSee('Jadikan Publik')
+        ->call('togglePublic')
+        ->assertHasNoErrors();
+
+    expect($tree->fresh()->is_public)->toBeTrue();
 });

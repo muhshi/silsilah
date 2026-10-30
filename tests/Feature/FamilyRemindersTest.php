@@ -260,7 +260,7 @@ it('can switch to reminders tab in tree settings', function () {
     $this->actingAs($owner);
 
     Livewire::test('⚡tree-settings', ['treeId' => $tree->id])
-        ->assertSee('Agenda &amp; Pengingat', false)
+        ->assertSee('Agenda &amp; Aktivitas', false)
         ->set('activeTab', 'reminders')
         ->assertSee('Haul ke-5')
         ->assertSee('Sinkron ke Kalender');
