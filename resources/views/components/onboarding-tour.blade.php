@@ -48,7 +48,7 @@
         <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 shadow-2xl max-w-sm w-[90vw] sm:w-96 text-zinc-900 dark:text-zinc-100 relative">
             
             {{-- Top Bar: Quest Badge, Step Counter, and Close Button --}}
-            <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center justify-between gap-2 mb-2">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
                     <span x-text="currentStep.badgeIcon"></span>
                     <span x-text="currentStep.badgeText"></span>
@@ -59,6 +59,12 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
+            </div>
+
+            {{-- Quest Progress Bar --}}
+            <div class="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden mb-3">
+                <div class="bg-emerald-500 h-full transition-all duration-300"
+                     :style="`width: ${((currentStepIndex + 1) / steps.length) * 100}%`"></div>
             </div>
 
             {{-- Title & Body Description --}}
@@ -121,24 +127,24 @@ document.addEventListener('alpine:init', () => {
                 },
                 {
                     target: '[data-tour="add-rel-btn"], [data-tour="member-card"]',
-                    badgeIcon: '➕',
-                    badgeText: 'Misi 2: Tambah Relasi',
-                    title: 'Hubungkan Pasangan, Anak, atau Orang Tua',
-                    description: 'Arahkan kursor ke kartu anggota dan klik ikon <strong>+ (Tambah Relasi)</strong>. Di jendela yang muncul, Anda dapat memilih jenis hubungan: <strong>Pasangan</strong>, <strong>Anak</strong>, atau <strong>Orang Tua</strong>.'
+                    badgeIcon: '💍',
+                    badgeText: 'Misi 2: Tambah Pasangan',
+                    title: 'Hubungkan Pasangan (Istri / Suami)',
+                    description: 'Arahkan kursor ke kartu anggota dan klik tombol <strong>+ (Tambah Relasi)</strong>. Pilih jenis hubungan <strong>Pasangan</strong>, lalu tentukan status pernikahan: <strong>Menikah (Aktif)</strong>, <strong>Cerai Hidup</strong>, atau <strong>Cerai Mati</strong>.'
                 },
                 {
                     target: '[data-tour="add-rel-btn"], [data-tour="member-card"]',
-                    badgeIcon: '💍',
-                    badgeText: 'Misi 3: Status Pernikahan',
-                    title: 'Pilihan Status Pernikahan Pasangan',
-                    description: 'Saat memilih pasangan, Anda bisa langsung menentukan status pernikahan: <strong>Menikah (Aktif)</strong>, <strong>Cerai Hidup</strong>, atau <strong>Cerai Mati</strong>. Relasi keluarga akan otomatis terhubung rapi di pohon.'
+                    badgeIcon: '👶',
+                    badgeText: 'Misi 3: Tambahkan Anak',
+                    title: 'Tambahkan Garis Keturunan (Anak)',
+                    description: 'Klik tombol <strong>+ (Tambah Relasi)</strong> pada kartu anggota, lalu pilih jenis hubungan <strong>Anak</strong>. Anda bisa memilih kedua orang tuanya agar garis silsilah langsung tersambung otomatis ke bawah.'
                 },
                 {
                     target: null,
                     badgeIcon: '🎉',
                     badgeText: 'Tutorial Selesai!',
                     title: 'Siap Membangun Silsilah!',
-                    description: 'Luar biasa! Sekarang Anda sudah memahami alur dasar membuat silsilah. Anda bisa menggeser (drag/pan), memperbesar/memperkecil (zoom), dan mengekspor hasilnya kapan saja.'
+                    description: 'Luar biasa! Sekarang Anda sudah memahami alur dasar membuat silsilah: pohon baru, leluhur, pasangan, dan anak. Anda bisa menggeser kanvas (drag), zoom, dan mengekspor hasilnya kapan saja.'
                 }
             ];
         },

@@ -410,6 +410,9 @@ new class extends Component
                         <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
                             Import CSV/GEDCOM
                         </flux:menu.item>
+                        <flux:menu.item icon="academic-cap" @click="$dispatch('start-onboarding-tour')">
+                            Panduan Tutorial
+                        </flux:menu.item>
                         <flux:menu.separator />
                         <flux:menu.item icon="window" href="{{ Route::has('tree.dock') ? route('tree.dock', $tree) : url('/tree/' . ($tree->slug ?: $tree->id) . '/dock') }}">
                             Coba Tampilan Dock (Opsi 2)
@@ -537,6 +540,9 @@ new class extends Component
                         </flux:menu.item>
                         <flux:menu.item icon="arrow-down-on-square" wire:click="$dispatch('open-import-modal')">
                             Import CSV/GEDCOM
+                        </flux:menu.item>
+                        <flux:menu.item icon="academic-cap" @click="$dispatch('start-onboarding-tour')">
+                            Panduan Tutorial
                         </flux:menu.item>
                         <flux:menu.separator />
                         <flux:menu.item icon="window" href="{{ Route::has('tree.dock') ? route('tree.dock', $tree) : url('/tree/' . ($tree->slug ?: $tree->id) . '/dock') }}">
@@ -1015,4 +1021,8 @@ new class extends Component
 
     {{-- Export Loading Progress Modal & Minimizable Pill --}}
     <x-export-progress-modal />
+
+    @if(!$isPublic)
+        <x-onboarding-tour mode="vertical" :tree-id="$tree->id" :is-owner="true" />
+    @endif
 </div>

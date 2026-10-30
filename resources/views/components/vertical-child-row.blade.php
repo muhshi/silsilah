@@ -5,7 +5,7 @@
     $nameColor = $child->gender === 'female' ? 'text-pink-600 dark:text-pink-400' : 'text-teal-600 dark:text-teal-400';
 @endphp
 
-<div class="border-l-4 {{ $borderColor }} bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 shadow-xs hover:shadow-md transition-shadow">
+<div class="border-l-4 {{ $borderColor }} bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 shadow-xs hover:shadow-md transition-shadow" data-tour="member-card">
     <div class="flex items-start gap-3">
         {{-- Photo --}}
         <div class="w-12 h-12 rounded-full overflow-hidden border-2 {{ $child->gender === 'female' ? 'border-pink-400' : 'border-teal-400' }} shrink-0 cursor-pointer bg-zinc-50 dark:bg-zinc-800"
@@ -78,6 +78,7 @@
                     Profil
                 </button>
                 <button wire:click="$dispatch('create-member', { targetId: {{ $child->id }}, relType: 'child_of' })"
+                        data-tour="add-rel-btn"
                         class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 px-2 py-1 rounded transition-colors">
                     <flux:icon name="plus" class="size-3.5" />
                     Tambah Anak
