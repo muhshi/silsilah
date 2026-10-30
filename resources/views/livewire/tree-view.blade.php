@@ -216,6 +216,9 @@ new class extends Component
                             <flux:menu.item icon="user-group" wire:click="$dispatch('open-relationship-calculator')">
                                 Cek Hubungan Kekerabatan
                             </flux:menu.item>
+                            <flux:menu.item icon="academic-cap" @click="$dispatch('start-onboarding-tour')">
+                                Panduan Tutorial Silsilah
+                            </flux:menu.item>
                         @else
                             <flux:menu.item icon="pencil-square" wire:click="$dispatch('open-contribute-modal')">
                                 Lengkapi / Usulkan Data
@@ -230,6 +233,7 @@ new class extends Component
                 {{-- Add Member CTA --}}
                 @if(!$isPublic)
                     <button wire:click="$dispatch('create-member')"
+                            data-tour="add-member-top"
                             class="px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] sm:text-xs shadow-xs flex items-center gap-1 shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
                             title="Tambah Anggota">
                         <span class="material-symbols-outlined text-sm">add</span>
@@ -387,13 +391,16 @@ new class extends Component
                             Import CSV/GEDCOM
                         </flux:menu.item>
                         <flux:menu.separator />
+                        <flux:menu.item icon="academic-cap" @click="$dispatch('start-onboarding-tour')">
+                            Panduan Tutorial Silsilah
+                        </flux:menu.item>
                         <flux:menu.item icon="window" href="{{ Route::has('tree.dock') ? route('tree.dock', $tree) : url('/tree/' . ($tree->slug ?: $tree->id) . '/dock') }}">
                             Coba Tampilan Dock (Opsi 2)
                         </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
 
-                <flux:button size="sm" icon="plus" wire:click="$dispatch('create-member')" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-bold !rounded-xl shadow-md shadow-emerald-600/20">
+                <flux:button size="sm" icon="plus" wire:click="$dispatch('create-member')" data-tour="add-member-top" class="!bg-emerald-600 !text-white hover:!bg-emerald-700 font-bold !rounded-xl shadow-md shadow-emerald-600/20">
                     Anggota Baru
                 </flux:button>
             @else
@@ -574,11 +581,29 @@ new class extends Component
 
             <div class="tree-inner" x-ref="inner" :style="transformStyle">
                 <div class="tree" id="myTree">
-                    <ul>
-                        @foreach($rootMembers as $member)
-                            <x-tree-node :member="$member" :all-members="$allMembers" :is-public="$isPublic" />
-                        @endforeach
-                    </ul>
+                    @if($rootMembers->isEmpty())
+                        <div class="flex flex-col items-center justify-center p-8 text-center max-w-sm mx-auto my-16 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-3xl border-2 border-dashed border-emerald-300 dark:border-emerald-700/60 shadow-xl" data-tour="empty-tree-cta">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl mb-3 shadow-inner">
+                                🌱
+                            </div>
+                            <h3 class="text-base font-bold text-zinc-900 dark:text-white mb-1">Pohon Masih Kosong</h3>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-5 leading-relaxed">
+                                Mulai bangun silsilah keluarga Anda dengan menambahkan anggota pertama sebagai leluhur atau kepala keluarga.
+                            </p>
+                            @if(!$isPublic)
+                                <button wire:click="$dispatch('create-member')" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95">
+                                    <span class="material-symbols-outlined text-base">person_add</span>
+                                    <span>Tambah Anggota Pertama</span>
+                                </button>
+                            @endif
+                        </div>
+                    @else
+                        <ul>
+                            @foreach($rootMembers as $member)
+                                <x-tree-node :member="$member" :all-members="$allMembers" :is-public="$isPublic" />
+                            @endforeach
+                        </ul>
+                    @endif
                 </div>
             </div>
 
@@ -674,6 +699,9 @@ new class extends Component
 
     {{-- Export Loading Progress Modal & Minimizable Pill --}}
     <x-export-progress-modal />
+
+    {{-- Interactive Onboarding Tour for Tree Canvas --}}
+    <x-onboarding-tour mode="canvas" :tree-id="$tree->id" :is-owner="!$isPublic" />
 </div>
 
 @script

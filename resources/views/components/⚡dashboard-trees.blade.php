@@ -216,6 +216,7 @@ new class extends Component
 
         <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <button wire:click="openCreateTree"
+                    data-tour="create-tree-btn"
                     class="flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold shadow-md shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto text-xs sm:text-sm cursor-pointer">
                 <span class="material-symbols-outlined text-lg sm:text-xl">add</span>
                 <span>Buat Silsilah</span>
@@ -227,6 +228,14 @@ new class extends Component
                     <span>Beli Kuota</span>
                 </button>
             </flux:modal.trigger>
+
+            <button type="button"
+                    @click="$dispatch('start-onboarding-tour')"
+                    class="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold transition-all w-full sm:w-auto text-xs sm:text-sm shadow-2xs cursor-pointer"
+                    title="Buka Panduan Tutorial">
+                <span class="material-symbols-outlined text-base sm:text-lg">school</span>
+                <span>Panduan</span>
+            </button>
         </div>
     </div>
 
@@ -1043,4 +1052,7 @@ new class extends Component
             </div>
         </div>
     </flux:modal>
+
+    {{-- Interactive Onboarding Tour for Dashboard --}}
+    <x-onboarding-tour mode="dashboard" />
 </div>
