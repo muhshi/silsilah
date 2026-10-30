@@ -46,6 +46,5 @@ test('tree canvas with members renders member cards and quick action tour hooks'
         ->get(route('tree.show', $tree->id))
         ->assertOk()
         ->assertSee('data-tour="member-card"', false)
-        ->assertSee('data-tour="spouse-action-btn"', false)
-        ->assertSee('data-tour="child-action-btn"', false);
+        ->assertSee('data-tour="add-rel-btn"', false);
 });

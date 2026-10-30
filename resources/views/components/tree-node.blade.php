@@ -72,8 +72,8 @@
                     <button type="button" class="tree-edit" wire:click.stop.prevent="$dispatch('edit-member', { id: {{ $spouse->id }} })" title="Edit Data">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                     </button>
-                    <button type="button" class="tree-add" wire:click.stop.prevent="$dispatch('create-member', { targetId: {{ $spouse->id }}, relType: 'child_of' })" title="Tambah Anak">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <button type="button" class="tree-add" wire:click.stop.prevent="$dispatch('create-member', { targetId: {{ $spouse->id }} })" title="Tambah Anggota / Relasi">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     </button>
                     <button type="button" class="tree-delete" wire:click.stop.prevent="$dispatch('confirm-delete-member', { id: {{ $spouse->id }} })" title="Hapus">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
@@ -111,14 +111,8 @@
                 <button type="button" class="tree-edit" wire:click.stop.prevent="$dispatch('edit-member', { id: {{ $member->id }} })" title="Edit Data">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                 </button>
-                <button type="button" class="tree-add" data-tour="child-action-btn" wire:click.stop.prevent="$dispatch('create-member', { targetId: {{ $member->id }}, relType: 'child_of' })" title="Tambah Anak">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                </button>
-                <button type="button" class="tree-spouse" data-tour="spouse-action-btn" wire:click.stop.prevent="$dispatch('create-member', { targetId: {{ $member->id }}, relType: 'spouse_of' })" title="Tambah Pasangan">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                </button>
-                <button type="button" class="tree-parent" wire:click.stop.prevent="$dispatch('create-member', { targetId: {{ $member->id }}, relType: 'parent_of' })" title="Tambah Orang Tua">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                <button type="button" class="tree-add" data-tour="add-rel-btn" wire:click.stop.prevent="$dispatch('create-member', { targetId: {{ $member->id }} })" title="Tambah Anggota / Relasi">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
                 <button type="button" class="tree-delete" wire:click.stop.prevent="$dispatch('confirm-delete-member', { id: {{ $member->id }} })" title="Hapus">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>

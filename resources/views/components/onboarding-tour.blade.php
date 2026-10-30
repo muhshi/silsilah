@@ -120,18 +120,18 @@ document.addEventListener('alpine:init', () => {
                     description: 'Mulai silsilah Anda dengan memasukkan <strong>anggota pertama</strong> sebagai akar utama keluarga. Klik tombol <strong>+ Tambah Anggota</strong> untuk mengisi nama, jenis kelamin, serta foto profil.'
                 },
                 {
-                    target: '[data-tour="spouse-action-btn"], [data-tour="member-card"]',
-                    badgeIcon: '💍',
-                    badgeText: 'Misi 2: Tambah Pasangan',
-                    title: 'Hubungkan Pasangan (Suami / Istri)',
-                    description: 'Arahkan kursor ke kartu anggota dan klik ikon <strong>+ (Pasangan)</strong> untuk mencatat suami atau istri, lengkap dengan status pernikahan: <strong>Menikah</strong>, <strong>Cerai Hidup</strong>, atau <strong>Cerai Mati</strong>.'
+                    target: '[data-tour="add-rel-btn"], [data-tour="member-card"]',
+                    badgeIcon: '➕',
+                    badgeText: 'Misi 2: Tambah Relasi',
+                    title: 'Hubungkan Pasangan, Anak, atau Orang Tua',
+                    description: 'Arahkan kursor ke kartu anggota dan klik ikon <strong>+ (Tambah Relasi)</strong>. Di jendela yang muncul, Anda dapat memilih jenis hubungan: <strong>Pasangan</strong>, <strong>Anak</strong>, atau <strong>Orang Tua</strong>.'
                 },
                 {
-                    target: '[data-tour="child-action-btn"], [data-tour="member-card"]',
-                    badgeIcon: '👶',
-                    badgeText: 'Misi 3: Tambah Anak',
-                    title: 'Tambahkan Keturunan (Anak)',
-                    description: 'Klik ikon <strong>+ (Anak)</strong> di bawah kartu untuk menyambungkan anak. Pohon keluarga akan otomatis menyusun garis keturunan generasi berikutnya ke bawah secara rapi.'
+                    target: '[data-tour="add-rel-btn"], [data-tour="member-card"]',
+                    badgeIcon: '💍',
+                    badgeText: 'Misi 3: Status Pernikahan',
+                    title: 'Pilihan Status Pernikahan Pasangan',
+                    description: 'Saat memilih pasangan, Anda bisa langsung menentukan status pernikahan: <strong>Menikah (Aktif)</strong>, <strong>Cerai Hidup</strong>, atau <strong>Cerai Mati</strong>. Relasi keluarga akan otomatis terhubung rapi di pohon.'
                 },
                 {
                     target: null,
