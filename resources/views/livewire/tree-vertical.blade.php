@@ -977,7 +977,7 @@ new class extends Component
         </button>
 
         @if(!$isPublic)
-            <button wire:click="$dispatch('create-member', { targetId: {{ $focusMember?->id }}, relType: 'child_of' })"
+            <button wire:click="$dispatch('create-member', { targetId: {{ $focusMember?->id ?? 'null' }}, relType: 'child_of' })"
                     class="flex-1 flex flex-col items-center justify-center gap-1 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <span class="text-lg font-bold">➕</span>
                 <span class="text-[11px]">Tambah</span>

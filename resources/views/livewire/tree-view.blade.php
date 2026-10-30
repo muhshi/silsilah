@@ -679,9 +679,10 @@ new class extends Component
 @script
 <script>
     Alpine.data('canvasTree', () => ({
-        scale: 1,
-        panX: 0,
-        panY: 0,
+        scale: parseFloat(sessionStorage.getItem('canvas_tree_scale_{{ $tree->id }}')) || 1,
+        panX: parseInt(sessionStorage.getItem('canvas_tree_panX_{{ $tree->id }}'), 10) || 0,
+        panY: parseInt(sessionStorage.getItem('canvas_tree_panY_{{ $tree->id }}'), 10) || 0,
+        hasUserMoved: !!(sessionStorage.getItem('canvas_tree_panX_{{ $tree->id }}')),
         dragging: false,
         startX: 0,
         startY: 0,
@@ -696,10 +697,23 @@ new class extends Component
         },
 
         init() {
-            this.$nextTick(() => {
-                setTimeout(() => this.centerTree(), 100);
+            if (!this.hasUserMoved) {
+                this.$nextTick(() => {
+                    setTimeout(() => this.centerTree(), 100);
+                });
+            }
+            window.addEventListener('resize', () => {
+                if (!this.hasUserMoved) {
+                    this.centerTree();
+                }
             });
-            window.addEventListener('resize', () => this.centerTree());
+        },
+
+        savePosition() {
+            this.hasUserMoved = true;
+            sessionStorage.setItem('canvas_tree_scale_{{ $tree->id }}', this.scale);
+            sessionStorage.setItem('canvas_tree_panX_{{ $tree->id }}', this.panX);
+            sessionStorage.setItem('canvas_tree_panY_{{ $tree->id }}', this.panY);
         },
 
         centerTree() {
@@ -734,6 +748,7 @@ new class extends Component
         startDrag(e) {
             if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.pt-zoom-controls')) return;
             this.dragging = true;
+            this.hasUserMoved = true;
             this.startX = e.clientX - this.panX;
             this.startY = e.clientY - this.panY;
         },
@@ -743,7 +758,12 @@ new class extends Component
             this.panX = e.clientX - this.startX;
             this.panY = e.clientY - this.startY;
         },
-        stopDrag() { this.dragging = false; },
+        stopDrag() {
+            if (this.dragging) {
+                this.dragging = false;
+                this.savePosition();
+            }
+        },
 
         doZoom(e) {
             const delta = e.deltaY > 0 ? -0.06 : 0.06;
@@ -755,6 +775,7 @@ new class extends Component
             this.panX = Math.round(cx - ratio * (cx - this.panX));
             this.panY = Math.round(cy - ratio * (cy - this.panY));
             this.scale = newScale;
+            this.savePosition();
         },
 
         startTouch(e) {
@@ -765,8 +786,9 @@ new class extends Component
             if (now - this.lastTapTime < 300 && e.touches.length === 1) {
                 if (this.scale < 0.9) {
                     this.scale = 1.0;
+                    this.savePosition();
                 } else {
-                    this.centerTree();
+                    this.resetView();
                 }
                 this.lastTapTime = 0;
                 return;
@@ -775,11 +797,13 @@ new class extends Component
 
             if (e.touches.length === 1) {
                 this.dragging = true;
+                this.hasUserMoved = true;
                 this.startX = e.touches[0].clientX - this.panX;
                 this.startY = e.touches[0].clientY - this.panY;
                 this.initialPinchDistance = 0;
             } else if (e.touches.length === 2) {
                 this.dragging = false;
+                this.hasUserMoved = true;
                 this.initialPinchDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
@@ -812,6 +836,9 @@ new class extends Component
         },
         stopTouch(e) {
             if (!e || e.touches.length === 0) {
+                if (this.dragging) {
+                    this.savePosition();
+                }
                 this.dragging = false;
                 this.initialPinchDistance = 0;
             } else if (e.touches.length === 1) {
@@ -825,12 +852,18 @@ new class extends Component
         zoomIn() { 
             const newScale = Math.min(2.5, parseFloat((this.scale + 0.15).toFixed(2)));
             this.scale = newScale;
+            this.savePosition();
         },
         zoomOut() { 
             const newScale = Math.max(0.2, parseFloat((this.scale - 0.15).toFixed(2)));
             this.scale = newScale;
+            this.savePosition();
         },
         resetView() { 
+            sessionStorage.removeItem('canvas_tree_scale_{{ $tree->id }}');
+            sessionStorage.removeItem('canvas_tree_panX_{{ $tree->id }}');
+            sessionStorage.removeItem('canvas_tree_panY_{{ $tree->id }}');
+            this.hasUserMoved = false;
             this.centerTree(); 
         },
     }));

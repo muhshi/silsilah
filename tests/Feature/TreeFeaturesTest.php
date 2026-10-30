@@ -124,6 +124,43 @@ it('allows selecting mother when creating a child for a father with multiple wiv
         ->and($child->mother_id)->toBe($wife2->id);
 });
 
+it('handles create-member event with array payload from alpine dispatch', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+    $parent = Member::factory()->create(['family_tree_id' => $tree->id, 'gender' => 'male']);
+
+    $this->actingAs($user);
+
+    Livewire::test('⚡member-manager', ['treeId' => $tree->id])
+        ->dispatch('create-member', ['targetId' => $parent->id, 'relType' => 'child_of'])
+        ->assertSet('targetMemberId', $parent->id)
+        ->assertSet('relType', 'child_of');
+});
+
+it('can update existing marriage status to divorced or deceased in member manager', function () {
+    $user = User::factory()->create();
+    $tree = FamilyTree::factory()->create();
+    $tree->users()->attach($user->id, ['role' => 'owner']);
+
+    $husband = Member::factory()->create(['family_tree_id' => $tree->id, 'gender' => 'male', 'first_name' => 'Budi']);
+    $wife = Member::factory()->create(['family_tree_id' => $tree->id, 'gender' => 'female', 'first_name' => 'Siti']);
+
+    $marriage = Marriage::create([
+        'husband_id' => $husband->id,
+        'wife_id' => $wife->id,
+        'is_current' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test('⚡member-manager', ['treeId' => $tree->id])
+        ->call('updateMarriageStatus', $marriage->id, false)
+        ->assertDispatched('refresh-tree');
+
+    expect($marriage->fresh()->is_current)->toBeFalse();
+});
+
 it('can update tree settings like public status and view password', function () {
     $user = User::factory()->create();
     $tree = FamilyTree::factory()->create(['is_public' => true, 'view_password' => null]);
