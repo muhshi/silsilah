@@ -437,6 +437,9 @@ new class extends Component
     #[On('edit-member')]
     public function editMember($id)
     {
+        $tree = FamilyTree::findOrFail($this->treeId);
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
+
         if (is_array($id)) {
             $id = $id['id'] ?? null;
         }
@@ -444,7 +447,7 @@ new class extends Component
         $this->resetForm();
         $this->memberId = $id ? (int) $id : null;
         
-        $member = Member::findOrFail($this->memberId);
+        $member = $tree->members()->findOrFail($this->memberId);
         $this->first_name = $member->first_name;
         $this->last_name = $member->last_name;
         $this->gender = $member->gender;
@@ -549,6 +552,13 @@ new class extends Component
             return;
         }
 
+        if ($this->is_living) {
+            $this->death_date = null;
+        }
+        if (! $this->birth_date) {
+            $this->birth_date = null;
+        }
+
         $this->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -556,9 +566,9 @@ new class extends Component
             'order' => 'nullable|integer|min:1|max:999',
             'is_living' => 'boolean',
             'birth_date' => 'nullable|date',
-            'death_date' => 'nullable|date',
+            'death_date' => 'nullable|date|after_or_equal:birth_date',
             'photo' => 'nullable|image|max:2048',
-            'father_id' => 'nullable|exists:members,id',
+            'father_id' => 'nullable|exists:members,id|different:mother_id',
             'mother_id' => 'nullable|exists:members,id',
         ]);
 
@@ -588,7 +598,7 @@ new class extends Component
             'is_living' => $this->is_living,
             'order' => $this->order ? (int) $this->order : null,
             'birth_date' => $this->birth_date ?: null,
-            'death_date' => $this->death_date ?: null,
+            'death_date' => ($this->is_living || ! $this->death_date) ? null : $this->death_date,
             'birth_place' => $this->birth_place,
             'address' => $this->address,
             'profession' => $this->profession,
@@ -621,7 +631,7 @@ new class extends Component
 
         // Handle relation context for new members
         if (!$this->memberId && $this->targetMemberId) {
-            $target = Member::find($this->targetMemberId);
+            $target = $tree->members()->find($this->targetMemberId);
             if ($target) {
                 if ($this->relType === 'child_of') {
                     if ($target->gender === 'male') {
@@ -640,7 +650,7 @@ new class extends Component
         }
 
         if ($this->memberId) {
-            $member = Member::findOrFail($this->memberId);
+            $member = $tree->members()->findOrFail($this->memberId);
             $member->update($data);
 
             if ($this->marriage_date) {
@@ -665,7 +675,7 @@ new class extends Component
             
             // Parent Of - set member as parent of target
             if ($this->relType === 'parent_of' && $this->targetMemberId) {
-                $target = Member::find($this->targetMemberId);
+                $target = $tree->members()->find($this->targetMemberId);
                 if ($target) {
                     if ($member->gender === 'male') {
                         $target->update(['father_id' => $member->id]);
@@ -677,7 +687,7 @@ new class extends Component
             
             // Spouse Of - create marriage
             if (in_array($this->relType, ['spouse_of', 'ex_of']) && $this->targetMemberId) {
-                $target = Member::find($this->targetMemberId);
+                $target = $tree->members()->find($this->targetMemberId);
                 if ($target) {
                     $husbandId = $member->gender === 'male' ? $member->id : $target->id;
                     $wifeId = $member->gender === 'female' ? $member->id : $target->id;
@@ -768,19 +778,18 @@ new class extends Component
 
     public function deleteMember()
     {
-        \Illuminate\Support\Facades\Gate::authorize('editMembers', FamilyTree::findOrFail($this->treeId));
+        $tree = FamilyTree::findOrFail($this->treeId);
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
         if ($this->memberId) {
-            $member = Member::find($this->memberId);
-            if ($member) {
-                $name = "{$member->first_name} {$member->last_name}";
-                Marriage::where('husband_id', $this->memberId)->orWhere('wife_id', $this->memberId)->delete();
-                $member->delete();
-                \App\Models\ActivityLog::log(
-                    $this->treeId,
-                    'member_deleted',
-                    "Menghapus anggota '{$name}'"
-                );
-            }
+            $member = $tree->members()->findOrFail($this->memberId);
+            $name = "{$member->first_name} {$member->last_name}";
+            Marriage::where('husband_id', $this->memberId)->orWhere('wife_id', $this->memberId)->delete();
+            $member->delete();
+            \App\Models\ActivityLog::log(
+                $this->treeId,
+                'member_deleted',
+                "Menghapus anggota '{$name}'"
+            );
             Flux::modal('member-modal')->close();
             $this->dispatch('refresh-tree');
         }
@@ -791,7 +800,10 @@ new class extends Component
         $tree = FamilyTree::findOrFail($this->treeId);
         \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
 
-        $marriage = Marriage::findOrFail($marriageId);
+        $marriage = Marriage::where(function ($query) use ($tree) {
+            $query->whereHas('husband', fn ($h) => $h->where('family_tree_id', $tree->id))
+                ->orWhereHas('wife', fn ($w) => $w->where('family_tree_id', $tree->id));
+        })->findOrFail($marriageId);
         $marriage->update(['is_current' => (bool) $isCurrent]);
 
         $statusLabel = $isCurrent ? 'Menikah (Aktif)' : 'Cerai';
@@ -810,7 +822,10 @@ new class extends Component
         $tree = FamilyTree::findOrFail($this->treeId);
         \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
 
-        $marriage = Marriage::findOrFail($marriageId);
+        $marriage = Marriage::where(function ($query) use ($tree) {
+            $query->whereHas('husband', fn ($h) => $h->where('family_tree_id', $tree->id))
+                ->orWhereHas('wife', fn ($w) => $w->where('family_tree_id', $tree->id));
+        })->findOrFail($marriageId);
         $marriage->update([
             'marriage_date' => $date ?: null,
         ]);
@@ -830,7 +845,10 @@ new class extends Component
         $tree = FamilyTree::findOrFail($this->treeId);
         \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
 
-        $marriage = Marriage::findOrFail($marriageId);
+        $marriage = Marriage::where(function ($query) use ($tree) {
+            $query->whereHas('husband', fn ($h) => $h->where('family_tree_id', $tree->id))
+                ->orWhereHas('wife', fn ($w) => $w->where('family_tree_id', $tree->id));
+        })->findOrFail($marriageId);
         $marriage->delete();
 
         \App\Models\ActivityLog::log(
@@ -853,18 +871,19 @@ new class extends Component
     #[On('confirm-delete-member')]
     public function confirmDeleteMember($id)
     {
+        $tree = FamilyTree::findOrFail($this->treeId);
+        \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
+
         $this->memberId = $id;
-        $member = Member::find($id);
-        if ($member) {
-            $name = "{$member->first_name} {$member->last_name}";
-            Marriage::where('husband_id', $id)->orWhere('wife_id', $id)->delete();
-            $member->delete();
-            \App\Models\ActivityLog::log(
-                $this->treeId,
-                'member_deleted',
-                "Menghapus anggota '{$name}'"
-            );
-        }
+        $member = $tree->members()->findOrFail($id);
+        $name = "{$member->first_name} {$member->last_name}";
+        Marriage::where('husband_id', $id)->orWhere('wife_id', $id)->delete();
+        $member->delete();
+        \App\Models\ActivityLog::log(
+            $this->treeId,
+            'member_deleted',
+            "Menghapus anggota '{$name}'"
+        );
         $this->dispatch('refresh-tree');
     }
 
@@ -879,9 +898,13 @@ new class extends Component
     public function deleteFromDetail()
     {
         if ($this->viewMember) {
+            $tree = FamilyTree::findOrFail($this->treeId);
+            \Illuminate\Support\Facades\Gate::authorize('editMembers', $tree);
+
             $id = $this->viewMember->id;
+            $member = $tree->members()->findOrFail($id);
             Marriage::where('husband_id', $id)->orWhere('wife_id', $id)->delete();
-            Member::findOrFail($id)->delete();
+            $member->delete();
             Flux::modal('detail-modal')->close();
             $this->viewMember = null;
             $this->dispatch('refresh-tree');
